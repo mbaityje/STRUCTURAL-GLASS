@@ -1,0 +1,6 @@
+
+set xlabel "t"
+set ylabel "F_k(t_0,t)"
+set key bottom left
+set tics format "%g"
+p for [i=0:3]"< egrep ^".i." Fkt-t0.txt" u ($4-$3):5 w l

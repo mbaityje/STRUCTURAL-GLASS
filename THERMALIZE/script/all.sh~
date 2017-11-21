@@ -1,0 +1,5 @@
+CreateInitialIS.sh #Only needs to be called once
+
+CheckThermalizationAll.sh
+SelfIntermediateScatteringFunction.sh
+ThermalizeAll.sh

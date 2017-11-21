@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+exeDIR=$PWD
+cd $exeDIR
+iniDIR=../../CONFIGURATIONS/INITIAL-STATES/N65/
+mkdir -p $iniDIR
+
+cd $iniDIR
+python $exeDIR/CreateInitialIS_N65.py
+
+
+
+

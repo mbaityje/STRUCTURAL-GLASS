@@ -1,0 +1,181 @@
+# module_computeObservables
+import numpy as np
+from numba import float32, int32, int64, float64
+from numba import jit
+#import numba
+import module_dist_compute
+
+# tricks about numba:
+# 1) comment out all the @jit to debug 
+# 2) if @jit(options) does not work, try  @jit() alone
+# 3) prints statements are a mess
+
+#TODO: use the option nogil and nopython in my jit calls 
+
+
+## this is a container for the core @jit function
+## it does not need speed.
+def gofr_and_Sq_computer(Full_positions, selectedAtoms, dr, Lx, expectedDensity, shift_vector, rMax):
+    positions = Full_positions[selectedAtoms] 
+
+    ############################################################################
+    ################ CORE FUNCTION: ############################################
+    resultArray, dist_num = module_dist_compute.dist_computer(positions, Lx, expectedDensity, shift_vector, rMax)
+    ############################################################################
+
+    ## TODO : use selectedAtoms properly  here, to compute the g_AB  and nopt jsut the G_AA or g_BB separately  ?
+    ## right now with all I comopute g_XY but averaging over  all X and Y
+    
+    Natoms = positions.shape[0]
+    gofr_length = int(rMax/dr)+1
+    gofrRaw = np.zeros(gofr_length)
+    for atom in range(Natoms):
+        for num in range(dist_num[atom]):
+            dist   = resultArray[atom, num ,0]
+#            atom_b = resultArray[atom, num ,1]
+            gofrRaw[int(dist/dr)] +=1
+
+    if gofrRaw[0] != len(positions[:,0]) :
+        print("inconsistent number between self (rather, points at distance less than dr) and the length of 'positions' array. gofrRaw[0] =", gofrRaw[0] , " ?==? len(positions[:,0])=", len(positions[:,0]),   " ,   difference=", gofrRaw[0] - len(positions[:,0]) )
+    gofrRaw /= Natoms  ## natural because we summed over N^2 pairs
+#    return gofrRaw
+    ########## end of numba function ################
+    #################################################
+    
+    
+
+
+    ###########################
+    ####### output ############
+    
+    rvalues = np.arange(0,(int(rMax/dr)+1+42)*dr,dr)  # +42 is just to be safe
+    rvalues = rvalues[:len(gofrRaw)]
+    rvalues[0] = 1   ## correct the fisrt bin, to avoid /0
+    
+    # divide by the volume inspected: #
+    gofr = gofrRaw / ( (4*np.pi*rvalues**2*dr) )    # /2) ## the factor 2 is because we counted evrey pait twice (not very efficient by the way)
+    
+    gofr /= expectedDensity ## XXX recent addition
+    
+    # suppress the self-counting (r=0, + divergence to supress) #
+    gofr[0]=0.0
+
+    print 'np.sum(gofr) * dr * rho :', np.sum(gofr) * dr * expectedDensity 
+    print 'expected total weight   : ', 4./3*np.pi*(rMax**3) * expectedDensity # -0.9**3)
+    
+    
+    
+    ##################
+    ## crucial line ##
+#    Sq = np.real(np.fft.rfft(gofr[gofr!=0]))
+#XXX
+#    Sq = np.real(np.fft.fft(gofr[:int(1/dr)]))
+#    Sq = np.real(np.fft.fft(gofr))
+    nq = len(gofr)
+
+# XXX ? TODO : avant javais mis ca:    stuff = (gofr*dr)[int(0.93/dr):]  
+    stuff = (gofr*dr)[:] -1
+    Sq = 1 + np.real(np.fft.fft(stuff, nq))
+    qs = np.fft.fftfreq(nq)*rMax/dr # 2*np.pi
+    
+#    Sq = np.roll(Sq, len(Sq)/2)
+#    Sq = Sq[:len(Sq)/2]
+#    qs = rvalues  
+
+    # (Lx/(2*np.pi*rvalues))
+    # qs[0]=qs[1] #TODO: sort this out (go see folder 3)
+    ##################
+    
+    return rvalues, gofr, qs, Sq
+################################################################################
+
+
+
+#Sq_1D=np.mean(tt[-Number_of_lines_to_include:-1],0)/Lx**2
+#Sq_1D=Sq_1D[:len(Sq_1D)/2]
+###qs = np.arange(int(np.shape(Sq_1D)[0])) * 2.0*np.pi / Lx
+#qs = np.arange(int(np.shape(Sq_1D)[0])) *1.0/Lx
+#Sq_1D /= qs
+#(1.0-np.cos(qs))**0.5 is approximately q , but better
+
+
+
+
+@jit # (nogil=True, nopython=True)
+def getKSets_function(nx,ny,nz, it):
+    if it==0:
+        return np.array([nx,ny,nz])#,dtype=float)
+    if it==1:
+        return np.array([nz,nx,ny])#,dtype=float)
+    if it==2:
+        return np.array([ny,nz,nx])#,dtype=float)
+    if it==3:
+        return np.array([nx,nz,ny])#,dtype=float)
+    if it==4:
+        return np.array([nz,ny,nx])#,dtype=float)
+    if it==5:
+        return np.array([ny,nx,nz])#,dtype=float)
+#    k_sets = [[nx,ny,nz], [nz,nx,ny], [ny,nz,nx], [nx,nz,ny], [nz,ny,nx], [ny,nx,nz]]
+#        k_vector = np.array(k_sets[k_set_index])
+
+
+@jit # (nogil=True, nopython=True)
+def Fkt_function(NX, NY, NZ, Lx, displacements):
+    ## summing all the *k* (vector) that have norm |k| equal to the k_norm() chosen ##
+    #displacements = applyPBC_vector_func(displacements, Lx)    ## we assume PBC have been applied already ##
+    Fk_Deltat = np.zeros( len(displacements), dtype=complex)
+    for nx in [NX,-NX]:
+        for ny in [NY,-NY]:
+            ## note that we could spare this last loop and double the weight of these z-conribuions and take real part.. but it's not elegant.
+            for nz in [NZ,-NZ]:
+                for k_set_index in range(6):
+                    k_vector = getKSets_function(nx,ny,nz,k_set_index)
+                    Fk_Deltat += np.exp( (2.0j*np.pi/Lx) * np.sum(k_vector*displacements,1) ) 
+                    ## remember that Fk_Deltat is an array (size Natoms)
+
+    return Fk_Deltat
+    
+    
+################################################################################
+
+
+## light function which automatically defines 
+## which windows of time to study, and how many frames to use in each
+## (or equilvalently how many frames to skip)
+def makeWs_function(Delta_t_range, trajDuration, Delta_t_MAX, window_duration, Nwindow_max): 
+
+    ## correct Delta_t_MAX for the weird cases
+    Delta_t_MAX = min(Delta_t_MAX, np.max(Delta_t_range))
+    if trajDuration-1-Delta_t_MAX <= 1:
+        Delta_t_MAX = trajDuration-1 -  window_duration - 1
+        
+    ### the fundamental formula for the following 3 cases is :
+    ## (trajDuration-1-Delta_t_MAX) >= every_forCPU * window_duration * Nwindow
+    if 2*window_duration > (trajDuration-1-Delta_t_MAX):
+        print "We set  window_duration  to less than initially desired, there will not be that many samples in this observation."
+        Nwindow = 2
+        every_forCPU=1
+        window_duration =  (trajDuration-1-Delta_t_MAX) / 2 
+    elif (trajDuration-1-Delta_t_MAX) > Nwindow_max * window_duration:
+        Nwindow = Nwindow_max
+        ## we have taken ::every_forMemory earlier on, now
+        ## we further limit the number of independent pairs of snapshots 
+        ## to maxIndepTimeShots_forCPU, as it easily converges.
+        every_forCPU = int( (trajDuration-1-Delta_t_MAX) / (window_duration*Nwindow) )
+    else:
+        ## round to lower integer: 
+        every_forCPU=1
+        Nwindow = int(np.floor( (trajDuration-1-Delta_t_MAX) / window_duration ))
+    Ws = [win_index*window_duration*every_forCPU for win_index in range(Nwindow+1)]
+    ## note how Ws has size Nwindow+1.
+    
+    print 'windows of time selected:  #windows='+str(Nwindow)+"   Duration of each window (#frames)="+str(window_duration)+ "     frames used every "+str(every_forCPU)+" frames loaded."
+    
+    return Ws, every_forCPU, window_duration
+    
+    
+    
+
+
+
+
