@@ -4,7 +4,7 @@
 #
 # QUEUE PROPERTIES 
 #
-PROC_TAG="rt"
+readonly PROC_TAG="rt"
 
 readonly SYSTEM="PennPuter"
 #readonly SYSTEM="Talapas"

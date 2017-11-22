@@ -1,9 +1,10 @@
+#!/bin/bash
 #
 # Check thermalization of all the samples by calculating
 # the self-intermediate scattering function, and tau.
 #
 
-PROC_TAG="rt"
+readonly PROC_TAG="rt"
 
 #Script Options
 tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the last configuration
@@ -11,8 +12,6 @@ tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the 
 
 readonly SYSTEM="PennPuter"
 #readonly SYSTEM="Talapas"
-QUEUE="gpu"
-walltime="0:23:30:00"
 
 #DIRECTORIES
 scriptDIR=$PWD
