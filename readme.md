@@ -55,18 +55,16 @@
 - 
 
 # Bugs que corregir:
-- El MSD (y quizás también la Fkt) tiene la distancia más grande
-acotada por la caja. Debería poner las distancias reales en lugar de
-las distancias periódicas.
+Nada que señalar.
 
 ## Per sincronizzare questo repositorio
 git remote add origin https://github.com/mbaityje/STRUCTURAL-GLASS.git
 git push -u origin master
 
-#Notas útiles
+## Notas útiles
 - k*T=0.00831445986144858*T en las unidades de la simulación
 
 
-#Descrizione delle directory
--Mettere una descrizione di ognuno dei files presenti nelle cartelle di output
--Mettere una descrizione di ognuno dei programmi
+# Descrizione delle directory
+- Mettere una descrizione di ognuno dei files presenti nelle cartelle di output
+- Mettere una descrizione di ognuno dei programmi

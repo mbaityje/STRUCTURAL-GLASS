@@ -5,82 +5,114 @@ from scipy.interpolate import interp1d
 from scipy.optimize import brentq
 from scipy import optimize as opt
 
+#-------------------------#
+###########################
+#        PROFILING        #
+###########################
+#-------------------------#
+import time
+#
+# Measures time elapsed in function. 
+# Example of usage:
+# def stampa(a,b,c):
+#    print("dada")
+#    print(a)
+#    print(b)
+#    print(c)
+# profile(stampa,('ddd','sss','eee'))
+#
+def profile(func, fargs):
+    start = time.time()
+    func(*fargs)
+    end = time.time()
+    print("Time elapsed: ",end - start," s")
+    return
 
+
+
+#-------------------------#
+###########################
+#        DISTANCES        #
+###########################
+#-------------------------#
+
+#------------------------------------
+# -- Between particles v_i and v_j --
+#------------------------------------
+# ParticleSqDist between particles v_i and v_j:
+# d_{ij}^2 = \sum_\alpha^D (v_{i,\alpha} - v_{j,\alpha} )^2
+# ParticleDist:
+# d_{ij} = \sqrt( \sum_\alpha^D (v_{i,\alpha} - v_{j,\alpha} )^2 )
+#
+######################################################################
+# Euclidean distance between two positions (generally two 3D vectors indicating particles)
+def ParticleDistPBC(particle_a, particle_b, box_size):
+    return np.sqrt(ParticleSqDistPBC(particle_a,particle_b,box_size))
 
 ######################################################################
-# Function to check whether the sample reached equilibrium
-
-def IsAtEquilibrium34(array, nSigma=1, rtol=0.01, maxErr=0.005, maxStd=0.1, verbose=False):
-#Function takes observable in list, and compares its value in the
-# third and fourth quarter of the list. Returns True if the two are compatible.
-# Conditions for equilibration:
-# -The two averages are statistically compatible
-# -The two averages are within 1% relative difference
-# -The statistical error of the fourth quarter is relatively <1%
-# -The standard deviation of the fourth quarter is relatively <10% 
-   quarter4=len(array)
-   quarter3=(int)(3.*quarter4/4)
-   quarter2=(int)(quarter4/2)
-   part3=array[quarter2:quarter3]
-   part4=array[quarter3:quarter4]
-   mean3=part3.mean()
-   mean4=part4.mean()
-   std4=part4.std()
-   err3=part3.std()/np.sqrt(quarter3-quarter2-1) #Statistical error of third quarter
-   err4=std4/np.sqrt(quarter4-quarter3-1) #Statistical error of fourth quarter
-   compatibility= abs(mean3-mean4)/np.sqrt(err3*err3+err4*err4) #Compatibility of the two measurements (in units of errorbars)
-   relative_distance= abs((mean3-mean4)/mean4)
-   compatible= True if compatibility<nSigma else False #nSigma std err apart
-   relatively_close = True if relative_distance<rtol else False #1% tolerance
-   small_errorbar = True if err4/abs(mean4)<maxErr else False
-   small_std = True if std4/abs(mean4)<maxStd else False
-   if(verbose):
-      print("quarter4: ",quarter4,"quarter3: ",quarter3,"quarter2: ",quarter2)
-      print("Mean3: ", mean3," Err3: ",err3)
-      print("Mean4: ", mean4," Err4: ",err4)
-      print("Compatibility: ",compatibility," --> Compatible=",compatible)
-      print("Relative Distance: ",relative_distance," --> Relatively close=",relatively_close)
-      print("Relative Error Bar: ", err4/abs(mean4)," --> Small Error Bar=",small_errorbar)
-      print("Relative Standard Deviation: ", std4/abs(mean4)," --> Small Standard Dev.=",small_std)
-   return (compatible and relatively_close and small_errorbar and small_std) #All checks must succeed
+# Euclidean square distance between two positions (generally two 3D vectors)
+def ParticleSqDistPBC(particle_a, particle_b, box_size):
+    delta = np.abs(particle_a - particle_b) #usual distance
+    delta = np.where(delta > box_size-delta, delta - box_size, delta) #apply PBC
+    return np.square(delta).sum()
 
 
+
+#-------------------------------------------------------
+# -- Distance between configurations at time t and t' --
+#-------------------------------------------------------
+# ConfDistPBC (slow) and PeriodicDistance (1000 times faster) both calculate:
+# Delta = \sum_{t,t'} d_{t,t'}
 
 ######################################################################
-# Calculate periodic square distance between two points
-
-def PeriodicSquareDistance(vec_a, vec_b, box_size):
-# This function measures the distance between two lists of points, vec_a and vec_b,
-# that can be vectors.
-# box_size can be np.array([Lx,Ly,Lz]) or even just L
-    delta = np.abs(vec_a - vec_b) #subtraction and abs are done component by component
-    delta = np.where(delta > 0.5 * box_size, delta - box_size, delta) #condition==True ? return second arg :otherwise return third
-    return (delta ** 2).sum(axis=-1)
+# Calculates the distance between the same configuration at two different times.
+# The operation is not vectorized, so it is slow. I used it for debug
+# because I tend to mess up with even the simplest vectorized operations.
+# Rather use PeriodicDistance().
+def ConfDistPBC(positions_a, positions_b, box_size):
+    sum=0
+    for i in range(len(positions_a)):
+        sum+=ParticleDistPBC(positions_a[i],positions_b[i],box_size)
+    return sum
 
 ######################################################################
-# Calculate periodic distance between two points
-
+# Calculates the distance between the same configuration at two different times.
+# The operation is vectorized, so use this one instead of ConfDistPBC()
 def PeriodicDistance(vec_a, vec_b, box_size):
-    return np.sqrt(PeriodicSquareDistance(vec_a, vec_b, box_size))
+    delta = np.abs(vec_a - vec_b) #subtraction and abs are done component by component
+    delta = np.where(delta > box_size-delta, delta - box_size, delta) #condition==True ? return second arg :otherwise return third
+    return np.sqrt(np.square(delta).sum(axis=1)).sum()
+
+
+
+#--------------------------------------------------------------
+# -- Square Distance between configurations at time t and t' --
+#--------------------------------------------------------------
+# ConfSqDistPBC (slow) and PeriodicSquareDistance (1000 times faster) both calculate:
+# Delta^2 = \sum_{t,t'} d_{t,t'}^2
 
 ######################################################################
-# Calculate periodic distance between two points, in another way
-
-def PeriodicDifference(vec_a, vec_b, box_size):
-# This function measures the distance between two lists of points, vec_a and vec_b,
-# that can be vectors.
-# box_size can be np.array([Lx,Ly,Lz]) or even just L
-    delta = np.abs(vec_a - vec_b) #substraction and abs are done component by component
-    delta = np.where(delta > 0.5 * box_size, delta - box_size, delta) #condition==True ? return second arg :otherwise return third
-    return delta.sum(axis=-1)
+# Calculates the square distance between the same configuration at two different times.
+# The operation is not vectorized, so it is slow. I used it for debug
+# because I tend to mess up with even the simplest vectorized operations.
+def ConfSqDistPBC(positions_a, positions_b, box_size):
+    sum=0
+    for i in range(len(positions_a)):
+        sum+=ParticleSqDistPBC(positions_a[i],positions_b[i],box_size)
+    return sum
 
 ######################################################################
-# Calculate Mean Square Displacement
+# Calculates the square distance between the same configuration at two different times.
+# The operation is vectorized, so use this one instead of ConfDistPBC()
+def PeriodicSquareDistance(vec_a, vec_b, box_size):
+    delta = np.abs(vec_a - vec_b) #subtraction and abs are done component by component
+    delta = np.where(delta > box_size-delta, delta - box_size, delta) #condition==True ? return second arg :otherwise return third
+    return np.square(delta).sum()
 
-def CalculateMeanSquareDisplacements(old_pos, new_pos, box_size):
-   all_displacements=PeriodicSquareDistance(old_pos, new_pos, box_size)
-   return all_displacements.sum()/len(all_displacements) #sum of the squared displacements divided by Natoms
- 
+
+
+
+
 ######################################################################
 # Calculate the mutual distances between all particles
 
@@ -93,6 +125,91 @@ def CalculateRelativeDistances(positions, Natoms, L):
         distances[pos:pos+Natoms-1-i]+=PeriodicDistance(positions[i],positions[i+1:],np.array([L,L,L]))
         pos+=Natoms-i-1
     return distances
+
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------#
+###########################
+#      DISPLACEMENTS      #
+###########################
+#-------------------------#
+#-----------------------------------------
+# -- Displacement between time t and t' --
+#-----------------------------------------
+# The functions of this section take the positions of two configurations and return a configuration.
+
+######################################################################
+# Periodic displacement 
+# Returns a vector of the Natoms 3D displacements (one 3D vector for each particle)
+def PeriodicDisplacement(vec_a, vec_b, box_size):
+    # First we substract one to the other
+    delta = vec_a - vec_b
+    #Then we apply periodic boundary conditions through a double ternary
+    return np.where(delta > 0.5 * box_size, delta - box_size, np.where(delta < -0.5 * box_size, delta+box_size, delta))
+
+
+######################################################################
+# Periodic intermediate point
+# Given two lists of 3D points, it returns a list of points half way in between.
+# For two points xA and xB, it is usually (xA+xB)/2, unless they are 
+# across the periodic boundary conditions. In that case, it is ((xA+xB+L)/2)%L.
+def PeriodicIntermPoints(vec_a, vec_b, L):
+    Lm=0.5*L
+    delta = np.abs(vec_a - vec_b)
+    return np.where(delta < Lm, 0.5*(vec_a+vec_b), ((vec_a+vec_b+L)*0.5)%L )
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------#
+###########################
+#        OVERLAPS         #
+###########################
+#-------------------------#
+
+######################################################################
+# Overlap with the configurations as input
+def OverlapConfs(conf1, conf2,box_size):
+   posizioni1=np.array(conf1.particles.position)
+   posizioni2=np.array(conf2.particles.position)
+   return OverlapPos(posizioni1,posizioni2,box_size)
+
+######################################################################
+# Overlap with the positions as input
+def OverlapPos(posizioni1, posizioni2,box_size):
+   dist=PeriodicDistance(posizioni1,posizioni2,box_size)
+   return OverlapDist(dist,box_size)
+
+######################################################################
+# Overlap with the distance between confs as input
+def OverlapDist(dist,box_size):
+   delta=0.2 #less than half small particle diameter
+   return np.where(dist<delta,1.,0.).sum()/len(dist)
+
+
+
+
+#-------------------------------------#
+#######################################
+#          STATIC OBSERVABLES         #
+#######################################
+#-------------------------------------#
 
 ######################################################################
 # Calculate pair correlation function
@@ -122,7 +239,33 @@ def CalculatePairCorrelationFunction(distances, Natoms, dr=0.1,rMax=2, number_de
     return gofr
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------------------#
+#######################################
+#         DYNAMIC OBSERVABLES         #
+#######################################
+#-------------------------------------#
  
+######################################################################
+# Calculate Mean Square Displacement
+
+def CalculateMeanSquareDisplacements(old_pos, new_pos, box_size):
+   assert(len(old_pos==65))
+   assert(len(old_pos==new_pos))
+   return PeriodicSquareDistance(old_pos, new_pos, box_size)/len(old_pos) #sum of the squared displacements divided by Natoms
+ 
+
 ######################################################################
 # Self-intermediate scattering function
 
@@ -130,7 +273,7 @@ def CalculatePairCorrelationFunction(distances, Natoms, dr=0.1,rMax=2, number_de
 def ComputeFkt(NX, NY, NZ, L, displacements):
     #Given the displacement vector and the wave numbers, we calculate the value of Fkt
    Natoms=len(displacements)
-   Fk_Deltat = np.zeros( len(displacements), dtype=np.complex128)
+   Fk_Deltat = np.zeros( Natoms, dtype=np.complex128)
    numk=48 #2(+/-) x 3(dimensions) x 6(permutations) = 48
    for nx in [NX,-NX]:
       for ny in [NY,-NY]:
@@ -166,50 +309,19 @@ def getKSets_function(nx,ny,nz, it):
 
 
 ######################################################################
-# Periodic displacement (maintains information on the sign)
-
-def PeriodicDisplacement(vec_a, vec_b, box_size):
-# This function measures the vector displacement between two lists of positions, vec_a and vec_b,
-# box_size can be np.array([Lx,Ly,Lz]) or even just L
-    # First we substract one to the other
-    delta = vec_a - vec_b
-    #Then we apply periodic boundary conditions through a double ternary
-    return np.where(delta > 0.5 * box_size, delta - box_size, np.where(delta < -0.5 * box_size, delta+box_size, delta))
-
-
-######################################################################
-# Overlap with the configurations as input
-def OverlapConfs(conf1, conf2,box_size):
-   posizioni1=np.array(conf1.particles.position)
-   posizioni2=np.array(conf2.particles.position)
-   return OverlapPos(posizioni1,posizioni2,box_size)
-
-######################################################################
-# Overlap with the positions as input
-def OverlapPos(posizioni1, posizioni2,box_size):
-   dist=PeriodicDifference(posizioni1,posizioni2,box_size)
-   return OverlapDist(dist,box_size)
-
-######################################################################
-# Overlap with the distance between confs as input
-def OverlapDist(dist,box_size):
-   delta=0.2 #less than half small particle diameter
-   return np.where(dist<delta,1.,0.).sum()/len(dist)
-
-######################################################################
 #Calculate the height at which Fk cuts height (1/e is default)
 def CalculateTau(Fk, firstframe, lastframe, height=0.36787944117144232159,dt=0.0025,every_forMemory=1):
     print("Calculating TAU from Fk(t)")
     value=Fk[firstframe]
     if value<height:
-        print("ERROR: Fk(t) starts from lower than height=",height)
-        sys.exit()
+        print("ERROR: Fk(t) starts at ",Fk[firstframe],", which is lower than height=",height)
+        raise SystemExit
     if Fk[lastframe]>height:
-        print("ERROR: Fk(t) ends at higher than height=",height)
-        sys.exit()
+        print("ERROR: Fk(t) ends at ",Fk[lastframe],", which is higher than height=",height)
+        raise SystemExit
     if lastframe-firstframe<10:
-        print("We require at least 10 points to interpolate tau.")
-        sys.exit()
+        print("We require at least 10 points to interpolate tau (there are currently ",lastframe-firstframe,").")
+        raise SystemExit
     iframe=firstframe
     while(value>height):
         iframe+=1

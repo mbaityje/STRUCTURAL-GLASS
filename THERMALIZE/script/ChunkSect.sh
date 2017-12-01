@@ -105,15 +105,16 @@ do
 	python $exeDIR/CreateChunk.py --user="$filename --ichunk=$ichunk --tchunk=$tchunk --dt=$dt --temperature=$T --tauT=$tauT"
 
 	#Now that we have the new chunk, delete the previous one
-	if [ $ichunk -ge 1 ]; then rm restartChunk`expr $ichunk - 1`.gsd; fi
+	if [ $ichunk -ge 1 ]; then rm -f restartChunk`expr $ichunk - 1`.gsd; fi
 	
 	#Perform IS bisection on the chunk
+	echo "python $exeDIR/BisectChunk.py --user=\"trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE\""
 	python $exeDIR/BisectChunk.py --user="trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE"
 
 	#Now that trajChunk$ichunk has been fully analyzed, we can delete it
-	rm trajChunk$ichunk.gsd
 	echo "FINE PROVA"
 	exit
+	rm -f trajChunk$ichunk.gsd
 	
 done
 #--------------------------------#

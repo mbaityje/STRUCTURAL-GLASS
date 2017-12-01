@@ -77,14 +77,14 @@ with open(filename, 'rb') as flow:
     s0=hoomdTraj.read_frame(0) #This is a snapshot of the initial configuration (frame zero)
     Natoms=s0.particles.N
     boxParams=s0.configuration.box
+    L=np.float64(boxParams[0])
     time0=np.int64(s0.configuration.step)
     print("TIME_0:",time0)
-    L=boxParams[0]
     if boxParams[0] != boxParams[1] or  boxParams[1]!= boxParams[2] or  boxParams[0]!= boxParams[2]:
         print('box dimensions are : ', boxParams[0])
         print('and are not supported (only isotropic systems supported)')
         raise SystemExit
-    
+
     Nframes = len(hoomdTraj)
     trajDuration = Nframes/every_forMemory
     print('there are Nframes=', Nframes, 'in the file, but we only use trajDuration=',trajDuration, ' of them.')
@@ -92,7 +92,6 @@ with open(filename, 'rb') as flow:
     #Allocate memory
     trajectory = np.zeros((trajDuration,Natoms,3), dtype=np.float64)
     initialPositions=np.array(hoomdTraj[0].particles.position, dtype=np.float64)
-    box_size=np.array([L,L,L], dtype=np.float64)
     times=np.zeros(trajDuration, dtype=np.float64)
     msd=np.zeros(trajDuration, dtype=np.float64)
     Fk=np.zeros(trajDuration,dtype=np.float64)
@@ -107,12 +106,13 @@ with open(filename, 'rb') as flow:
         trajectory[iframe] = np.array(hoomdTraj[iframe*every_forMemory].particles.position)
         time=np.int64(hoomdTraj[iframe*every_forMemory].configuration.step)-time0
         times[iframe]=time*every_forMemory*dt
-        msd[iframe]=med.CalculateMeanSquareDisplacements(trajectory[iframe], initialPositions, box_size)
-        all_displacements=med.PeriodicDisplacement(trajectory[iframe], initialPositions, box_size)
+
+        msd[iframe]=med.PeriodicSquareDistance(trajectory[iframe], initialPositions, L)/Natoms
+        all_displacements=med.PeriodicDisplacement(trajectory[iframe], initialPositions, L)
+
         Fk[iframe]=med.ComputeFkt(4, 6, 8, L, all_displacements)
     HoomdFlow.close()
     
-print('Shape of the trajectory array (times, particles, dimensions):', np.shape(trajectory))
 
 
 ################################################################

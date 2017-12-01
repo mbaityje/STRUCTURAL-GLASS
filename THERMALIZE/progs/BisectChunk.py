@@ -25,6 +25,12 @@ from lib import module_measurements as med
 import os.path
 import copy
 
+print("#++++++++++++++++#")
+print("#----------------#")
+print("# BisectChunk.Py #")
+print("#----------------#")
+print("#++++++++++++++++#")
+
 ################################################################
 #
 # READ ARGUMENTS
@@ -132,7 +138,8 @@ analyzer = hoomd.analyze.log(filename=None, quantities=analyzer_quantities, peri
 #
 ################################################################
 #Integrator
-fire=hoomd.md.integrate.mode_minimize_fire(group=hoomd.group.all(), dt=0.001) # , ftol=1e-2, Etol=1e-7)
+fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025, alpha_start=0.99, ftol=1e-2, Etol=1e-8, wtol=1e-2) #Do not reduce the precision
+integrator = md.integrate.nve(group=hoomd.group.all())
 
 ################################################################
 # 
@@ -147,21 +154,22 @@ def Minimize(snap):
     eIS=analyzer.query('potential_energy')
     return eIS
 
-def Bisect(t1, snap1, t2, snap2):
-    #Due casi che non devono accadere
-    assert(t2>=t1)
-    if t2==t1:
-        return;
-    #Ora il caso in cui non est necessario comparare con e1 (t2-t1=1)
+def Bisect(t1, snap1, t2, snap2, e1=None, doTS=False):
+    assert(t2>t1)
+    # If e1 was given as an argument, no need to caclulate it again
+    if (e1==None):
+        e1=Minimize(snap1)
     e2=Minimize(snap2)
+    ediff=np.abs(e1-e2)
     if (t2-t1)==1:
+        if doTS and (ediff>deltaE): 
+                eTS=NonLocalRidge(snap1, snap2, e1,e2)
         elist.append([t0+t2,e2])
         return
-    #Ora comparo le due IS
-    e1=Minimize(snap1)
+    ##Now compare the two IS
     print("Le due eIS:",t1,e1," ,   ",t2,e2,"       diff=",e1-e2)
     #Se sono uguali salvo e finisco
-    if(np.abs(e1-e2)<deltaE):
+    if(ediff<deltaE):
         elist.append([t0+t2,e2])
         return
     #Se sono differenti trovo il tempo intermedio (che est per forza
@@ -171,8 +179,71 @@ def Bisect(t1, snap1, t2, snap2):
         t12=int(0.5*(t1+t2))
         snap12=system.take_snapshot()
         snap12.particles.position[:]=posizioni[t12]
-        Bisect(t1,snap1,t12,snap12)
-        Bisect(t12,snap12,t2,snap2)
+        Bisect(t1,snap1,t12,snap12,e1, doTS=doTS)
+        e12=Minimize(snap12)
+        Bisect(t12,snap12,t2,snap2,e12, doTS=doTS)
+
+
+
+
+
+def NonLocalRidge(snap1, snap2, e1,e2):
+    #Finds the Transition State through the algorithm proposed in Doliwa&Heuer, PRE 67 031506 (2003)
+    print("Calculate TS now: |e1-e2|=",np.abs(e1-e2))
+    
+    ## Interpolation bisect
+    alpha=0.5
+    pos1=np.array(snap1.particles.position, dtype=np.float64)
+    pos2=np.array(snap2.particles.position, dtype=np.float64)
+    dist12=med.PeriodicDistance(pos1,pos2,boxParams[0]).sum()/Natoms #the box is cubic
+    count=0
+    print("dist12=",dist12)
+    while dist12>0.002: #0.002 is about half the typical distance between confs at subsequent time steps w/ dt=0.0025
+        snap12=LinearConfInterpolation(snap1, snap2, boxParams[0])
+        pos12=np.array(snap12.particles.position, dtype=np.float64)
+        e12=Minimize(snap12)
+        #If snap12 belongs to snap1, snap1=snap12
+        if np.abs(e1-e12) <= 1e-5: #Soglia scelta a cazzo
+            snap1=snap12
+            e1=e12
+            pos1=np.array(snap1.particles.position, dtype=np.float64)
+        #If snap12 belongs to snap2, snap2=snap12
+        elif np.abs(e2-e12) <= 1e-5: #Soglia scelta a cazzo
+            snap2=snap12
+            e2=e12
+            pos2=np.array(snap2.particles.position, dtype=np.float64)
+        #If snap12 does not belong to either, we throw a warning and change snap2
+        else:
+            print("NonLocalRidge: found an intermediate IS while searching the TS")
+            snap2=snap12
+            e2=e12
+        dist12=med.PeriodicDistance(pos1,pos2,boxParams[0]).sum()/Natoms
+        print("dist12=",dist12)
+        count+=1
+        if count>10:
+            print("NonLocalRidge ERROR: the interpolation bisection is not converging.")
+
+    ## Coupled Minimization of snap1 and snap2
+
+    ## Calculation of the gradient
+
+    ## Once the gradient is small, to steepest descent minimization of the square gradient
+
+    print("Interpolazione tra le due, con alpha=0.5, mi manda in una IS con e12=",Minimize(snap12))
+    print("Mentre e1=",Minimize(snap1))
+    print("Mentre e2=",Minimize(snap2))
+    eTS=0
+    return eTS
+
+def LinearConfInterpolation(snap1, snap2, box_size):
+#returns a linear interpolation between snap1 and snap2
+#new_positions = (snap1 + snap2)/2
+    pos1=np.array(snap1.particles.position,dtype=np.float64)
+    pos2=np.array(snap2.particles.position,dtype=np.float64)
+    snap12=system.take_snapshot()
+    pos12=med.PeriodicIntermPoints(pos1,pos2,box_size)
+    snap12.particles.position[:]=pos12
+    return snap12
 
 ################################################################
 # 
@@ -181,9 +252,14 @@ def Bisect(t1, snap1, t2, snap2):
 ################################################################
 #List of energies
 elist=[[t0,Minimize(snap_ini)]]
-Bisect(0,snap_ini,Nframes-1,snap_final)
+Bisect(0,snap_ini,Nframes-1,snap_final, e1=None, doTS=True)
 
-
+################################################################
+# 
+# Cleanup
+#
+################################################################
+integrator.disable()
 
 ################################################################
 # 
@@ -192,7 +268,7 @@ Bisect(0,snap_ini,Nframes-1,snap_final)
 ################################################################
 if(ichunk==0):
     f_handle = file('elist.txt', 'w') #To write in overwrite mode
-    np.savetxt(f_handle, elist,fmt='%d %.14g', header='#1)time 2)eIS')
+    np.savetxt(f_handle, elist,fmt='%d %.14g', header='1)time 2)eIS')
 else:
     f_handle = file('elist.txt', 'a') #To write in append mode
     np.savetxt(f_handle,elist,fmt='%d %.14g') 

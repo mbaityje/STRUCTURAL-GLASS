@@ -15,4 +15,5 @@ bash ThermalizeAll.sh
 CheckThermalizationAll.sh
 
 #Find the trajectory of the IS through a bisection algorithm.
-ChunkSect.sh
+#Launches ChunkSect.sh
+ChunkSectAll.sh 
