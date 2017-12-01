@@ -156,25 +156,28 @@ def Minimize(snap):
 
 def Bisect(t1, snap1, t2, snap2, e1=None, doTS=False):
     assert(t2>t1)
+    # Energies of the inherent structures
     # If e1 was given as an argument, no need to caclulate it again
     if (e1==None):
         e1=Minimize(snap1)
     e2=Minimize(snap2)
     ediff=np.abs(e1-e2)
+    print("Le due eIS:",t1,e1," ,   ",t2,e2,"       diff=",e1-e2)
+
+    #If they are next to each other, I record them no matter their energy
     if (t2-t1)==1:
         if doTS and (ediff>deltaE): 
                 eTS=NonLocalRidge(snap1, snap2, e1,e2)
         elist.append([t0+t2,e2])
         return
-    ##Now compare the two IS
-    print("Le due eIS:",t1,e1," ,   ",t2,e2,"       diff=",e1-e2)
-    #Se sono uguali salvo e finisco
+
+    #If they are the same I save and finish
     if(ediff<deltaE):
         elist.append([t0+t2,e2])
         return
-    #Se sono differenti trovo il tempo intermedio (che est per forza
-    #diverso per i check a inizio funzione) e biseziono sia il primo
-    #che il secondo intervallo.
+    # If they are different, I find the intermediate time (that is necessarily
+    # different because I made sure a few lines above), and I bisect both the first
+    # and the second interval.
     else:
         t12=int(0.5*(t1+t2))
         snap12=system.take_snapshot()
@@ -184,31 +187,29 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doTS=False):
         Bisect(t12,snap12,t2,snap2,e12, doTS=doTS)
 
 
+def ConfBisect(snap1, snap2, e1, e2, L):
+    #Maximum allowed distance between the configurations on the ridge
+    dmax=0.002 #0.002 is about half the typical distance between confs at subsequent time steps w/ dt=0.0025
+    dstart=0.1*dmax
 
-
-
-def NonLocalRidge(snap1, snap2, e1,e2):
-    #Finds the Transition State through the algorithm proposed in Doliwa&Heuer, PRE 67 031506 (2003)
-    print("Calculate TS now: |e1-e2|=",np.abs(e1-e2))
-    
-    ## Interpolation bisect
-    alpha=0.5
+    Natoms=snap_ini.particles.N
     pos1=np.array(snap1.particles.position, dtype=np.float64)
     pos2=np.array(snap2.particles.position, dtype=np.float64)
     dist12=med.PeriodicDistance(pos1,pos2,boxParams[0]).sum()/Natoms #the box is cubic
+
     count=0
     print("dist12=",dist12)
-    while dist12>0.002: #0.002 is about half the typical distance between confs at subsequent time steps w/ dt=0.0025
-        snap12=LinearConfInterpolation(snap1, snap2, boxParams[0])
-        pos12=np.array(snap12.particles.position, dtype=np.float64)
+    while dist12>dstart:
+        snap12=LinearConfInterpolation(snap1, snap2, L)
         e12=Minimize(snap12)
+        print("e12=",e12)
         #If snap12 belongs to snap1, snap1=snap12
-        if np.abs(e1-e12) <= 1e-5: #Soglia scelta a cazzo
+        if np.abs(e1-e12) <= 0.01: #Soglia scelta a cazzo, potrei mettere deltaE
             snap1=snap12
             e1=e12
             pos1=np.array(snap1.particles.position, dtype=np.float64)
         #If snap12 belongs to snap2, snap2=snap12
-        elif np.abs(e2-e12) <= 1e-5: #Soglia scelta a cazzo
+        elif np.abs(e2-e12) <= 0.01: #Soglia scelta a cazzo, potrei mettere deltaE
             snap2=snap12
             e2=e12
             pos2=np.array(snap2.particles.position, dtype=np.float64)
@@ -217,19 +218,45 @@ def NonLocalRidge(snap1, snap2, e1,e2):
             print("NonLocalRidge: found an intermediate IS while searching the TS")
             snap2=snap12
             e2=e12
+        #
         dist12=med.PeriodicDistance(pos1,pos2,boxParams[0]).sum()/Natoms
         print("dist12=",dist12)
         count+=1
         if count>10:
             print("NonLocalRidge ERROR: the interpolation bisection is not converging.")
+    return snap1,snap2,snap12,e1,e2,e12,dist12
 
-    ## Coupled Minimization of snap1 and snap2
 
-    ## Calculation of the gradient
+def NonLocalRidge(snap1, snap2, e1,e2):
+    #Finds the Transition State through the algorithm proposed in Doliwa&Heuer, PRE 67 031506 (2003)
+    print("Calculate TS now: |e1-e2|=",np.abs(e1-e2))
 
-    ## Once the gradient is small, to steepest descent minimization of the square gradient
+    snap1,snap2,snap12,e1,e2,e12,dist12=ConfBisect(snap1, snap2, e1, e2, np.float64(boxParams[0]))
 
-    print("Interpolazione tra le due, con alpha=0.5, mi manda in una IS con e12=",Minimize(snap12))
+    # ## Calculation of the gradient
+    # grad=CalcolaGradiente(snap12)
+    # g2=grad*grad
+    # g2thres=0.01
+    # niter=0
+    # maxiter=10
+    # while(g2>g2thres):
+    #     snap1,snap2,dist12=ConfBisect()
+    #     for iter in range(5):
+    #         Minimizzo sia snap1 che snap2 per pochi passi
+    #         dist12=med.PeriodicDistance()
+    #         if dist12>dmax
+    #             snap1,snap2,dist12=ConfBisect()
+    #     grad=CalcolaGradiente()
+    #     g2=grad*grad
+    #     if niter>maxiter:
+    #         print("IL CAZZO DI ALGORITMO DELLE SELLE DI MERDA NON CONVERGE MANCO SE LO PAGHI")
+    #         Raise SystemExit
+    #     niter++
+
+    # ## Once the gradient is small, to steepest descent minimization of the square gradient
+    # MinimizeSquareGradient()
+
+    print("Interpolazione tra le due mi manda in una IS con e12=",Minimize(snap12))
     print("Mentre e1=",Minimize(snap1))
     print("Mentre e2=",Minimize(snap2))
     eTS=0
