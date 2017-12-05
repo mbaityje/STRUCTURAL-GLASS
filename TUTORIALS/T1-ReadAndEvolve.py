@@ -120,7 +120,7 @@ filename=args.filename[0]
 nNVEsteps=args.nNVEsteps[0]
 nNVTsteps=args.nNVTsteps[0]
 thermostat=args.thermostat[0]
-del parser #I'm new to python, perhaps this is not proper coding
+del parser
 
 print(filename)
 print(nNVEsteps)

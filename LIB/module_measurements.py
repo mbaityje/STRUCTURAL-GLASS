@@ -23,10 +23,10 @@ import time
 #
 def profile(func, fargs):
     start = time.time()
-    func(*fargs)
+    output=func(*fargs)
     end = time.time()
     print("Time elapsed: ",end - start," s")
-    return
+    return output
 
 
 
@@ -45,16 +45,20 @@ def profile(func, fargs):
 # d_{ij} = \sqrt( \sum_\alpha^D (v_{i,\alpha} - v_{j,\alpha} )^2 )
 #
 ######################################################################
-# Euclidean distance between two positions (generally two 3D vectors indicating particles)
+# Euclidean distance between two positions (generally two 3D vectors
+# indicating particles). Can be feeded 2 lists of positions. In that
+# case returns a list of distances.
 def ParticleDistPBC(particle_a, particle_b, box_size):
     return np.sqrt(ParticleSqDistPBC(particle_a,particle_b,box_size))
 
 ######################################################################
-# Euclidean square distance between two positions (generally two 3D vectors)
+# Euclidean square distance between two positions (generally two 3D
+# vectors). Can be feeded 2 lists of positions. In that case returns a
+# list of square distances.
 def ParticleSqDistPBC(particle_a, particle_b, box_size):
     delta = np.abs(particle_a - particle_b) #usual distance
     delta = np.where(delta > box_size-delta, delta - box_size, delta) #apply PBC
-    return np.square(delta).sum()
+    return np.square(delta).sum(axis=-1)
 
 
 
@@ -122,7 +126,7 @@ def CalculateRelativeDistances(positions, Natoms, L):
     distances=np.zeros(Natoms*(Natoms-1)/2,dtype=np.double)
     pos=0
     for i in range(Natoms-1):
-        distances[pos:pos+Natoms-1-i]+=PeriodicDistance(positions[i],positions[i+1:],np.array([L,L,L]))
+        distances[pos:pos+Natoms-1-i]+=ParticleDistPBC(positions[i],positions[i+1:],np.array([L,L,L]))
         pos+=Natoms-i-1
     return distances
 
@@ -155,7 +159,6 @@ def PeriodicDisplacement(vec_a, vec_b, box_size):
     delta = vec_a - vec_b
     #Then we apply periodic boundary conditions through a double ternary
     return np.where(delta > 0.5 * box_size, delta - box_size, np.where(delta < -0.5 * box_size, delta+box_size, delta))
-
 
 ######################################################################
 # Periodic intermediate point

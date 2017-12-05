@@ -138,7 +138,7 @@ analyzer = hoomd.analyze.log(filename=None, quantities=analyzer_quantities, peri
 #
 ################################################################
 #Integrator
-fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025, alpha_start=0.99, ftol=1e-2, Etol=1e-8, wtol=1e-2) #Do not reduce the precision
+fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025, alpha_start=0.99, ftol=1e-5, Etol=1e-10, wtol=1e-5) #Do not reduce the precision
 integrator = md.integrate.nve(group=hoomd.group.all())
 
 ################################################################
@@ -233,25 +233,27 @@ def NonLocalRidge(snap1, snap2, e1,e2):
 
     snap1,snap2,snap12,e1,e2,e12,dist12=ConfBisect(snap1, snap2, e1, e2, np.float64(boxParams[0]))
 
-    # ## Calculation of the gradient
-    # grad=CalcolaGradiente(snap12)
-    # g2=grad*grad
-    # g2thres=0.01
-    # niter=0
-    # maxiter=10
-    # while(g2>g2thres):
-    #     snap1,snap2,dist12=ConfBisect()
-    #     for iter in range(5):
-    #         Minimizzo sia snap1 che snap2 per pochi passi
-    #         dist12=med.PeriodicDistance()
-    #         if dist12>dmax
-    #             snap1,snap2,dist12=ConfBisect()
-    #     grad=CalcolaGradiente()
-    #     g2=grad*grad
-    #     if niter>maxiter:
-    #         print("IL CAZZO DI ALGORITMO DELLE SELLE DI MERDA NON CONVERGE MANCO SE LO PAGHI")
-    #         Raise SystemExit
-    #     niter++
+    ## Calculation of the gradient
+    grad=CalcGrad()
+    g2=np.square(grad).sum()
+    g2thres=0.01
+    niter=0
+    maxiter=10
+    print("g2=",g2)
+    while(g2>g2thres):
+        snap1,snap2,dist12=ConfBisect()
+        # for iter in range(5):
+        #     #Minimizzo sia snap1 che snap2 per pochi passi
+        #     dist12=med.PeriodicDistance()
+        #     if dist12>dmax:
+        #         snap1,snap2,dist12=ConfBisect()
+        # grad=CalcGrad()
+        # g2=grad*grad
+        # print("g2=",g2)
+        if niter>maxiter:
+            print("IL CAZZO DI ALGORITMO DELLE SELLE DI MERDA NON CONVERGE MANCO SE LO PAGHI")
+            raise SystemExit
+        niter+=1
 
     # ## Once the gradient is small, to steepest descent minimization of the square gradient
     # MinimizeSquareGradient()
@@ -271,6 +273,17 @@ def LinearConfInterpolation(snap1, snap2, box_size):
     pos12=med.PeriodicIntermPoints(pos1,pos2,box_size)
     snap12.particles.position[:]=pos12
     return snap12
+
+def CalcGrad():
+    #Calculates the gradient of the system through the integrator
+    gradU=-np.array([system.particles[i].net_force for i in range(Natoms)])
+    return gradU/Natoms
+
+def GradSnap(snap):
+    #Calculates the gradient of the system through the integrator
+    gradU=-np.array([system.particles[i].net_force for i in range(Natoms)])
+    return gradU/Natoms
+  
 
 ################################################################
 # 
