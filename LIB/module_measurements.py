@@ -164,16 +164,14 @@ def PeriodicDisplacement(vec_a, vec_b, box_size):
 # Periodic intermediate point
 # Given two lists of 3D points, it returns a list of points half way in between.
 # For two points xA and xB, it is usually (xA+xB)/2, unless they are 
-# across the periodic boundary conditions. In that case, it is ((xA+xB+L)/2)%L.
+# across the periodic boundary conditions.
+#
+# Poi devo scrivere questa funzione in modo meno inefficiente
 def PeriodicIntermPoints(vec_a, vec_b, L):
     Lm=0.5*L
     delta = np.abs(vec_a - vec_b)
-    return np.where(delta < Lm, 0.5*(vec_a+vec_b), ((vec_a+vec_b+L)*0.5)%L )
-
-
-
-
-
+    out = np.where(delta < Lm, 0.5*(vec_a+vec_b), np.where( vec_a+vec_b<0, 0.5*(vec_a+vec_b+L),0.5*(vec_a+vec_b-L)) )
+    return out
 
 
 

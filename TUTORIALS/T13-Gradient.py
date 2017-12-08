@@ -371,7 +371,6 @@ def CalculateGradient(snapshot):
                     continue
                 Vp=Vprime(r, eps_AB, sig_AB, ron_AB, rcut_AB)
                 V=Vij(r,eps_AB,sig_AB,ron_AB,rcut_AB)
-#            print(V,Vp)
             temp=rvec*Vp
             energia+=V
             gradVector[i] +=  temp 
@@ -393,7 +392,7 @@ groupAll=hoomd.group.all()
 snapshot=system.take_snapshot(dtype='double')
 positions=np.array(snapshot.particles.position, dtype=np.float64) #Now 'positions' is a NatomsxDIM vector,
                                                 #storing all the particles' positions
-modeT=md.integrate.mode_standard(dt=1e-12)
+modeT=md.integrate.mode_standard(dt=1e-13)
 integratorT=md.integrate.nve(group=hoomd.group.all())
 hoomd.run(2)
 

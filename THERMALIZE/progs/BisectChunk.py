@@ -5,6 +5,13 @@
 # This example reads a trajectory and finds the related
 # trajectory of the inherent structures.
 #
+# A search of the Transition States through Heuer's Non-Local
+# Ridge Method is implemented, but I did not implement the final
+# part of the algorithm (the minimization of the square gradient),
+# so:
+# ** run only with doTS=False **
+#
+#
 ################################################################
 
 #MEMO:
@@ -23,7 +30,6 @@ import gsd.hoomd
 from lib import module_potentials as pot #Here I have put the Kob-Andersen parameters
 from lib import module_measurements as med
 import os.path
-import copy
 
 print("#++++++++++++++++#")
 print("#----------------#")
@@ -119,7 +125,9 @@ if(ichunk>0):
 ################################################################
 NeighborsListLJ = md.nlist.cell()
 print(" *** KApotentialShort *** ")
-myLjPair=pot.KApotentialShort(NeighborsListLJ)
+
+potential=pot.LJ(NeighborsListLJ,type="KAshort") #myLJpair is now an attribute of potential. To call it: potential.GetLJpair()
+
 
 ################################################################
 # 
@@ -131,28 +139,35 @@ print("\n\n\nSET UP ANALYZER\n")
 analyzer_quantities = ['temperature', 'pressure', 'potential_energy', 'kinetic_energy', 'momentum'] #, 'volume', 'num_particles']
 analyzer = hoomd.analyze.log(filename=None, quantities=analyzer_quantities, period=1)
 
-
-################################################################
-# 
-# A couple of global variables:
-#
-################################################################
-#Integrator
-fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025, alpha_start=0.99, ftol=1e-5, Etol=1e-10, wtol=1e-5) #Do not reduce the precision
-integrator = md.integrate.nve(group=hoomd.group.all())
-
 ################################################################
 # 
 # Function declaration
 #
 ################################################################
+
+
+#Returns system's energy if the analyzer is set
+def PotEn():
+    modeT.set_params(dt=1e-16)
+    hoomd.run(2)
+    U=analyzer.query('potential_energy')
+    modeT.set_params(dt=0.0025)
+    return U
+
 def Minimize(snap):
     system.restore_snapshot(snap)
     fire.cpp_integrator.reset()
     while not(fire.has_converged()):
-        hoomd.run(100)       
+        hoomd.run(100)
     eIS=analyzer.query('potential_energy')
     return eIS
+
+def MinimizeFewSteps(snap, nsteps):
+    system.restore_snapshot(snap)
+    fire.cpp_integrator.reset()
+    hoomd.run(nsteps)
+    snapnew=system.take_snapshot()
+    return snapnew
 
 def Bisect(t1, snap1, t2, snap2, e1=None, doTS=False):
     assert(t2>t1)
@@ -187,81 +202,122 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doTS=False):
         Bisect(t12,snap12,t2,snap2,e12, doTS=doTS)
 
 
-def ConfBisect(snap1, snap2, e1, e2, L):
-    #Maximum allowed distance between the configurations on the ridge
-    dmax=0.002 #0.002 is about half the typical distance between confs at subsequent time steps w/ dt=0.0025
-    dstart=0.1*dmax
+def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002):
+    #0.002 is about half the typical distance between confs at subsequent time steps w/ dt=0.0025
 
+    assert(np.abs(eis1-eis2)>deltaE)
+    dstart=0.1*dmax
     Natoms=snap_ini.particles.N
     pos1=np.array(snap1.particles.position, dtype=np.float64)
     pos2=np.array(snap2.particles.position, dtype=np.float64)
     dist12=med.PeriodicDistance(pos1,pos2,boxParams[0]).sum()/Natoms #the box is cubic
-
-    count=0
     print("dist12=",dist12)
+    snap12=LinearConfInterpolation(snap1, snap2, L)
+    pos12=np.array(snap12.particles.position, dtype=np.float64)
+    eis12=Minimize(snap12)
+
+    print(" eis12=",eis12)
+    count=0
+    maxcount=10
     while dist12>dstart:
-        snap12=LinearConfInterpolation(snap1, snap2, L)
-        e12=Minimize(snap12)
-        print("e12=",e12)
         #If snap12 belongs to snap1, snap1=snap12
-        if np.abs(e1-e12) <= 0.01: #Soglia scelta a cazzo, potrei mettere deltaE
+        if np.abs(eis1-eis12) <= deltaE:
             snap1=snap12
-            e1=e12
+            eis1=eis12
             pos1=np.array(snap1.particles.position, dtype=np.float64)
         #If snap12 belongs to snap2, snap2=snap12
-        elif np.abs(e2-e12) <= 0.01: #Soglia scelta a cazzo, potrei mettere deltaE
+        elif np.abs(eis2-eis12) <= deltaE:
             snap2=snap12
-            e2=e12
+            eis2=eis12
             pos2=np.array(snap2.particles.position, dtype=np.float64)
         #If snap12 does not belong to either, we throw a warning and change snap2
         else:
             print("NonLocalRidge: found an intermediate IS while searching the TS")
             snap2=snap12
-            e2=e12
+            eis2=eis12
         #
         dist12=med.PeriodicDistance(pos1,pos2,boxParams[0]).sum()/Natoms
         print("dist12=",dist12)
         count+=1
-        if count>10:
+        assert(np.abs(eis1-eis2)>deltaE)
+        snap12=LinearConfInterpolation(snap1, snap2, L)
+        eis12=Minimize(snap12)
+        if count>maxcount:
             print("NonLocalRidge ERROR: the interpolation bisection is not converging.")
-    return snap1,snap2,snap12,e1,e2,e12,dist12
+    return snap1,snap2,snap12,eis1,eis2,eis12,dist12
 
 
-def NonLocalRidge(snap1, snap2, e1,e2):
-    #Finds the Transition State through the algorithm proposed in Doliwa&Heuer, PRE 67 031506 (2003)
-    print("Calculate TS now: |e1-e2|=",np.abs(e1-e2))
+def NonLocalRidge(snap1, snap2, eis1,eis2):
+    """Finds the Transition State through the algorithm proposed in Doliwa&Heuer, PRE 67 031506 (2003)"""
+    print("Calculate TS now: |e1-e2|=",np.abs(eis1-eis2))
+    dmax=0.002 #0.004 is about the typical distance between confs at subsequent time steps w/ dt=0.0025
 
-    snap1,snap2,snap12,e1,e2,e12,dist12=ConfBisect(snap1, snap2, e1, e2, np.float64(boxParams[0]))
+    snap1,snap2,snap12,eis1,eis2,eis12,dist12=ConfBisect(snap1, snap2, eis1, eis2, np.float64(boxParams[0]),dmax=dmax)
+
+
 
     ## Calculation of the gradient
-    grad=CalcGrad()
-    g2=np.square(grad).sum()
-    g2thres=0.01
+
+    e1,G1=potential.CalculateGradient(snap1)
+    e2,G2=potential.CalculateGradient(snap2)
+    Gsq1=np.square(G1).sum()
+    Gsq2=np.square(G2).sum()
+    Gsq=0.5*(Gsq1+Gsq2) #Questa variabile ha senso solo dopo ConfBisect, che garantisce che le configurazioni siano vicine
+    eis1=Minimize(snap1)
+    eis2=Minimize(snap2)
+
+    GsqThres=0.02
     niter=0
-    maxiter=10
-    print("g2=",g2)
-    while(g2>g2thres):
-        snap1,snap2,dist12=ConfBisect()
-        # for iter in range(5):
-        #     #Minimizzo sia snap1 che snap2 per pochi passi
-        #     dist12=med.PeriodicDistance()
-        #     if dist12>dmax:
-        #         snap1,snap2,dist12=ConfBisect()
-        # grad=CalcGrad()
-        # g2=grad*grad
-        # print("g2=",g2)
+    maxiter=200
+    print("Nonlocal Ridge, caratteristiche configurazione termica:")
+    print("e1=",e1)
+    print("e2=",e2)
+    print("Gsq1=",Gsq1)
+    print("Gsq2=",Gsq2)
+    print("Struttura inerente:")
+    print("eis1=",eis1/Natoms)
+    print("eis2=",eis2/Natoms)
+    nsteps=25
+    while(Gsq>GsqThres):
+
+        snap1=MinimizeFewSteps(snap1, nsteps)
+        snap2=MinimizeFewSteps(snap2, nsteps)
+        pos1=np.array(snap1.particles.position,dtype=np.float64)
+        pos2=np.array(snap2.particles.position,dtype=np.float64)
+        dist12=med.PeriodicDistance(pos1,pos2,boxParams[0]).sum()/Natoms #the box is cubic
+        # if dist12>dmax:
+        snap1,snap2,snap12,eis1,eis2,eis12,dist12=ConfBisect(snap1, snap2, eis1, eis2, np.float64(boxParams[0]), dmax=dmax)
+
+        e1,G1=potential.CalculateGradient(snap1)
+        e2,G2=potential.CalculateGradient(snap2)
+        e12,G12=potential.CalculateGradient(snap12)
+        # eis1=Minimize(snap1)
+        # eis2=Minimize(snap2)
+        Gsq1=np.square(G1).sum()
+        Gsq2=np.square(G2).sum()
+        Gsq12=np.square(G12).sum()
+        Gsq=0.5*(Gsq1+Gsq2)
+        print("e1=",e1,"\te2=",e2)
+        print("eis1=",eis1/Natoms,"\teis2=",eis2/Natoms)
+        print("Gsq1=",Gsq1,"  Gsq2=",Gsq2,"  Gsq12=",Gsq12,"  Gsq=",Gsq,"\n")
+        if np.abs(eis1-eis2)<deltaE:
+            print("The two configurations are falling into the same IS. Abort.")
+            raise SystemExit
+
         if niter>maxiter:
             print("IL CAZZO DI ALGORITMO DELLE SELLE DI MERDA NON CONVERGE MANCO SE LO PAGHI")
             raise SystemExit
         niter+=1
 
-    # ## Once the gradient is small, to steepest descent minimization of the square gradient
-    # MinimizeSquareGradient()
-
-    print("Interpolazione tra le due mi manda in una IS con e12=",Minimize(snap12))
-    print("Mentre e1=",Minimize(snap1))
-    print("Mentre e2=",Minimize(snap2))
-    eTS=0
+    snap1,snap2,snap12,eis1,eis2,eis12,dist12=ConfBisect(snap1, snap2, eis1, eis2, np.float64(boxParams[0]),dmax=dmax)
+    eTS=e12
+    e12,G12=potential.CalculateGradient(snap12)
+    Gsq12=np.square(G12).sum()
+    print("Ora bisogna fare una minimizzazione del gradiente quadro, a partire da snap12")
+    print("Per la cronaca, l'energia di snap12 e` e12=",e12)
+    print("Quella della struttura inerente e` eis12=",eis12)
+    print("Il gradiente della configurazione termica e` Gsq12=",Gsq12)
+    raise SystemExit
     return eTS
 
 def LinearConfInterpolation(snap1, snap2, box_size):
@@ -274,25 +330,58 @@ def LinearConfInterpolation(snap1, snap2, box_size):
     snap12.particles.position[:]=pos12
     return snap12
 
-def CalcGrad():
-    #Calculates the gradient of the system through the integrator
-    gradU=-np.array([system.particles[i].net_force for i in range(Natoms)])
-    return gradU/Natoms
+def CalcF():
+    #Calculates the forces of the system through the integrator
+    #Mind that if the dynamics were not run, this gives zero
+    F=np.array([system.particles[i].net_force for i in range(Natoms)])
+    return F/Natoms
 
-def GradSnap(snap):
-    #Calculates the gradient of the system through the integrator
-    gradU=-np.array([system.particles[i].net_force for i in range(Natoms)])
-    return gradU/Natoms
+def CalcAcc(snapshot):
+    #Returns the accelerations of the snapshot
+    #Mind that some snapshots don't have information on the accelerations
+    acc=np.array(snapshot.particles.acceleration,dtype=np.float64)
+    return acc/Natoms
   
-
 ################################################################
 # 
 # Bisection
 #
 ################################################################
+fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025, alpha_start=0.99, ftol=1e-5, Etol=1e-10, wtol=1e-5) #Do not reduce the precision
+integrator = md.integrate.nve(group=hoomd.group.all())
+hoomd.run(2)
+
+print("Proprieta` dello snapshot")
+snap=system.take_snapshot()
+F=CalcF()
+F2=np.square(F).sum()
+A=CalcAcc(snap)
+A2=np.square(A).sum()
+e,G=potential.CalculateGradient(snap)
+G2=np.square(G).sum()
+
+print("F2=",F2)
+print("A2=",A2)
+print("G2=",G2)
+
+print("Proprieta` di snap_ini (per il quale non ho runnato dinamica)")
+system.restore_snapshot(snap_ini)
+F=CalcF()
+F2=np.square(F).sum()
+A=CalcAcc(snap_ini)
+A2=np.square(A).sum()
+e,G=potential.CalculateGradient(snap_ini)
+G2=np.square(G).sum()
+
+print("F2=",F2)
+print("A2=",A2)
+print("G2=",G2)
+
+
 #List of energies
 elist=[[t0,Minimize(snap_ini)]]
-Bisect(0,snap_ini,Nframes-1,snap_final, e1=None, doTS=True)
+Bisect(0,snap_ini,Nframes-1,snap_final, e1=None, doTS=False) #The search of the transition state (TS=True) does not work.
+
 
 ################################################################
 # 
