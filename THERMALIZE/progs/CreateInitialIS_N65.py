@@ -207,7 +207,8 @@ myLjPair=pot.KApotentialShort(NeighborsListLJ)
 # 
 ################################################################
 print("FIRE minimization... ")
-fire=hoomd.md.integrate.mode_minimize_fire(group=hoomd.group.all(), dt=0.001) # , ftol=1e-2, Etol=1e-7)
+fire=hoomd.md.integrate.mode_minimize_fire(dt=0.002)
+integrator = md.integrate.nve(group=hoomd.group.all())
 while not(fire.has_converged()):
    hoomd.run(100)
 print('converged')

@@ -334,6 +334,12 @@ def CalculateTau(Fk, firstframe, lastframe, height=0.36787944117144232159,dt=0.0
     reduced_range_end=iframe+3
     x=range(reduced_range_start,reduced_range_end)
     y=Fk[reduced_range_start:reduced_range_end]
+    print("start:",reduced_range_start)
+    print("end:",reduced_range_end)
+    print("len(Fk):",len(Fk))
+    print("len(y):",len(y))
+    print("len(x):",len(x))
+
     interp = interp1d(x, y, kind='cubic')
 
     def f(x):
