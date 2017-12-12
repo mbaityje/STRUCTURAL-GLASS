@@ -15,18 +15,20 @@
 #
 echo "We are at"
 pwd
-rootDIR=$PWD/../../../..
+
+
+#SYSTEM="PennPuter"
+SYSTEM="Talapas"
+if [ $SYSTEM == "Talapas" ];
+then rootDIR=/home/mbaity/STRUCTURAL-GLASS/
+else 
+    echo "Implement rootDIR for SYSTEM!=talapas"
+    exit
+fi
 thermDIR=$rootDIR/THERMALIZE
 exeDIR=$thermDIR/progs
 workDIR=$rootDIR/OUTPUT
 utilDIR=$rootDIR/UTILITIES
-
-#Some hardcoded parameters that I might decide to put as command-line input
-readonly thermostat='NVT'
-readonly tau=0.1
-readonly Natoms=65
-readonly trajFreq=1
-#declare -A trajFreqList=( ["10.0"]=1 ["2.0"]=1)
 
 #
 #Command line input
@@ -37,6 +39,23 @@ nsteps=$3
 T=$4
 dt=${5:-0.0025} #dt is taken from command line. Otherwise it is 0.0025
 tau_of_t=${6:-0} #flag that tells us if we are seeking to calculate only one tau (tau_of_t=1) or if we want to calculate tau two times, spaced by a gap (tau_of_t=0)
+
+echo "SelfIntermediateScatteringFunction.sh:"
+echo "filename: $filename"
+echo "iframe: $iframe"
+echo "nsteps: $nsteps"
+echo "T = $T"
+echo "dt = $dt"
+echo "tau_of_t: $tau_of_t"
+
+#Some hardcoded parameters that I might decide to put as command-line input
+readonly thermostat='NVT'
+readonly tau=0.1
+readonly Natoms=65
+maxFrames=1000 #The first trajectory we construct has at most 1000 frames
+ratio=`echo "$nsteps/$maxFrames" | bc`
+trajFreq=$((ratio<1?1:ratio))
+trajFreq=1
 
 
 #
@@ -97,6 +116,7 @@ python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nste
 echo "python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --dt=$dt --every_forMemory=1 -l${label}"
 python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --dt=$dt --every_forMemory=1 -l${label}
 tauFkt_file=tau$label.txt
+if ! [ -f $tauFkt_file ]; then echo "For some reason the file with tau, $tauFkt_file, does not exist. No point in continuing.";exit;fi
 tauFkt=`tail -1 $tauFkt_file`
 echo "TAU is $tauFkt"
 
@@ -104,7 +124,6 @@ echo "TAU is $tauFkt"
 
 if [ 0 -eq $tau_of_t ]
 then
-
 	#
 	# Now run a gap of 20tau without saving any backup
 	#

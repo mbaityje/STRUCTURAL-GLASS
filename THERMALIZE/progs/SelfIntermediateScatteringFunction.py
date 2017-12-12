@@ -21,7 +21,6 @@ import numpy as np
 import gsd.pygsd
 import gsd.hoomd
 import lib.module_measurements as med
-import matplotlib.pyplot as plt
 from numba import jit
 
 ################################################################
@@ -59,11 +58,13 @@ filename=args.filename[0]
 every_forMemory=args.every_forMemory[0]
 dt=args.dt[0]
 label=str(args.label[0])
+height=0.36787944117144232159 #This is 1/e
 
 print("filename = ",filename)
 print("dt = ",dt)
 print("every_forMemory = ",every_forMemory)
 print("label = ",label)
+print("height for tau: ",height)
 del parser
 
 ################################################################
@@ -117,26 +118,9 @@ with open(filename, 'rb') as flow:
 
 ################################################################
 # 
-# CALCULATE TAU FROM THE Fk(t)
+# SAVE MSD and FkT
 #
 ################################################################
-height=0.36787944117144232159 #This is 1/e
-tau=med.CalculateTau(Fk,0,Nframes-1, height=height,dt=dt,every_forMemory=every_forMemory)
-print("tau=",tau)
-
-################################################################
-# 
-# OUTPUT
-#
-################################################################
-
-#
-# tau
-#
-nametau_txt='tau'+label+'.txt'
-np.savetxt(nametau_txt, [tau],fmt='%.14g', header="#tau-- height= "+str(height))
-
-
 
 #
 # MSD and Fk(t)
@@ -154,12 +138,20 @@ try:
 except OSError:
     pass
 
-#Text outputs
+#
+# Text outputs
+#
 output_msd=np.column_stack((times, msd))
 np.savetxt(namemsd_txt, output_msd,fmt='%g %.14g', header="#1)time step 2)msd")
 output_Fk=np.column_stack((times, Fk))
 np.savetxt(nameFkt_txt,output_Fk,fmt='%g %.14g', header="#n=(4,6,8)\n#1)time 2)Fk(t)")
 
+
+#
+# Figures
+#
+import matplotlib.pyplot as plt
+plt.switch_backend('agg') #In order to be able to use pyplot without Xterm
 
 #Figure of msd
 plt.figure(1)
@@ -180,4 +172,16 @@ plt.ylabel('self-intermediate scattering function')
 plt.title('Self-intermediate scattering function')
 plt.grid(True)
 plt.savefig(nameFkt_png)
+
+
+
+################################################################
+# 
+# CALCULATE TAU FROM THE Fk(t)
+#
+################################################################
+tau=med.CalculateTau(Fk,0,Nframes-1, height=height,dt=dt,every_forMemory=every_forMemory)
+print("tau=",tau)
+nametau_txt='tau'+label+'.txt'
+np.savetxt(nametau_txt, [tau],fmt='%.14g', header="#tau-- height= "+str(height))
 

@@ -162,7 +162,13 @@ NeighborsListLJ = md.nlist.cell()
 #Set Kob-Andersen potential
 myLjPair=kobandersen.KApotential(NeighborsListLJ)
 
-
+################################################################
+# 
+# SET UP ANALYZER
+#
+################################################################
+analyzer_quantities = ['temperature', 'potential_energy', 'kinetic_energy']
+analyzer = hoomd.analyze.log(filename=None, overwrite=True, quantities=analyzer_quantities, period=1)
 
 ################################################################
 # 
@@ -174,15 +180,26 @@ myLjPair=kobandersen.KApotential(NeighborsListLJ)
 print("c1:")
 c1 = system.take_snapshot()
 hoomd.dump.gsd(filename="./test-output/T9-Overlap.gsd", overwrite=True, period=None, group=hoomd.group.all())
+md.integrate.mode_standard(dt=1e-13)
+integrator_nve = md.integrate.nve(group=hoomd.group.all())
+hoomd.run(2)
+E1 = analyzer.query('potential_energy')
+print("E1 = ",E1)
+integrator_nve.disable()
+
 
 #Initial IS c2
 print("c2:")
-fire=hoomd.md.integrate.mode_minimize_fire(group=hoomd.group.all(), dt=0.001) # , ftol=1e-2, Etol=1e-7)
+fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025)
+integrator_nve = md.integrate.nve(group=hoomd.group.all())
 while not(fire.has_converged()):
    hoomd.run(100)
 print('FIRE minimization converged')
+E2 = analyzer.query('potential_energy')
+print("E2 = ",E2)
 c2 = system.take_snapshot()
 hoomd.dump.gsd(filename="./test-output/T9-Overlap.gsd", overwrite=False, period=None, group=hoomd.group.all())
+integrator_nve.disable()
 
 #First thermal configuration c3
 print("c3:")
@@ -194,37 +211,49 @@ print(nNVTsteps," NVT steps")
 integrator_nvt = md.integrate.nvt(group=hoomd.group.all(), tau=tauT, kT=TemperatureGoal)
 hoomd.run(nNVTsteps)
 integrator_nvt.disable()
+E3 = analyzer.query('potential_energy')
+print("E3 = ",E3)
 c3 = system.take_snapshot()
 hoomd.dump.gsd(filename="./test-output/T9-Overlap.gsd", overwrite=False, period=None, group=hoomd.group.all())
 
 #First thermal IS, c4
 print("c4:")
-fire=hoomd.md.integrate.mode_minimize_fire(group=hoomd.group.all(), dt=0.001) # , ftol=1e-2, Etol=1e-7)
+fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025)
+integrator_nve.enable()
 while not(fire.has_converged()):
    hoomd.run(100)
 print('FIRE minimization converged')
+E4 = analyzer.query('potential_energy')
+print("E4 = ",E4)
 c4 = system.take_snapshot()
 hoomd.dump.gsd(filename="./test-output/T9-Overlap.gsd", overwrite=False, period=None, group=hoomd.group.all())
+integrator_nve.disable()
 
 #Second thermal configuration c5
 print("c5:")
 TemperatureGoal=1
 tauT=1
 dt=0.0025
+print(100*nNVTsteps," NVT steps")
 md.integrate.mode_standard(dt=dt)
-print(nNVTsteps," NVT steps")
-integrator_nvt = md.integrate.nvt(group=hoomd.group.all(), tau=tauT, kT=TemperatureGoal)
+integrator_nvt.enable()
 hoomd.run(100*nNVTsteps)
 integrator_nvt.disable()
+E5 = analyzer.query('potential_energy')
+print("E5 = ",E5)
 c5 = system.take_snapshot()
 hoomd.dump.gsd(filename="./test-output/T9-Overlap.gsd", overwrite=False, period=None, group=hoomd.group.all())
 
 #Second thermal IS, c6
 print("c6:")
-fire=hoomd.md.integrate.mode_minimize_fire(group=hoomd.group.all(), dt=0.001) # , ftol=1e-2, Etol=1e-7)
+fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025)
+integrator_nve.enable()
 while not(fire.has_converged()):
    hoomd.run(100)
 print('FIRE minimization converged')
+integrator_nve.disable()
+E6 = analyzer.query('potential_energy')
+print("E6 = ",E6)
 c6 = system.take_snapshot()
 hoomd.dump.gsd(filename="./test-output/T9-Overlap.gsd", overwrite=False, period=None, group=hoomd.group.all())
 
@@ -251,6 +280,7 @@ pos3=np.array(c3.particles.position)
 pos4=np.array(c4.particles.position)
 pos5=np.array(c5.particles.position)
 pos6=np.array(c6.particles.position)
+print("q23 = ",OverlapPos(pos2,pos3,box_size))
 print("q33 = ",OverlapPos(pos3,pos3,box_size))
 print("q34 = ",OverlapPos(pos3,pos4,box_size))
 print("q35 = ",OverlapPos(pos3,pos5,box_size))
@@ -259,6 +289,7 @@ print("q46 = ",OverlapPos(pos4,pos6,box_size))
 
 #Overlap with the distances as input
 dist56=PeriodicDistance(pos5,pos6,box_size)
-print("Overlap between the last thermal configuration and its IS:", OverlapDist(dist56,box_size))
+print("Overlap between the last thermal configuration and its IS:")
+print("q56 = ", OverlapDist(dist56,box_size))
 
 
