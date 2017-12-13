@@ -117,6 +117,7 @@ python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nste
 echo "|--> Calculating first Fk(t)..."
 echo "python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --dt=$dt --every_forMemory=1 -l${label}"
 python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --dt=$dt --every_forMemory=1 -l${label}
+
 tauFkt_file=tau$label.txt
 if ! [ -f $tauFkt_file ]; then echo "For some reason the file with tau, $tauFkt_file, does not exist. No point in continuing.";exit;fi
 tauFkt=`tail -1 $tauFkt_file`
@@ -182,6 +183,9 @@ then
 	date > NOT_thermalized
 	echo "|tau1-tau2|/tau2 = $absrdiff > $rtol" > NOT_thermalized
     fi
+else
+    echo "tau_of_t not really implemented"
+    exit
 fi
 
 echo "+++++++++++++++++++++++++++++++++++++++"

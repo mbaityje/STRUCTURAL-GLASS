@@ -32,7 +32,7 @@ echo "Adesso mi trovo in $PWD"
 
 #Each T requires a different nsteps
 readonly dt=0.0025
-declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.1/$dt |bc) ["2.0"]=$(echo 1.0/$dt |bc) ["0.6"]=$(echo 20.0/$dt |bc)  ["0.466"]=$(echo 200.0/$dt |bc) ["0.44"]=$(echo 10000.0/$dt |bc) ["0.43"]=$(echo 20000.0/$dt |bc) ["0.42"]=$(echo 40000.0/$dt |bc) ["0.41"]=$(echo 100000.0/$dt |bc))
+declare -A NSTEPS_LIST=( ["10.0"]=$(echo 10/$dt |bc) ["2.0"]=$(echo 100.0/$dt |bc) ["0.6"]=$(echo 2000.0/$dt |bc)  ["0.466"]=$(echo 20000.0/$dt |bc) ["0.44"]=$(echo 40000.0/$dt |bc) ["0.43"]=$(echo 80000.0/$dt |bc) ["0.42"]=$(echo 160000.0/$dt |bc) ["0.41"]=$(echo 400000.0/$dt |bc))
 
 
 
