@@ -106,7 +106,7 @@ fi
 addsteps='True'
 label="_ifr$iframe"
 rm -f trajectory${label}.gsd
-echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tau --dt=$dt --thermostat=$thermostat --backupFre=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps\"
+echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tau --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps\"
 python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tau --dt=$dt --thermostat=$thermostat \
 											--backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$label"
 

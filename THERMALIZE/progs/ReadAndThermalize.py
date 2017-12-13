@@ -251,7 +251,7 @@ if heavyTrajFreq>0:
     hoomd.dump.gsd(filename='heavyTraj.gsd', overwrite=False, period=heavyTrajFreq, group=hoomd.group.all())
 if trajFreq>0:
 #    hoomd.dump.gsd(filename='trajectory.gsd', overwrite=False, period=None, group=hoomd.group.all())
-    hoomd.dump.gsd(filename='trajectory'+label+'.gsd', overwrite=False, period=trajFreq, group=hoomd.group.all(),phase=-1)
+    hoomd.dump.gsd(filename='trajectory'+label+'.gsd', overwrite=False, period=trajFreq, group=hoomd.group.all())
 
 
 
