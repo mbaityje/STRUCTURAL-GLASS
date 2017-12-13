@@ -37,6 +37,7 @@ class LJ():
         self.rcut_AB=self.r_cutoff*self.sig_AB
         self.rcut_BB=self.r_cutoff*self.sig_BB
         if r_buff!=None:
+            self.r_buff=r_buff
             NeighborsListLJ.set_params(r_buff=self.r_buff)
         self.myLjPair = md.pair.lj(r_cut=self.r_cutoff, nlist=NeighborsListLJ)
         self.myLjPair.pair_coeff.set('A', 'A', epsilon=self.eps_AA, sigma=self.sig_AA, r_cut=self.rcut_AA, r_on=self.ron_AA)
