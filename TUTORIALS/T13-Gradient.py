@@ -390,8 +390,7 @@ groupB = hoomd.group.type(name='b-particles', type='B')
 groupAll=hoomd.group.all()
 
 snapshot=system.take_snapshot(dtype='double')
-positions=np.array(snapshot.particles.position, dtype=np.float64) #Now 'positions' is a NatomsxDIM vector,
-                                                #storing all the particles' positions
+positions=np.array(snapshot.particles.position, dtype=np.float64)
 modeT=md.integrate.mode_standard(dt=1e-13)
 integratorT=md.integrate.nve(group=hoomd.group.all())
 hoomd.run(2)

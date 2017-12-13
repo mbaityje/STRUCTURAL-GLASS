@@ -123,7 +123,7 @@ class LJ():
             return self.VpairPrime(r, eps, sigma, r_cut)*self.Stilde(r,r_on,r_cut)+(self.Vpair(r, eps, sigma, r_cut)*self.StildePrime(r, r_on, r_cut))/r
 
 
-    # Calculate Energy and Gradient of the smoothened LJ potential
+    # Calculate INTENSIVE Energy and Gradient of the smoothened LJ potential
     def CalculateGradient(self,snapshot):
         energia=0
         Natoms=snapshot.particles.N
@@ -161,7 +161,36 @@ class LJ():
                 gradVector[j] += -temp                
         return energia/Natoms,gradVector/Natoms
 
+    # Calculate EXTENSIVE Energy and Gradient of the smoothened LJ potential
+    def CalculateEnergySlower(self,snapshot):
+        energia=0
+        Natoms=snapshot.particles.N
+        L=snapshot.box.Lx #Assume cubic box
+        for i in range(Natoms):
+            for j in range(i+1,Natoms):
+                posi=np.array(snapshot.particles.position[i], dtype=np.float64)
+                posj=np.array(snapshot.particles.position[j], dtype=np.float64)
+                typei=snapshot.particles.typeid[i]
+                typej=snapshot.particles.typeid[j]
+                rvec=med.PeriodicDisplacement(posi,posj,L)
+                r=np.sqrt(np.square(rvec).sum())
 
+                #See what group the particles belong to
+                if typei==typej:
+                    if typej==0:
+                        if r>self.rcut_AA:
+                            continue
+                        V=self.Vij(r, self.eps_AA, self.sig_AA, self.ron_AA, self.rcut_AA)
+                    else:
+                        if r>self.rcut_BB:
+                            continue
+                        V=self.Vij(r, self.eps_BB, self.sig_BB, self.ron_BB, self.rcut_BB)
+                else:
+                    if r>self.rcut_AB:
+                        continue
+                    V=self.Vij(r, self.eps_AB, self.sig_AB, self.ron_AB, self.rcut_AB)
+                energia+=V
+        return energia
 
 
 #############################
