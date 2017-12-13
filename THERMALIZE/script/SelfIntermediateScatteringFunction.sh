@@ -49,13 +49,13 @@ echo "dt = $dt"
 echo "tau_of_t: $tau_of_t"
 
 #Some hardcoded parameters that I might decide to put as command-line input
-readonly thermostat='NVT'
-readonly tau=0.1
+readonly thermostat='NVE'
+readonly tauT=0.1
 readonly Natoms=65
 maxFrames=1000 #The first trajectory we construct has at most 1000 frames
 ratio=`echo "$nsteps/$maxFrames" | bc`
 trajFreq=$((ratio<1?1:ratio))
-trajFreq=1
+#trajFreq=1
 
 
 #
@@ -107,9 +107,8 @@ echo "|--> Creating first trajectory..."
 addsteps='True'
 label="_ifr$iframe"
 rm -f trajectory${label}.gsd
-echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tau --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps\"
-python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tau --dt=$dt --thermostat=$thermostat \
-											--backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$label"
+echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps\"
+python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$label"
 
 #
 # Calculate Fk(t), MSD and tau for the first time
@@ -119,9 +118,15 @@ echo "python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.g
 python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --dt=$dt --every_forMemory=1 -l${label}
 
 tauFkt_file=tau$label.txt
-if ! [ -f $tauFkt_file ]; then echo "For some reason the file with tau, $tauFkt_file, does not exist. No point in continuing.";exit;fi
-tauFkt=`tail -1 $tauFkt_file`
-echo "TAU is $tauFkt"
+if [ -f $tauFkt_file ];
+then 
+    tauFkt=`tail -1 $tauFkt_file`
+    echo "TAU is $tauFkt"
+else
+    echo "We were not able to calculate TAU. We will go on, and calculate all the other quantities. If the problem is only the fluctuations, you will be able to calculate TAU once you averaged over the samples."
+    echo "We assume TAU=$nsteps"
+    tauFkt=$nsteps
+fi
 
 
 
@@ -133,22 +138,22 @@ then
     echo "|--> Running gap of 20 tau..."
     addsteps='True'
     filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
-    nstepsgap=`echo 20*${tau}/$dt | bc`
+    nstepsgap=`echo 20*${tauFkt}/$dt | bc`
     labelgap='_gap'
-    python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tau --dt=$dt --thermostat=$thermostat \
+    python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat \
 											--backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps=$addsteps -l$labelgap"
 
     #
-    # Run 5tau saving the trajectory
+    # Run 3tau saving the trajectory
     #
-    echo "|--> Running trajectory of 5 tau..."
+    echo "|--> Running trajectory of 3 tau..."
     addsteps='True'
     filenameaftergap=$labelgap.gsd #We read from the output of the previous simulation, which is $labelgap.gsd
     labelaftergap='_aftergap'
-    nstepsaftergap=`echo 3*$tau/$dt | bc`
+    nstepsaftergap=`echo 3*$tauFkt/$dt | bc`
     
     rm -f trajectory${labelaftergap}.gsd
-    python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tau --dt=$dt --thermostat=$thermostat \
+    python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --thermostat=$thermostat \
 												--backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$labelaftergap"
     
     
@@ -158,7 +163,10 @@ then
     echo "|--> Calculating Fk(t) again..."
     python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${labelaftergap}.gsd --dt=$dt --every_forMemory=1 -l${labelaftergap}
     tauFkt2_file=tau$labelaftergap.txt
-    tauFkt2=`tail -1 $tauFkt2_file`
+    if [ -f $tauFkt2_file ];
+    then 
+	tauFkt2=`tail -1 $tauFkt2_file`
+    fi
     echo "TAU1 is $tauFkt"
     echo "TAU2 is $tauFkt2"
     
