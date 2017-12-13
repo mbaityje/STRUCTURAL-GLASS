@@ -1,7 +1,8 @@
 #!/bin/bash
 # Lines for slurm
-#SBATCH --ntasks=5
+#SBATCH --ntasks=1
 #SBATCH -p longgpu # partition (queue) 
+#SBATCH --gres=gpu:1
 #
 #A partire dalle configurazioni calde ne creo di piu` fredde
 
@@ -13,8 +14,6 @@ readonly USERNAME=`whoami`
 
 #readonly SYSTEM="PennPuter"
 readonly SYSTEM="Talapas"
-QUEUE="gpu"
-walltime="0:23:30:00"
 
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
 nsam=1
@@ -51,7 +50,7 @@ do
 	hottestTDIR=$workDIR/T$hottestT/N$Natoms
 	
 	
-	for isam in $(seq 0 $nsamm1)
+	for isam in 1 #$(seq 0 $nsamm1)
 	do
 	    mkdir -p S$isam
 	    cd S$isam

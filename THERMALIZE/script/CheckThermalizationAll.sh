@@ -1,7 +1,8 @@
 #!/bin/bash
 # Lines for slurm
-#SBATCH --ntasks=5
+#SBATCH --ntasks=4
 #SBATCH -p longgpu # partition (queue) 
+#SBATCH --gres=gpu:4  
 #
 # Check thermalization of all the samples by calculating
 # the self-intermediate scattering function, and tau.
@@ -39,6 +40,10 @@ declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.1/$dt |bc) ["2.0"]=$(echo 1.0/$dt |bc
 for Tdir in `ls -d T*`
 do
     T=`echo $Tdir | sed 's/^T//'`
+
+    echo "-------------------------------------------"
+    echo "|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|"
+    echo "-------------------------------------------"
     echo "T=$T"
     pwd
     cd $Tdir

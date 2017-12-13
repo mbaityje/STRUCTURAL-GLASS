@@ -164,6 +164,8 @@ plt.savefig(namemsd_png)
 
 #Figure of Fk(t)
 plt.figure(2)
+axes = plt.gca()
+axes.set_ylim([0,1])
 line=np.empty(len(times)); line.fill(height)
 plt.semilogx(times, Fk)
 plt.semilogx(times, line, linewidth=0.1, color='black')
