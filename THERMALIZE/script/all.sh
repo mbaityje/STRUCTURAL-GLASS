@@ -17,3 +17,6 @@ CheckThermalizationAll.sh
 #Find the trajectory of the IS through a bisection algorithm.
 #Launches ChunkSect.sh
 ChunkSectAll.sh 
+
+#From an initial thermal configuration calculates the overlap and the overlap of the IS (as well as the energies) as a function of time.
+OverlapTrajectoryIS.sh
