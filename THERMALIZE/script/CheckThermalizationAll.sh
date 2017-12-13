@@ -1,8 +1,8 @@
 #!/bin/bash
 # Lines for slurm
-#SBATCH --ntasks=4
+#SBATCH --ntasks=1
 #SBATCH -p longgpu # partition (queue) 
-#SBATCH --gres=gpu:4  
+#SBATCH --gres=gpu:1  
 #
 # Check thermalization of all the samples by calculating
 # the self-intermediate scattering function, and tau.

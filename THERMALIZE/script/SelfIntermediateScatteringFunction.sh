@@ -117,18 +117,6 @@ echo "|--> Calculating first Fk(t)..."
 echo "python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --dt=$dt --every_forMemory=1 -l${label}"
 python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --dt=$dt --every_forMemory=1 -l${label}
 
-tauFkt_file=tau$label.txt
-if [ -f $tauFkt_file ];
-then 
-    tauFkt=`tail -1 $tauFkt_file`
-    echo "TAU is $tauFkt"
-else
-    echo "We were not able to calculate TAU. We will go on, and calculate all the other quantities. If the problem is only the fluctuations, you will be able to calculate TAU once you averaged over the samples."
-    echo "We assume TAU=$nsteps"
-    tauFkt=$nsteps
-fi
-
-
 
 if [ 0 -eq $tau_of_t ]
 then
@@ -138,10 +126,9 @@ then
     echo "|--> Running gap of 20 tau..."
     addsteps='True'
     filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
-    nstepsgap=`echo 20*${tauFkt}/$dt | bc`
+    nstepsgap=`echo 20*${nsteps} | bc`
     labelgap='_gap'
-    python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat \
-											--backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps=$addsteps -l$labelgap"
+    python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps=$addsteps -l$labelgap"
 
     #
     # Run 3tau saving the trajectory
@@ -150,11 +137,10 @@ then
     addsteps='True'
     filenameaftergap=$labelgap.gsd #We read from the output of the previous simulation, which is $labelgap.gsd
     labelaftergap='_aftergap'
-    nstepsaftergap=`echo 3*$tauFkt/$dt | bc`
+    nstepsaftergap=`echo 3*$nsteps/$dt | bc`
     
     rm -f trajectory${labelaftergap}.gsd
-    python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --thermostat=$thermostat \
-												--backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$labelaftergap"
+    python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$labelaftergap"
     
     
     #
@@ -162,35 +148,7 @@ then
     #
     echo "|--> Calculating Fk(t) again..."
     python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${labelaftergap}.gsd --dt=$dt --every_forMemory=1 -l${labelaftergap}
-    tauFkt2_file=tau$labelaftergap.txt
-    if [ -f $tauFkt2_file ];
-    then 
-	tauFkt2=`tail -1 $tauFkt2_file`
-    fi
-    echo "TAU1 is $tauFkt"
-    echo "TAU2 is $tauFkt2"
-    
-    #
-    # State if the sample is thermalized
-    #
-    #I say it is thermalized if they are within 5%
-    rtol=0.10
-    rdiff=`echo "($tauFkt-$tauFkt2)/$tauFkt2" | bc -lq`
-    absrdiff=`echo "sqrt($rdiff*$rdiff)" | bc -lq`
-    
-    #Create a dummy file to quickly check if the directory is thermalized
-    rm -f YES_thermalized NOT_thermalized
-    if [ 1 == $( echo "$absrdiff <= $rtol"|bc ) ]; 
-    then
-	echo "Thermalized"
-	date > YES_thermalized
-	echo "|tau1-tau2|/tau2 = $absrdiff <= $rtol" > YES_thermalized
-	
-    else
-	echo "Not thermalized"
-	date > NOT_thermalized
-	echo "|tau1-tau2|/tau2 = $absrdiff > $rtol" > NOT_thermalized
-    fi
+
 else
     echo "tau_of_t not really implemented"
     exit
