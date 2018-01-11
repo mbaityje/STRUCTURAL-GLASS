@@ -50,7 +50,7 @@ do
 	hottestTDIR=$workDIR/T$hottestT/N$Natoms
 	
 	
-	for isam in 1 #$(seq 0 $nsamm1)
+	for isam in 6 7 8 9 #$(seq 0 $nsamm1)
 	do
 	    mkdir -p S$isam
 	    cd S$isam
