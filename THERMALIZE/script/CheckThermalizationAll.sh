@@ -9,6 +9,7 @@
 #
 
 readonly PROC_TAG="ct"
+readonly USERNAME=`whoami`
 
 #Script Options
 tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the last configuration
@@ -37,7 +38,7 @@ declare -A NSTEPS_LIST=( ["10.0"]=$(echo 10/$dt |bc) ["2.0"]=$(echo 100.0/$dt |b
 
 
 
-for Tdir in `ls -d T*|sort -r`
+for Tdir in T2.0 #`ls -d T*|sort -r`
 do
     T=`echo $Tdir | sed 's/^T//'`
 
@@ -75,8 +76,11 @@ do
     		    bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
 		elif [ $SYSTEM == "Talapas" ]
 		then
-		    nombre=${PROC_TAG}T${T}i${isam}
-    		    srun --job-name=$nombre -n1 --exclusive bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
+		    nombre=N$Natoms${PROC_TAG}T${T}i${isam}
+		    if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
+		    then
+    			sbatch --job-name=$nombre --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
+		    fi
 		fi
     	    fi
 	    cd ..

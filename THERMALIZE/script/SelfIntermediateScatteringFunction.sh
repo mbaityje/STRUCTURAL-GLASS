@@ -1,4 +1,7 @@
 #!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH -p longgpu # partition (queue)
+#SBATCH --gres=gpu:1
 #
 # Given a gsd file and a target frame:
 # - Runs a trajectory starting from that configuration
@@ -31,14 +34,20 @@ workDIR=$rootDIR/OUTPUT
 utilDIR=$rootDIR/UTILITIES
 
 #
-#Command line input
+# Command line input
 #
-filename=$1
-iframe=$2
-nsteps=$3
-T=$4
-dt=${5:-0.0025} #dt is taken from command line. Otherwise it is 0.0025
-tau_of_t=${6:-0} #flag that tells us if we are seeking to calculate only one tau (tau_of_t=1) or if we want to calculate tau two times, spaced by a gap (tau_of_t=0)
+# If the script was launched with sbatch, the following variables are automatically
+# assigned. If it was launched with bash, they are assigned via $1, $2, ...
+filename=${filename:-1}
+iframe=${iframe:-2}
+nsteps=${nsteps:-3}
+T=${T:-4}
+dt=${dt:-5}
+tau_of_t=${tau_of_t:-6}
+
+#Set default values for the last two arguments [i.e. if they were unassigned give them default value]
+dt=${dt:-0.0025}
+tau_of_t=${tau_of_t:-0} #flag that tells us if we are seeking to calculate only one tau (tau_of_t=1) or if we want to calculate tau two times, spaced by a gap (tau_of_t=0)
 
 echo "SelfIntermediateScatteringFunction.sh:"
 echo "filename: $filename"
