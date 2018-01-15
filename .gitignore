@@ -1,0 +1,11 @@
+#Heavy Directories
+PLOTS/
+OUTPUT/
+benchmarks/
+
+#Compilation rubbish
+*.pyc
+
+#Backup files
+*~
+
