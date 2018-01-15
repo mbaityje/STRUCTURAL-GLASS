@@ -1,8 +1,4 @@
 #!/bin/bash
-# Lines for slurm
-#SBATCH --ntasks=1
-#SBATCH -p longgpu # partition (queue) 
-#SBATCH --gres=gpu:1
 #
 #A partire dalle configurazioni calde ne creo di piu` fredde
 
@@ -16,12 +12,12 @@ readonly USERNAME=`whoami`
 readonly SYSTEM="Talapas"
 
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
-nsam=1
+nsam=10
 let nsamm1=$nsam-1
 dt=0.0025
 backupFreq=`echo 10/$dt|bc`
 hottestT=10.0
-TLIST="10.0 2.0 0.6 0.466 0.44 0.43 0.42 0.41"
+TLIST="2.0 0.6 0.466 0.44 0.43 0.42" #10.0 0.41
 
 #DIRECTORIES
 scriptDIR=$PWD
@@ -50,22 +46,23 @@ do
 	hottestTDIR=$workDIR/T$hottestT/N$Natoms
 	
 	
-	for isam in 6 7 8 9 #$(seq 0 $nsamm1)
+	for isam in $(seq 0 $nsamm1)
 	do
+	    echo "isam: $isam"
 	    mkdir -p S$isam
 	    cd S$isam
 	    
-	    seed=$(od -vAn -N4 -tu4 < /dev/urandom) #seed is stored in measurement file
+	    seed=$(od -vAn -N4 -tu4 < /dev/urandom)
 	    thermConfName=thermalized.gsd
 	    case $T in
-		10.0)  totMDsteps=8000000;     thermostat=MB;  tau=1.0; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$inistateDIR/initIS.gsd;;
-		2.0)   totMDsteps=10000000;    thermostat=NVT; tau=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.6)   totMDsteps=20000000;    thermostat=NVT; tau=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.466) totMDsteps=40000000;    thermostat=NVT; tau=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.44)  totMDsteps=400000000;   thermostat=NVT; tau=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.43)  totMDsteps=2000000000;  thermostat=NVT; tau=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.42)  totMDsteps=4000000000;  thermostat=NVT; tau=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.41)  totMDsteps=10000000000; thermostat=NVT; tau=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		10.0)  totMDsteps=8000000;     thermostat=MB;  tauT=1.0; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$inistateDIR/initIS.gsd;;
+		2.0)   totMDsteps=10000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.6)   totMDsteps=20000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.466) totMDsteps=40000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.44)  totMDsteps=400000000;   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.43)  totMDsteps=2000000000;  thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.42)  totMDsteps=4000000000;  thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.41)  totMDsteps=10000000000; thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		*) echo "How many steps for this temperature?";exit;;
 	    esac
 	    
@@ -74,9 +71,10 @@ do
 	    #If thermalized configuration already exists, then continue from there (to be able to make longer thermalization runs)
 	    if [ -e $thermConfName ] ;then
 		initConf=$thermConfName
+		echo "Continuing run from $initConf"
+	    else
+		echo "Starting run from $initConf"
 	    fi
-	    
-	    echo "INITCONF: $initConf"
 	    
 	    #It may happen that no initial configuration is available.
 	    #In that case, give a warning and skip sample
@@ -90,18 +88,20 @@ do
 	    #
 	    if [ $SYSTEM == "PennPuter" ]; then
 		echo `whoami`$USERNAME@`uname -n` > thermalized.time
-		time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tau=$tau --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq"  2>&1) 2>>thermalized.time
+		time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq"  2>&1) 2>>thermalized.time
 	    elif [ $SYSTEM == "Talapas" ]; 
 	    then
-		nombre=${PROC_TAG}T${T}i${isam}
-#		if [ 0 == `squeue -u$USERNAME -n nb6-300-$nombre|grep $USERNAME|wc -l` ]
-#		then
-		    srun --job-name=$nombre -n1 --exclusive python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tau=$tau --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq" 
-#	    fi
+		nombre=N${Natoms}${PROC_TAG}T${T}i${isam}
+		if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
+		then
+		    echo sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq $scriptDIR/Thermalize.sbatch
+		    sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq $scriptDIR/Thermalize.sbatch
+		fi
 	    else
 		echo "SYSTEM=$SYSTEM not recognized"
 		exit
 	    fi
+	    echo ""
 	    cd ..
 	done #isam
 	cd ..
