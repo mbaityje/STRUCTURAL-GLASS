@@ -1,6 +1,7 @@
-#Heavy Directories
+#Heavy Directories and symlinks to directories
 PLOTS/
 OUTPUT/
+OUTPUT
 benchmarks/
 
 #Compilation rubbish
