@@ -2,7 +2,7 @@
 ################################################################
 #
 # DESCRIPTION
-# This example reads a configuration from a .gsd file. 
+# This program reads a configuration from a .gsd file. 
 # The it runs the dynamics for a user-defined number of steps.
 # Saves e(t), eIS(t), q(0,t), qIS(0,t)
 #
@@ -166,7 +166,7 @@ while itbar<len(tbar):
 	hoomd.md.update.zero_momentum(phase=-1)
 	hoomd.md.update.zero_momentum(period=int(1./dt),phase=0)
 
-	hoomd.run(nsteps_batch) #Do NOT use run_upto()
+	hoomd.run(nsteps_batch) #Do NOT use run_upto() because it is bugged and doesnt accept properly the change of integration mode
 	snap=system.take_snapshot()
 	itbar+=1
 	E=analyzer.query("potential_energy")

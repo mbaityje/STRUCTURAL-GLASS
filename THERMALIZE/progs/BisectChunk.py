@@ -182,7 +182,7 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doTS=False):
     #If they are next to each other, I record them no matter their energy
     if (t2-t1)==1:
         if doTS and (ediff>deltaE): 
-                eTS=NonLocalRidge(snap1, snap2, e1,e2)
+            eTS=NonLocalRidge(snap1, snap2, e1,e2)
         elist.append([t0+t2,e2])
         return
 

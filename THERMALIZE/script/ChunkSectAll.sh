@@ -21,7 +21,7 @@ utilDIR=$rootDIR/UTILITIES
 #Parameters
 readonly kB=0.00831445986144858 #Boltzman constant in our units
 readonly dt=0.0025
-readonly ttot=`echo 10^6|bc` #We will want 10^9 steps
+readonly ttot=`echo 10^7|bc` #We will want 10^9 steps
 TLIST="0.43" #"10.0 2.0 0.6 0.466 0.44 0.43 0.42 0.41"
 
 cd $workDIR
@@ -29,9 +29,10 @@ for T in $(echo $TLIST)
 do
 	echo "T = $T"
 	cd T$T
-	deltaE=0.5
+#	deltaE=0.5
 #	deltaE=0.2
 #	deltaE=$(echo 10*$kB*$T | bc -lq)
+	deltaE=0.01
 
 	for Natoms in 65
 	do

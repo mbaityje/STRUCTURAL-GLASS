@@ -185,24 +185,38 @@ def PeriodicIntermPoints(vec_a, vec_b, L):
 #-------------------------#
 
 ######################################################################
-# Overlap with the snapshots as input
 def OverlapConfs(conf1, conf2,box_size):
+    """
+    Overlap with the snapshots as input
+    """
     posizioni1=np.array(conf1.particles.position, dtype=np.float64)
     posizioni2=np.array(conf2.particles.position, dtype=np.float64)
     return OverlapPos(posizioni1,posizioni2,box_size)
 
 ######################################################################
-# Overlap with the positions as input
 def OverlapPos(posizioni1, posizioni2,box_size):
+    """
+    Overlap with the positions as input
+    """
     disp=PeriodicDisplacement(posizioni1,posizioni2,box_size).sum(axis=1)
     return OverlapDisp(disp,box_size)
 
 ######################################################################
-# Overlap with the distance between confs as input
 def OverlapDisp(disp,box_size):
+    """
+    Overlap. With the distance between confs as input
+    """
     delta=0.13333 #1/3 of the smallest particle diameter
     return np.where(disp<delta,1.,0.).sum()/len(disp)
 
+######################################################################
+def HowManyMovedPos(posizioni1, posizioni2,box_size):
+    """
+    How many particles moved between posizioni1 and posizioni2.
+    """
+    disp=PeriodicDisplacement(posizioni1,posizioni2,box_size).sum(axis=1)
+    delta=0.13333 #1/3 of the smallest particle diameter
+    return np.where(disp>delta,1.,0.).sum()
 
 
 
