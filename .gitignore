@@ -9,3 +9,5 @@ benchmarks/
 #Backup files
 *~
 
+#Temporary files
+MinimizeSegment.txt
