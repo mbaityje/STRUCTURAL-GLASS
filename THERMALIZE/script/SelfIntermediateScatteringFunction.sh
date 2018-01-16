@@ -20,9 +20,11 @@ echo "We are at"
 pwd
 
 
-#SYSTEM="PennPuter"
-SYSTEM="Talapas"
-if [ $SYSTEM == "Talapas" ];
+if [ `hostname` == "PennPuter" ]; then SYSTEM="PennPuter";
+else SYSTEM="talapas"; fi
+
+
+if [ $SYSTEM == "talapas" ];
 then rootDIR=/home/mbaity/STRUCTURAL-GLASS/
 else 
     echo "Implement rootDIR for SYSTEM!=talapas"
@@ -71,7 +73,7 @@ trajFreq=$((ratio<1?1:ratio))
 #Some checks to make sure that the input is good
 #
 #Number of arguments
-if [ $# -ne 4 ] && [ $# -ne 5 ] && [ $# -ne 6 ]; then
+if [ $SYSTEM == "PennPuter" ] && [ $# -ne 4 ] && [ $# -ne 5 ] && [ $# -ne 6 ]; then
 	echo "Wrong number of parameters ($#)"
 	echo "Launch as: $0 <filename> <iframe> <nsteps> <T>"
 	exit
@@ -159,7 +161,7 @@ then
     python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${labelaftergap}.gsd --dt=$dt --every_forMemory=1 -l${labelaftergap}
 
 else
-    echo "tau_of_t not really implemented"
+    echo "tau_of_t=1 not implemented"
     exit
 fi
 
