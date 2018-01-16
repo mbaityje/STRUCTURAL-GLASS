@@ -12,7 +12,7 @@ readonly PROC_TAG="ct"
 readonly USERNAME=`whoami`
 
 #Script Options
-tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the last configuration
+readonly tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the last configuration
 
 
 #readonly SYSTEM="PennPuter"
@@ -33,7 +33,7 @@ echo "Adesso mi trovo in $PWD"
 
 #Each T requires a different nsteps
 readonly dt=0.0025
-declare -A NSTEPS_LIST=( ["10.0"]=$(echo 10/$dt |bc) ["2.0"]=$(echo 100.0/$dt |bc) ["0.6"]=$(echo 2000.0/$dt |bc)  ["0.466"]=$(echo 20000.0/$dt |bc) ["0.44"]=$(echo 40000.0/$dt |bc) ["0.43"]=$(echo 80000.0/$dt |bc) ["0.42"]=$(echo 160000.0/$dt |bc) ["0.41"]=$(echo 400000.0/$dt |bc))
+declare -A NSTEPS_LIST=( ["10.0"]=$(echo 2.0/$dt |bc) ["2.0"]=$(echo 5.0/$dt |bc) ["0.6"]=$(echo 200.0/$dt |bc)  ["0.49"]=$(echo 1000.0/$dt |bc) ["0.466"]=$(echo 2000.0/$dt |bc) ["0.44"]=$(echo 4000.0/$dt |bc) ["0.43"]=$(echo 8000.0/$dt |bc) ["0.42"]=$(echo 16000.0/$dt |bc) ["0.41"]=$(echo 40000.0/$dt |bc))
 
 
 
@@ -53,10 +53,12 @@ do
     for Ndir in `ls -d N*`
     do
 	N=`echo $Ndir | sed 's/^N//'`
+	echo "N=$N"
 	cd $Ndir
 	for SAMdir in `ls -d S*`
 	do
 	    ISAM=`echo $SAMdir | sed 's/^S//'`
+	    echo "ISAM=$ISAM"
 	    cd $SAMdir
 	    if [ 1 -eq $tau_of_t ] #I never tried this case
     	    then
@@ -76,7 +78,7 @@ do
     		    bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
 		elif [ $SYSTEM == "Talapas" ]
 		then
-		    nombre=N$Natoms${PROC_TAG}T${T}i${isam}
+		    nombre=N$N${PROC_TAG}T${T}i${ISAM}
 		    if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 		    then
     			sbatch --job-name=$nombre --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
