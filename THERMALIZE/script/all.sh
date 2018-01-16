@@ -13,6 +13,8 @@ bash ThermalizeAll.sh
 #Check thermalization for all the systems. Calculates msd, Fkt and tau.
 #Launches SelfIntermediateScatteringFunction.sh
 bash CheckThermalizationAll.sh
+#Average the Self-intermediate scattering functions
+bash MediasFkt.sh
 
 #Find the trajectory of the IS through a bisection algorithm.
 #Launches ChunkSect.sh
