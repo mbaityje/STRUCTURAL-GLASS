@@ -1,13 +1,23 @@
 #!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH -p longgpu # partition (queue)
+#SBATCH --gres=gpu:1
+
+# 
+# Bisects a chunk of trajectory with Heuer's IS bisection scheme.
+# 
+
 
 #
 #Command line input. Default values are for testing purposes. 
 #
-T=${1}
-dt=${2}
-deltaE=${3}
-ttot=${4}
-doTS=${5:-0}
+T=${T:-1}
+dt=${dt:-2}
+deltaE=${deltaE:-3}
+ttot=${ttot:-4}
+doTS=${doTS:-5}
+doTS=${doTS:-0} #default value for doTS
+
 
 #
 #Some checks to make sure that the input is good

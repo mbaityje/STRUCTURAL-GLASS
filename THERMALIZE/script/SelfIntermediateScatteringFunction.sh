@@ -148,7 +148,7 @@ then
     addsteps='True'
     filenameaftergap=$labelgap.gsd #We read from the output of the previous simulation, which is $labelgap.gsd
     labelaftergap='_aftergap'
-    nstepsaftergap=`echo 3*$nsteps/$dt | bc`
+    nstepsaftergap=$nsteps
     
     rm -f trajectory${labelaftergap}.gsd
     python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$labelaftergap"
