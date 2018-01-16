@@ -115,7 +115,7 @@ snap_final.particles.position[:]=posizioni[Nframes-1]
 #If it's the first chunk, there is no list of energies.
 #Otherwise, we open it and make sure that the time step is consistent.
 if(ichunk>0):
-    elist_old=np.loadtxt('elist.txt',skiprows=skiprows)
+    elist_old=np.loadtxt('elistIS.txt',skiprows=skiprows)
     assert(int(elist_old[len(elist_old)-1][0])==t0-1)
 
 ################################################################
@@ -396,10 +396,10 @@ integrator.disable()
 #
 ################################################################
 if(ichunk==0):
-    f_handle = file('elist.txt', 'w') #To write in overwrite mode
+    f_handle = file('elistIS.txt', 'w') #To write in overwrite mode
     np.savetxt(f_handle, elist,fmt='%d %.14g', header='1)time 2)eIS')
 else:
-    f_handle = file('elist.txt', 'a') #To write in append mode
+    f_handle = file('elistIS.txt', 'a') #To write in append mode
     np.savetxt(f_handle,elist,fmt='%d %.14g') 
 f_handle.close()
 
