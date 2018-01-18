@@ -259,19 +259,19 @@ runSteps = max(0,nNVTsteps-iniStep) if addsteps==False else nNVTsteps #If negati
 if thermostat == 'NVT' :
     print(runSteps," NVT steps with the Nose-Hoover thermostat at T=",TemperatureGoal)
     integrator = md.integrate.nvt(group=hoomd.group.all(), kT=TemperatureGoal, tau=tauT)
-    md.update.zero_momentum(period=analyzer_period,phase=10)
+    md.update.zero_momentum(period=1,phase=0)
     hoomd.run(runSteps, quiet=False)
 
 elif thermostat == 'NVE' :
     print(runSteps," NVE steps with the NVE thermostat")
     integrator = md.integrate.nve(group=hoomd.group.all())
-    md.update.zero_momentum(period=analyzer_period,phase=10)
+    md.update.zero_momentum(period=1,phase=0)
     hoomd.run(runSteps, quiet=False)
 
 elif thermostat == 'MB' :
     print(runSteps," NVT steps with the Andersen thermostat at T=",TemperatureGoal)
     stepsTauT = int(tauT/dt)
-    md.update.zero_momentum(period=stepsTauT,phase=0)
+    md.update.zero_momentum(period=1,phase=0)
     integrator = md.integrate.nve(group=hoomd.group.all())
     while(hoomd.get_step()<runSteps):
         for iterations in range(0,int(nNVTsteps/stepsTauT)):

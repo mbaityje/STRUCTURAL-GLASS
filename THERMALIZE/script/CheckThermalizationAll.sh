@@ -32,12 +32,12 @@ echo "Adesso mi trovo in $PWD"
 #Each T requires a different nsteps
 readonly dt=0.0025
 #Of these nsteps, the following are fine tuned: T=10.0,2.0
-declare -A NSTEPS_LIST=( ["10.0"]=$(echo 1.0/$dt |bc) ["2.0"]=$(echo 2.0/$dt |bc) ["0.6"]=$(echo 100.0/$dt |bc)  ["0.49"]=$(echo 500.0/$dt |bc) ["0.466"]=$(echo 2000.0/$dt |bc) ["0.44"]=$(echo 4000.0/$dt |bc) ["0.43"]=$(echo 8000.0/$dt |bc) ["0.42"]=$(echo 16000.0/$dt |bc) ["0.41"]=$(echo 40000.0/$dt |bc))
+declare -A NSTEPS_LIST=( ["10.0"]=$(echo 1.0/$dt |bc) ["2.0"]=$(echo 2.0/$dt |bc) ["0.6"]=$(echo 100.0/$dt |bc)  ["0.49"]=$(echo 8.0/$dt |bc) ["0.466"]=$(echo 2000.0/$dt |bc) ["0.44"]=$(echo 4000.0/$dt |bc) ["0.43"]=$(echo 8000.0/$dt |bc) ["0.42"]=$(echo 16000.0/$dt |bc) ["0.41"]=$(echo 40000.0/$dt |bc))
 
 
 
 
-for Tdir in T2.0 T0.6 #`ls -d T*|sort -r`
+for Tdir in T10.0 T2.0 T0.6 #`ls -d T*|sort -r`
 do
     T=`echo $Tdir | sed 's/^T//'`
 
@@ -65,7 +65,7 @@ do
 		Nframes=`python $utilDIR/FindNFrames.py $heavyTrajFile`
 	    	let Nframesm1=$Nframes-1
 		for iframe in $(seq 0 $Nframesm1)
-		do	
+		do
 		    bash $scriptDIR/SelfIntermediateScatteringFunction.sh $heavyTrajFile $iframe $nsteps $T $dt $tau_of_t
 	    	done
     	    else

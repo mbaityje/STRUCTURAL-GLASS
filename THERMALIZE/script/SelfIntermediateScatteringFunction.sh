@@ -63,10 +63,10 @@ echo "tau_of_t: $tau_of_t"
 readonly thermostat='NVE'
 readonly tauT=0.1
 readonly Natoms=65
-maxFrames=1000 #The first trajectory we construct has at most 1000 frames
+maxFrames=1000 #The (first) trajectory we construct has at most 1000 frames
 ratio=`echo "$nsteps/$maxFrames" | bc`
 trajFreq=$((ratio<1?1:ratio))
-#trajFreq=1
+trajFreq=1
 
 
 #
