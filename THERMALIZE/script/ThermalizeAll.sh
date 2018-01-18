@@ -11,13 +11,15 @@ readonly USERNAME=`whoami`
 #readonly SYSTEM="PennPuter"
 readonly SYSTEM="Talapas"
 
+queue=longgpu
+
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
 nsam=10
 let nsamm1=$nsam-1
 dt=0.0025
 backupFreq=`echo 10/$dt|bc`
 hottestT=10.0
-TLIST="0.49" #"2.0 0.6 0.49 0.466 0.44 0.43 0.42" #10.0 0.42 0.41
+TLIST="0.6" #"2.0 0.6 0.49 0.466 0.44 0.43 0.42" #10.0 0.42 0.41
 
 #DIRECTORIES
 scriptDIR=$PWD
@@ -95,7 +97,7 @@ do
 		nombre=N${Natoms}${PROC_TAG}T${T}i${isam}
 		if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 		then
-		    echo sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq $scriptDIR/Thermalize.sbatch
+		    echo sbatch --job-name=$nombre -p $queue --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq $scriptDIR/Thermalize.sbatch
 		    sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq $scriptDIR/Thermalize.sbatch
 		fi
 	    else

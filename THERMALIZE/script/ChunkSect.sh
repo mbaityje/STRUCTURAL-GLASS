@@ -8,6 +8,24 @@
 # 
 
 
+if [ `hostname` == "PennPuter" ]; then SYSTEM="PennPuter";
+else SYSTEM="talapas"; fi
+
+#DIRECTORIES
+if [ $SYSTEM == "talapas" ];
+then rootDIR=/home/mbaity/STRUCTURAL-GLASS/
+else 
+    rootDIR=$PWD/../../../..
+    echo "Setting rootDIR: $rootDIR"
+fi
+thermDIR=$rootDIR/THERMALIZE
+exeDIR=$thermDIR/progs
+scriptDIR=$thermDIR/script
+workDIR=$rootDIR/OUTPUT
+utilDIR=$rootDIR/UTILITIES
+
+
+
 #
 #Command line input. Default values are for testing purposes. 
 #
@@ -23,7 +41,7 @@ doTS=${doTS:-0} #default value for doTS
 #Some checks to make sure that the input is good
 #
 #Number of arguments
-if [ $# -ne 4 ] && [ $# -ne 5 ]; then
+if [ $SYSTEM == "PennPuter" ] && [ $# -ne 4 ] && [ $# -ne 5 ]; then
 	echo "Wrong number of parameters ($#)"
 	echo "Launch as: $0 <T> <dt> <deltaE> <ttot> [<doTS>]"
 	echo "T: temperature"
@@ -74,14 +92,6 @@ readonly tauT=0.1
 readonly tchunk=`echo 10^5|bc`
 nchunks=`echo $ttot/$tchunk|bc`
 let nchunksm1=$nchunks-1
-
-#DIRECTORIES
-rootDIR=$PWD/../../../..
-thermDIR=$rootDIR/THERMALIZE
-exeDIR=$thermDIR/progs
-scriptDIR=$thermDIR/script
-workDIR=$rootDIR/OUTPUT
-utilDIR=$rootDIR/UTILITIES
 
 
 #--------------------------------------------#

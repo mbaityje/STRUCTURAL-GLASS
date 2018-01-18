@@ -23,12 +23,12 @@ pwd
 if [ `hostname` == "PennPuter" ]; then SYSTEM="PennPuter";
 else SYSTEM="talapas"; fi
 
-
+#DIRECTORIES
 if [ $SYSTEM == "talapas" ];
 then rootDIR=/home/mbaity/STRUCTURAL-GLASS/
 else 
-    echo "Implement rootDIR for SYSTEM!=talapas"
-    exit
+    rootDIR=$PWD/../../../..
+    echo "Setting rootDIR: $rootDIR"
 fi
 thermDIR=$rootDIR/THERMALIZE
 exeDIR=$thermDIR/progs
