@@ -46,7 +46,8 @@ do
 			    nombre=N$Natoms${PROC_TAG}T${T}i${ISAM}
 			    if [ 0 == `squeue -u$(whoami) -n $nombre|grep $(whoami)|wc -l` ]
 			    then
-				sbatch --job-name=$nombre --export=T=$T,dt=$dtdeltaE=$deltaE,ttot=$ttot,doTS=$doTS $scriptDIR/ChunkSect.sh
+				echo "sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doTS=$doTS $scriptDIR/ChunkSect.sh"
+				sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doTS=$doTS $scriptDIR/ChunkSect.sh
 			    fi
 			fi
 			cd ..

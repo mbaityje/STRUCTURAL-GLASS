@@ -1,8 +1,4 @@
 #!/bin/bash
-# Lines for slurm
-#SBATCH --ntasks=1
-#SBATCH -p longgpu # partition (queue) 
-#SBATCH --gres=gpu:1  
 #
 # Check thermalization of all the samples by calculating
 # the self-intermediate scattering function, and tau.
@@ -10,6 +6,9 @@
 
 readonly PROC_TAG="ct"
 readonly USERNAME=`whoami`
+queue=longgpu
+#queue=short
+
 
 #Script Options
 readonly tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the last configuration
@@ -38,7 +37,7 @@ declare -A NSTEPS_LIST=( ["10.0"]=$(echo 1.0/$dt |bc) ["2.0"]=$(echo 2.0/$dt |bc
 
 
 
-for Tdir in T0.49 #`ls -d T*|sort -r`
+for Tdir in T2.0 T0.6 #`ls -d T*|sort -r`
 do
     T=`echo $Tdir | sed 's/^T//'`
 
@@ -76,12 +75,12 @@ do
 		if [ $SYSTEM == "PennPuter" ]
 		then
     		    bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
-		elif [ $SYSTEM == "Talapas" ]
+		elif [ $SYSTEM == "talapas" ]
 		then
 		    nombre=N$N${PROC_TAG}T${T}i${ISAM}
 		    if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 		    then
-    			sbatch --job-name=$nombre --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
+    			sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
 		    fi
 		fi
     	    fi
