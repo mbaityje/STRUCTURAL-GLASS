@@ -29,11 +29,11 @@ utilDIR=$rootDIR/UTILITIES
 #
 #Command line input. Default values are for testing purposes. 
 #
-T=${T:-1}
-dt=${dt:-2}
-deltaE=${deltaE:-3}
-ttot=${ttot:-4}
-doTS=${doTS:-5}
+T=${T:-$1}
+dt=${dt:-$2}
+deltaE=${deltaE:-$3}
+ttot=${ttot:-$4}
+doTS=${doTS:-$5}
 doTS=${doTS:-0} #default value for doTS
 
 

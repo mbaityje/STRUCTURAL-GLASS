@@ -40,12 +40,12 @@ utilDIR=$rootDIR/UTILITIES
 #
 # If the script was launched with sbatch, the following variables are automatically
 # assigned. If it was launched with bash, they are assigned via $1, $2, ...
-filename=${filename:-1}
-iframe=${iframe:-2}
-nsteps=${nsteps:-3}
-T=${T:-4}
-dt=${dt:-5}
-tau_of_t=${tau_of_t:-6}
+filename=${filename:-$1}
+iframe=${iframe:-$2}
+nsteps=${nsteps:-$3}
+T=${T:-$4}
+dt=${dt:-$5}
+tau_of_t=${tau_of_t:-$6}
 
 #Set default values for the last two arguments [i.e. if they were unassigned give them default value]
 dt=${dt:-0.0025}
