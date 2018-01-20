@@ -1,8 +1,8 @@
-###########################################################
-#                                                         #
-# This utility counts the number of frames in a gsd file. #
-#                                                         #
-###########################################################
+##############################################################
+#                                                            #
+# This utility counts the number of particles in a gsd file. #
+#                                                            #
+##############################################################
 
 
 from __future__ import print_function #for compatibility with python3.5
