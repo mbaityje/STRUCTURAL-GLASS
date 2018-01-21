@@ -21,7 +21,7 @@ function average {
                             print t[i],mean,err;}}' $input
 }
 
-for T in 10.0 2.0 0.6
+for T in 10.0 2.0 0.6 0.49 0.466 0.44 0.43 0.42
 do
     for N in 65
     do

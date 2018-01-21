@@ -37,7 +37,7 @@ declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.1/$dt |bc) ["2.0"]=$(echo 0.2/$dt |bc
 
 
 
-for Tdir in T0.43 #`ls -d T*|sort -r`
+for Tdir in `ls -d T*|sort -r`
 do
     T=`echo $Tdir | sed 's/^T//'`
 
