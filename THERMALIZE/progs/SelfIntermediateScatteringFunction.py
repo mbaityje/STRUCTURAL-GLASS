@@ -111,7 +111,7 @@ with open(filename, 'rb') as flow:
         msd[iframe]=med.PeriodicSquareDistance(trajectory[iframe], initialPositions, L)/Natoms
         all_displacements=med.PeriodicDisplacement(trajectory[iframe], initialPositions, L)
 
-        Fk[iframe]=med.ComputeFkt(4, 6, 8, L, all_displacements)
+        Fk[iframe]=med.ComputeFkt(14, 16, 18, L, all_displacements)
     HoomdFlow.close()
     
 

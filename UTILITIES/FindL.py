@@ -1,8 +1,8 @@
-##############################################################
-#                                                            #
-# This utility counts the number of particles in a gsd file. #
-#                                                            #
-##############################################################
+####################################################################
+#                                                                  #
+# This utility gives the size of the simulation box of a gsd file. #
+#                                                                  #
+####################################################################
 
 
 from __future__ import print_function #for compatibility with python3.5
@@ -25,4 +25,5 @@ with open(filename, 'rb') as flow:
     s0=hoomdTraj.read_frame(0) #This is a snapshot of the initial configuration (frame zero)
     Natoms=s0.particles.N
 
-print(Natoms)
+print(s0.configuration.box)
+
