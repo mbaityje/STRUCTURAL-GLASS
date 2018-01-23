@@ -32,14 +32,13 @@ echo "Adesso mi trovo in $PWD"
 #Each T requires a different nsteps
 readonly dt=0.0025
 #Of these nsteps, the following are fine tuned: T=10.0,2.0
-#Questi sono per |k|=46
-#declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.1/$dt |bc) ["2.0"]=$(echo 0.2/$dt |bc) ["0.6"]=$(echo 0.5/$dt |bc)  ["0.49"]=$(echo 2.0/$dt |bc) ["0.466"]=$(echo 8.0/$dt |bc) ["0.44"]=$(echo 16.0/$dt |bc) ["0.43"]=$(echo 32.0/$dt |bc) ["0.42"]=$(echo 64.0/$dt |bc) ["0.41"]=$(echo 128.0/$dt |bc))
-declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5.0/$dt |bc) ["0.6"]=$(echo 100.0/$dt |bc) ["0.43"]=$(echo 320.0/$dt |bc) )
+#These are chosen based on PRE 86, 031502 (2012), Fig.7
+declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5.0/$dt |bc) ["0.6"]=$(echo 5000.0/$dt |bc) ["0.49"]=$(echo 50000.0/$dt |bc) ["0.466"]=$(echo 300000.0/$dt |bc) ["0.44"]=$(echo 600000.0/$dt |bc) ["0.43"]=$(echo 1000000.0/$dt |bc) ["0.42"]=$(echo 5000000.0/$dt |bc))
 
 
 
 
-for Tdir in `ls -d T*|sort -r`
+for Tdir in T0.6 # `ls -d T*|sort -r`
 do
     T=`echo $Tdir | sed 's/^T//'`
 
