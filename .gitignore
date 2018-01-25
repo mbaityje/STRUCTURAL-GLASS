@@ -4,11 +4,12 @@ OUTPUT/
 OUTPUT
 benchmarks/
 
-#Compilation rubbish
-*.pyc
-
-#Backup files
-*~
+#Unwanted extensions
+*.pyc #Compilation rubbish
+*~    #Backup files
+*.png #Figures
+*.eps #Figures
+*.gsd #Configurations
 
 #Temporary files
 MinimizeSegment.txt
