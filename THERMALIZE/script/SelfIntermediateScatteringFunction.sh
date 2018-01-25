@@ -65,8 +65,7 @@ readonly tauT=0.1
 readonly Natoms=65
 maxFrames=1000 #The (first) trajectory we construct has at most 1000 frames
 ratio=`echo "$nsteps/$maxFrames" | bc`
-trajFreq=$((ratio<1?1:ratio))
-trajFreq=1
+trajFreq=-1000 #A negative trajFreq means we sample -trajFreq logarithmically distributed bins
 
 
 #
@@ -134,7 +133,7 @@ then
     #
     # Now run a gap of 20tau without saving any backup
     #
-    echo "|--> Running gap of 20 tau..."
+    echo "\n|--> Running gap of 20 tau..."
     addsteps='True'
     filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
     nstepsgap=`echo 20*${nsteps} | bc`
@@ -144,7 +143,7 @@ then
     #
     # Run 3tau saving the trajectory
     #
-    echo "|--> Running trajectory of 3 tau..."
+    echo "\n|--> Running new trajectory for a new measurement of Fk(t)..."
     addsteps='True'
     filenameaftergap=$labelgap.gsd #We read from the output of the previous simulation, which is $labelgap.gsd
     labelaftergap='_aftergap'
@@ -157,7 +156,7 @@ then
     #
     # Calculate Fk(t), MSD and tau for the second time
     #
-    echo "|--> Calculating Fk(t) again..."
+    echo "\n|--> Calculating Fk(t) again..."
     python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${labelaftergap}.gsd --dt=$dt --every_forMemory=1 -l${labelaftergap}
 
 else

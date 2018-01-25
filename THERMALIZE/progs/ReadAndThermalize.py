@@ -32,6 +32,7 @@ import argparse #for processing arguments
 import numpy as np #Handles some mathematical operations
 from lib import module_potentials as pot
 from lib import module_measurements as med
+from lib import module_timelists as tl
 import gsd.pygsd #gsd is the database type for the configurations
 import gsd.hoomd #
 
@@ -147,7 +148,9 @@ parser.add_argument('--trajFreq', #optional argument
                     type=int,
                     required=False,
                     default=[0],
-                    help='save trajectory with this frequency (default:0, means no trajectory)'
+                    help='save trajectory every trajFreq steps (default:0, means no trajectory). If negative, use a logarithmic succession\
+                     of times, where -trajFreq is the number of configurations in the trajectory (or slightly less, since some times two \
+                     logarithmic times correspond to the same integer time step).'
 )
 parser.add_argument('--addsteps', #optional argument
                     nargs=1,
@@ -243,6 +246,10 @@ analyzerManyVariables = hoomd.analyze.log(filename=logname, \
 # 
 ################################################################
 
+runSteps = max(0,nNVTsteps-iniStep) if addsteps==False else nNVTsteps #If negative, we run no steps
+print("runSteps = ",runSteps)
+
+
 md.integrate.mode_standard(dt=dt)
 md.update.zero_momentum(phase=-1)
 if backupFreq>0:
@@ -251,37 +258,64 @@ if heavyTrajFreq>0:
     hoomd.dump.gsd(filename='heavyTraj.gsd', overwrite=False, period=heavyTrajFreq, group=hoomd.group.all())
 if trajFreq>0:
     hoomd.dump.gsd(filename='trajectory'+label+'.gsd', overwrite=False, period=trajFreq, group=hoomd.group.all(),phase=0)
+elif trajFreq<0:
+    nt=-trajFreq
+    it=0
+    listat=tl.ListaLogaritmica(1, runSteps, nt, ints=True, addzero=True)
+    hoomd.dump.gsd(filename='trajectory'+label+'.gsd', overwrite=False, period=None, group=hoomd.group.all(),phase=-1)
+    print("listat:", listat)
+    nt=len(listat) #Since it's a logarithmic list of integers, it might end up having less elements than declare
 
 
 
-runSteps = max(0,nNVTsteps-iniStep) if addsteps==False else nNVTsteps #If negative, we run no steps
+
 
 if thermostat == 'NVT' :
     print(runSteps," NVT steps with the Nose-Hoover thermostat at T=",TemperatureGoal)
     integrator = md.integrate.nvt(group=hoomd.group.all(), kT=TemperatureGoal, tau=tauT)
-    md.update.zero_momentum(period=1,phase=0)
-    hoomd.run(runSteps, quiet=False)
+    md.update.zero_momentum(period=10,phase=0)
+    if trajFreq>=0:
+        hoomd.run(runSteps, quiet=False)
+    else:
+        for it in range(nt-1):
+            fewSteps=listat[it+1]-listat[it]
+            print("fewSteps = ",fewSteps)
+            hoomd.run(fewSteps, quiet=False)
+            hoomd.dump.gsd(filename='trajectory'+label+'.gsd', overwrite=False, period=None, group=hoomd.group.all(),phase=-1)
+            it+=1
 
 elif thermostat == 'NVE' :
     print(runSteps," NVE steps with the NVE thermostat")
     integrator = md.integrate.nve(group=hoomd.group.all())
-    md.update.zero_momentum(period=1,phase=0)
-    hoomd.run(runSteps, quiet=False)
+    md.update.zero_momentum(period=10,phase=0)
+    if trajFreq>=0:
+        hoomd.run(runSteps, quiet=False)
+    else:
+        for it in range(nt-1):
+            fewSteps=listat[it+1]-listat[it]
+            print("fewSteps = ",fewSteps)
+            hoomd.run(fewSteps, quiet=False)
+            hoomd.dump.gsd(filename='trajectory'+label+'.gsd', overwrite=False, period=None, group=hoomd.group.all(),phase=-1)
+            it+=1
+
 
 elif thermostat == 'MB' :
-    print(runSteps," NVT steps with the Andersen thermostat at T=",TemperatureGoal)
-    stepsTauT = int(tauT/dt)
-    md.update.zero_momentum(period=1,phase=0)
-    integrator = md.integrate.nve(group=hoomd.group.all())
-    while(hoomd.get_step()<runSteps):
-        for iterations in range(0,int(nNVTsteps/stepsTauT)):
-           snap = system.take_snapshot()
-           vel = np.random.normal(0,np.sqrt(TemperatureGoal), (Natoms,3)) #each component is a gaussian of variance sigma
-           vel *= np.sqrt(TemperatureGoal)/np.std(vel,axis=0)
-           vel-=vel.mean(axis=0)
-           snap.particles.velocity[:] = vel
-           system.restore_snapshot(snap)
-           hoomd.run(stepsTauT, quiet=False)
+    if trajFreq>=0:
+        print(runSteps," NVT steps with the Andersen thermostat at T=",TemperatureGoal)
+        stepsTauT = int(tauT/dt)
+        md.update.zero_momentum(period=10,phase=0)
+        integrator = md.integrate.nve(group=hoomd.group.all())
+        while(hoomd.get_step()<runSteps):
+            for iterations in range(0,int(nNVTsteps/stepsTauT)):
+               snap = system.take_snapshot()
+               vel = np.random.normal(0,np.sqrt(TemperatureGoal), (Natoms,3)) #each component is a gaussian of variance sigma
+               vel *= np.sqrt(TemperatureGoal)/np.std(vel,axis=0)
+               vel-=vel.mean(axis=0)
+               snap.particles.velocity[:] = vel
+               system.restore_snapshot(snap)
+               hoomd.run(stepsTauT, quiet=False)
+    else:
+        print("Logarithmic times (trajFreq<0) is not implemented for the MB (Andersen) thermostat")
 
 else:
    print("thermostat=",thermostat," is not implemented. EXIT.")
