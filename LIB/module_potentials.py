@@ -2,7 +2,11 @@
 import hoomd #hoomd is the MD package from the Glotzer group
 from hoomd import md
 import numpy as np
-import module_measurements as med
+import os.path
+if os.path.isfile('module_measurements.py'):
+	import module_measurements as med #python2 import style
+else:
+	import lib.module_measurements as med #python3 import style
 
 class LJ():
     """ A class that contains all the information on the potential
