@@ -60,6 +60,13 @@ dt=args.dt[0]
 label=str(args.label[0])
 height=0.36787944117144232159 #This is 1/e
 
+#Wave vector for the self-intermediate scattring function
+# k =[2 pi/L](n1,n2,n3) and permutations
+n1=1
+n2=3
+n3=4
+
+
 print("filename = ",filename)
 print("dt = ",dt)
 print("every_forMemory = ",every_forMemory)
@@ -111,7 +118,7 @@ with open(filename, 'rb') as flow:
         msd[iframe]=med.PeriodicSquareDistance(trajectory[iframe], initialPositions, L)/Natoms
         all_displacements=med.PeriodicDisplacement(trajectory[iframe], initialPositions, L)
 
-        Fk[iframe]=med.ComputeFkt(1, 3, 4, L, all_displacements)
+        Fk[iframe]=med.ComputeFkt(n1, n2, n3, L, all_displacements)
     HoomdFlow.close()
     
 
@@ -144,7 +151,7 @@ except OSError:
 output_msd=np.column_stack((times, msd))
 np.savetxt(namemsd_txt, output_msd,fmt='%g %.14g', header="#1)time step 2)msd")
 output_Fk=np.column_stack((times, Fk))
-np.savetxt(nameFkt_txt,output_Fk,fmt='%g %.14g', header="#n=(4,6,8)\n#1)time 2)Fk(t)")
+np.savetxt(nameFkt_txt,output_Fk,fmt='%g %.14g', header="#n=("+str(n1)+","+str(n2)+","+str(n3)+")\n#1)time 2)Fk(t)")
 
 
 #

@@ -33,12 +33,12 @@ echo "Adesso mi trovo in $PWD"
 readonly dt=0.0025
 #Of these nsteps, the following are fine tuned: T=10.0,2.0
 #These are chosen based on PRE 86, 031502 (2012), Fig.7
-declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5.0/$dt |bc) ["0.6"]=$(echo 5000.0/$dt |bc) ["0.49"]=$(echo 50000.0/$dt |bc) ["0.466"]=$(echo 300000.0/$dt |bc) ["0.44"]=$(echo 600000.0/$dt |bc) ["0.43"]=$(echo 1000000.0/$dt |bc) ["0.42"]=$(echo 5000000.0/$dt |bc))
+declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5/$dt |bc) ["0.6"]=$(echo 5*10^4/$dt |bc) ["0.49"]=$(echo 2*10^5/$dt |bc) ["0.466"]=$(echo 5*10^5.0/$dt |bc) ["0.44"]=$(echo 8*10^5.0/$dt |bc) ["0.43"]=$(echo 1.5*10^6.0/$dt |bc) ["0.42"]=$(echo 1*10^7/$dt |bc))
 
 
 
 
-for Tdir in T0.6 #`ls -d T*|sort -r`
+for Tdir in T0.6 T0.49 #`ls -d T*|sort -r`
 do
     T=`echo $Tdir | sed 's/^T//'`
 
