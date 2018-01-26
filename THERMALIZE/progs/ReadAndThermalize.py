@@ -118,7 +118,7 @@ parser.add_argument('--dt', #optional argument
 parser.add_argument('--thermostat', #optional argument
                     nargs=1,
                     required=False,
-                    default=['thermalized'],
+                    default=['NVE'],
                     help='basename of the output files'
 )
 
