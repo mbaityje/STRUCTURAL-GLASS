@@ -57,9 +57,9 @@ do
 	    seed=$(od -vAn -N4 -tu4 < /dev/urandom)
 	    thermConfName=thermalized.gsd
 	    case $T in
-		10.0)  totMDsteps=8000000;     thermostat=MB;  tauT=1.0; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$inistateDIR/initIS.gsd;;
-		2.0)   totMDsteps=10000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.6)   totMDsteps=20000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		10.0)  totMDsteps=$(echo 0.5*10^3/$dt |bc); thermostat=MB;  tauT=1.0; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$inistateDIR/initIS.gsd;;
+		2.0)   totMDsteps=$(echo 2*10^3/$dt |bc);   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.6)   totMDsteps=$(echo 1*10^5/$dt |bc);   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		0.49)  totMDsteps=30000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		0.466) totMDsteps=40000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		0.44)  totMDsteps=400000000;   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
