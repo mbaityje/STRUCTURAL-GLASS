@@ -100,7 +100,7 @@ let nchunksm1=$nchunks-1
 
 # Filenames
 filename=thermalized.gsd
-elistFILE=elist.txt
+elistFILE=elistIS.txt
 
 #Initial time and chunk (if a previous run was interrupted we restart from where it finished)
 tlast=0

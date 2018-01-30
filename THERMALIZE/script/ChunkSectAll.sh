@@ -33,7 +33,7 @@ do
 	for Natoms in 65
 	do
 		cd N$Natoms
-		for ISAM in 0 #$(ls -d S* | sed 's/S//') #ISAM=any sample that has been simulated
+		for ISAM in 1 #$(ls -d S* | sed 's/S//') #ISAM=any sample that has been simulated
 		do
 			cd S$ISAM
 			echo ISAM = $ISAM
