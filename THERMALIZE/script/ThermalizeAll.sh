@@ -19,7 +19,7 @@ let nsamm1=$nsam-1
 dt=0.0025
 backupFreq=`echo 10/$dt|bc`
 hottestT=10.0
-TLIST="0.6" #"2.0 0.6 0.49 0.466 0.44 0.43 0.42" #10.0 0.42 0.41
+TLIST="0.49 0.466" #"2.0 0.6 0.49 0.466 0.44 0.43 0.42" #10.0 0.42 0.41
 
 #DIRECTORIES
 scriptDIR=$PWD
@@ -59,9 +59,9 @@ do
 	    case $T in
 		10.0)  totMDsteps=$(echo 0.5*10^3/$dt |bc); thermostat=MB;  tauT=1.0; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$inistateDIR/initIS.gsd;;
 		2.0)   totMDsteps=$(echo 2*10^3/$dt |bc);   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.6)   totMDsteps=$(echo 1*10^5/$dt |bc);   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.49)  totMDsteps=30000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.466) totMDsteps=40000000;    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.6)   totMDsteps=$(echo 5*10^4/$dt |bc);   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.49)  totMDsteps=$(echo 1*10^5/$dt |bc);    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.466) totMDsteps=$(echo 2*10^5/$dt |bc);    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		0.44)  totMDsteps=400000000;   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		0.43)  totMDsteps=2000000000;  thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		0.42)  totMDsteps=4000000000;  thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
