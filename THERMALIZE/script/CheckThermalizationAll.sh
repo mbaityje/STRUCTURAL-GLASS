@@ -32,8 +32,9 @@ echo "Adesso mi trovo in $PWD"
 #Each T requires a different nsteps
 readonly dt=0.0025
 #Of these nsteps, the following are fine tuned: T=10.0,2.0
-#These are chosen based on PRE 86, 031502 (2012), Fig.7
-declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5/$dt |bc) ["0.6"]=$(echo 5*10^4/$dt |bc) ["0.49"]=$(echo 2*10^5/$dt |bc) ["0.466"]=$(echo 5*10^5.0/$dt |bc) ["0.44"]=$(echo 8*10^5.0/$dt |bc) ["0.43"]=$(echo 1.5*10^6.0/$dt |bc) ["0.42"]=$(echo 1*10^7/$dt |bc))
+#Originally, they were chosen based on PRE 86, 031502 (2012), Fig.7, but for small N the autocorrelation time is larger
+#T=0.49 and higher are chosen based on my runs at N=65 (better), the others are bases on wild estimates
+declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5/$dt |bc) ["0.6"]=$(echo 3*10^5/$dt |bc) ["0.49"]=$(echo 1*10^7/$dt |bc) ["0.466"]=$(echo 1*10^8/$dt |bc) ["0.44"]=$(echo 5*10^8/$dt |bc) ["0.43"]=$(echo 5*10^9/$dt |bc) ["0.42"]=$(echo 1*10^10/$dt |bc))
 
 
 
@@ -62,6 +63,8 @@ do
 	    cd $SAMdir
 	    if [ 1 -eq $tau_of_t ] #I never tried this case
     	    then
+		echo "This option needs to be verified before we use it"
+		exit
 		heavyTrajFile=heavyTraj.gsd
 		Nframes=`python $utilDIR/FindNFrames.py $heavyTrajFile`
 	    	let Nframesm1=$Nframes-1
@@ -71,7 +74,8 @@ do
 	    	done
     	    else
     		thermalizeFile=thermalized.gsd
-		if ! [ -f $thermalizeFile ]; then echo "$PWD/$thermalizeFile does not exist"; cd ..; continue; fi
+		if ! [ -f $thermalizeFile ]; then echo "$PWD/$thermalizeFile does not exist"; cd ..; continue;
+		fi
 		
 		if [ $SYSTEM == "PennPuter" ]
 		then
