@@ -19,7 +19,7 @@ let nsamm1=$nsam-1
 dt=0.0025
 backupFreq=`echo 10/$dt|bc`
 hottestT=10.0
-TLIST="0.49 0.466" #"2.0 0.6 0.49 0.466 0.44 0.43 0.42" #10.0 0.42 0.41
+TLIST="2.0 0.6 0.49 0.466 0.44 0.43" #10.0 0.42
 
 #DIRECTORIES
 scriptDIR=$PWD
@@ -57,15 +57,14 @@ do
 	    seed=$(od -vAn -N4 -tu4 < /dev/urandom)
 	    thermConfName=thermalized.gsd
 	    case $T in
-		10.0)  totMDsteps=$(echo 0.5*10^3/$dt |bc); thermostat=MB;  tauT=1.0; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$inistateDIR/initIS.gsd;;
-		2.0)   totMDsteps=$(echo 2*10^3/$dt |bc);   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.6)   totMDsteps=$(echo 5*10^4/$dt |bc);   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.49)  totMDsteps=$(echo 1*10^5/$dt |bc);    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.466) totMDsteps=$(echo 2*10^5/$dt |bc);    thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.44)  totMDsteps=400000000;   thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.43)  totMDsteps=2000000000;  thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.42)  totMDsteps=4000000000;  thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
-		0.41)  totMDsteps=10000000000; thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		10.0)  totMDsteps=$(echo 0.5*10^3/$dt|bc); thermostat=MB;  tauT=1.0; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$inistateDIR/initIS.gsd;;
+		2.0)   totMDsteps=$(echo 1*10^4/$dt  |bc); thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.6)   totMDsteps=$(echo 3*10^6/$dt  |bc); thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.49)  totMDsteps=$(echo 1*10^8/$dt  |bc); thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.466) totMDsteps=$(echo 1*10^9/$dt  |bc); thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.44)  totMDsteps=$(echo 5*10^9/$dt  |bc); thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.43)  totMDsteps=$(echo 5*10^10/$dt |bc); thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
+		0.42)  totMDsteps=$(echo 1*10^11/$dt |bc); thermostat=NVT; tauT=0.1; heavyTrajFreq=`echo $totMDsteps/4|bc`; initConf=$hottestTDIR/S$isam/$thermConfName;;
 		*) echo "How many steps for this temperature?";exit;;
 	    esac
 	    
