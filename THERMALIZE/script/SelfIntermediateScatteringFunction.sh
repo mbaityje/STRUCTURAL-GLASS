@@ -60,7 +60,7 @@ echo "dt = $dt"
 echo "tau_of_t: $tau_of_t"
 
 #Some hardcoded parameters that I might decide to put as command-line input
-readonly thermostat='NVE'
+readonly thermostat='NVT'
 readonly tauT=0.1
 readonly Natoms=65
 maxFrames=1000 #The (first) trajectory we construct has at most 1000 frames
