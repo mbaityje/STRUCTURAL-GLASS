@@ -253,7 +253,7 @@ print("runSteps = ",runSteps)
 md.integrate.mode_standard(dt=dt)
 md.update.zero_momentum(phase=-1)
 if backupFreq>0:
-    hoomd.dump.gsd(filename=backupname, overwrite=True, period=backupFreq, group=hoomd.group.all())
+    hoomd.dump.gsd(filename=backupname, overwrite=True, truncate=True, period=backupFreq, group=hoomd.group.all())
 if heavyTrajFreq>0:
     hoomd.dump.gsd(filename='heavyTraj.gsd', overwrite=False, period=heavyTrajFreq, group=hoomd.group.all())
 if trajFreq>0:
@@ -328,7 +328,7 @@ integrator.disable()
 finalstatename=label+".gsd"
 print("finalstatename=",finalstatename)
 #Write final state
-hoomd.dump.gsd(filename=finalstatename, overwrite=True, period=None, group=hoomd.group.all())
+hoomd.dump.gsd(filename=finalstatename, overwrite=True, truncate=True, period=None, group=hoomd.group.all())
 #Remove backup because:
 # -we don't need to waste memory
 # -if the final state is there I need further simulations to start from the final state, not the backup
