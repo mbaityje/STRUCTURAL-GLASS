@@ -12,17 +12,19 @@ import gsd.pygsd
 import gsd.hoomd
 
 
-if len(sys.argv)==2:
-    filename = sys.argv[1] #Name of the file with the trajectory
-else:
+filename = sys.argv[1] #Name of the file with the trajectory
+iframe=0
+if len(sys.argv)==3:
+	iframe = int(sys.argv[2]) #Which frame
+elif len(sys.argv)!=2:
     print("ERROR: Launch as:")
-    print("python ",sys.argv[0]," configuration.gsd")
+    print("python ",sys.argv[0]," configuration.gsd [ iframe=0]")
     sys.exit()
 
 with open(filename, 'rb') as flow:
     HoomdFlow = gsd.pygsd.GSDFile(flow)
     hoomdTraj = gsd.hoomd.HOOMDTrajectory(HoomdFlow);
-    s0=hoomdTraj.read_frame(0) #This is a snapshot of the initial configuration (frame zero)
+    s0=hoomdTraj.read_frame(iframe) #This is a snapshot of the initial configuration (frame zero)
     Natoms=s0.particles.N
     Nframes = len(hoomdTraj)
 
