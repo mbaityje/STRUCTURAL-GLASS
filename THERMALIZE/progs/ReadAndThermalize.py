@@ -201,6 +201,7 @@ assert(dt>0 and dt<0.1)
 ################################################################
 backupname=label+"_backup.gsd"
 system = hoomd.init.read_gsd(filename=filename, restart=backupname, frame=iframe)
+print("The read configuration has ",len(system.particles)," particles")
 assert(Natoms==len(system.particles))
 iniStep=hoomd.get_step()
 print("iframe: ",iframe)
@@ -213,8 +214,11 @@ print("Initial step: ",iniStep)
 #
 ################################################################
 NeighborsListLJ = md.nlist.cell()
-print(" *** KApotentialShort *** ")
-myLjPair=pot.KApotentialShort(NeighborsListLJ)
+print(" *** Setting Kob-Anderesen Potential *** ")
+if Natoms<500:
+	myLjPair=pot.KApotentialShort(NeighborsListLJ)
+else:
+	myLjPair=pot.KApotential(NeighborsListLJ)
 
 ################################################################
 # 
@@ -253,7 +257,7 @@ print("runSteps = ",runSteps)
 md.integrate.mode_standard(dt=dt)
 md.update.zero_momentum(phase=-1)
 if backupFreq>0:
-    hoomd.dump.gsd(filename=backupname, overwrite=True, truncate=True, period=backupFreq, group=hoomd.group.all())
+    hoomd.dump.gsd(filename=backupname, overwrite=True, truncate=True, period=backupFreq, group=hoomd.group.all(), phase=0)
 if heavyTrajFreq>0:
     hoomd.dump.gsd(filename='heavyTraj.gsd', overwrite=False, period=heavyTrajFreq, group=hoomd.group.all())
 if trajFreq>0:
