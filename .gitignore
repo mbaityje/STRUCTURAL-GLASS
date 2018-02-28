@@ -1,5 +1,6 @@
 #Heavy Directories and symlinks to directories
-PLOTS/
+PLOTS/*/
+PLAYGROUND/
 OUTPUT/
 OUTPUT
 benchmarks/
