@@ -39,12 +39,16 @@ parser.add_argument('filename', nargs=1, help='name of the initial state .gsd')
 parser.add_argument('-l','--label', nargs=1, required=False, default=[''], help='label for distinguishing runs and continuations')
 parser.add_argument('--nframes', nargs=1, type=int, required=True, help='Total number of frames')
 parser.add_argument('--iframe', nargs=1, type=int, required=False, default=[0], help='Frame to read from the gsd file (default is 0)')
+parser.add_argument('--saveISgsd', nargs=1, type=bool, required=False, default=[False], help='If True, saves the IS trajectory')
+parser.add_argument('--saveThermalgsd', nargs=1, type=bool, required=False, default=[False], help='If True, saves the thermal trajectory')
 args = parser.parse_args(more_arguments)
 
 filename=args.filename[0]
 label=str(args.label[0])
 nframes=args.nframes[0]
 iframe=args.iframe[0]
+saveISgsd=args.saveISgsd[0]
+saveThermalgsd=args.saveThermalgsd[0]
 dt=0.0025
 
 print("filename: ",filename)
@@ -119,19 +123,22 @@ analyzer = hoomd.analyze.log(filename=None, quantities=analyzer_quantities, peri
 
 #Define lists of observables
 EISlist=[]
+ETlist=[]
 msdlist=[]
 nmovedlist=[]
 zerovel=np.zeros((Natoms,3))
-#In caso usare cosi: 
 
 
+    
 #Initial thermal energy, just to make sure that the IS has a lower energy
 system.restore_snapshot(snap_ini)
+if saveThermalgsd==True:
+    confnameTherm='MinimizeSegmentTherm.gsd'
+    hoomd.dump.gsd(confnameTherm, period=None, group=hoomd.group.all(), overwrite=True, truncate=False, phase=-1)
 md.integrate.mode_standard(dt=1e-16)
 integrator = md.integrate.nve(group=hoomd.group.all())
 hoomd.run(2)
-E0=analyzer.query('potential_energy')
-print("E0=",E0, )
+ET=analyzer.query('potential_energy')
 integrator.disable()
 
 # Initial IS
@@ -140,10 +147,14 @@ integrator_fire = md.integrate.nve(group=hoomd.group.all())
 system.restore_snapshot(snap_ini)
 while not(fire.has_converged()):
 	hoomd.run(100)
-Eis0 = analyzer.query('potential_energy')
+if saveISgsd==True:
+    confnameIS='MinimizeSegmentIS.gsd'
+    hoomd.dump.gsd(confnameIS, period=None, group=hoomd.group.all(), overwrite=True, truncate=False, phase=-1)
+Eis = analyzer.query('potential_energy')
 snapIS_old = system.take_snapshot()
 posIS_old=snapIS_old.particles.position
-print("Eis0=",Eis0)
+integrator_fire.disable()
+print("ET=",ET," Eis=",Eis)
 
 
 #
@@ -158,18 +169,32 @@ for jframe in range(iframe+1,finalframe):
     snap_ini.particles.position[:]=posizioni[jframe-iframe]
     snap_ini.particles.velocity[:] = zerovel
     system.restore_snapshot(snap_ini)
+    if saveThermalgsd==True:
+        hoomd.dump.gsd(confnameTherm, period=None, group=hoomd.group.all(), overwrite=False, truncate=False, phase=-1)
+    integrator.enable()
+    hoomd.run(2)
+    ET=analyzer.query('potential_energy')
+    ETlist.append(ET)
+    integrator.disable()
 
+
+
+        
     #Minimize snapshot
+    integrator_fire.enable()
     fire.reset()
     while not(fire.has_converged()):
         hoomd.run(100)
+    if saveISgsd==True:
+        hoomd.dump.gsd(confnameIS, period=None, group=hoomd.group.all(), overwrite=False, truncate=False, phase=-1)
     snapIS=system.take_snapshot()
-
     Eis = analyzer.query('potential_energy')
+    integrator_fire.disable()
+
     posIS=snapIS.particles.position
     msdIS=med.PeriodicSquareDistance(posIS_old, posIS, L)
     nmoved=med.HowManyMovedPos(posIS_old, posIS,L)
-    print("Eis=",Eis,"  msdIS=",msdIS,"  nmoved=",nmoved)
+    print("ET=",ET," Eis=",Eis,"  msdIS=",msdIS,"  nmoved=",nmoved)
     totmoved+=nmoved
 
     EISlist.append(Eis)
@@ -179,8 +204,7 @@ for jframe in range(iframe+1,finalframe):
     snapIS_old=snapIS
     posIS_old=posIS
 print("totmoved=",totmoved)
-integrator_fire.disable()
 
-output=np.column_stack((range(iframe+1,finalframe), EISlist, msdlist, nmovedlist))
-np.savetxt('MinimizeSegment.txt', output,fmt='%d %.14g %.14g %.14g', header='1)iframe 2)Eis(iframe) 3)msd(iframe-1,iframe) 4)nmoved(iframe-1,iframe)')
+output=np.column_stack((range(iframe+1,finalframe), ETlist, EISlist, msdlist, nmovedlist))
+np.savetxt('MinimizeSegment.txt', output,fmt='%d %.14g %.14g %.14g %.14g', header='1)iframe 2)E(T)(iframe) 3)Eis(iframe) 4)msd(iframe-1,iframe) 5)nmoved(iframe-1,iframe)')
 

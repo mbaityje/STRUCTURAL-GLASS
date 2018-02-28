@@ -14,7 +14,7 @@ nframes=${4:-10}
 Natoms=65
 
 readonly SYSTEM="PennPuter"
-#readonly SYSTEM="Talapas"
+#readonly SYSTEM="talapas"
 
 #DIRECTORIES
 rootDIR=$PWD/../..
@@ -28,5 +28,5 @@ cd $workDIR/T$T/N$Natoms/S$ISAM
 framesPerChunk=`python ~/STRUCTURAL-GLASS/UTILITIES/FindNFrames.py trajChunk0.gsd`
 ichunk=`echo "$iframe/$framesPerChunk" |bc`
 
-python $exeDIR/MinimizeSegment.py --user="trajChunk$ichunk.gsd --iframe=$iframe --nframes=$nframes"
+python $exeDIR/MinimizeSegment.py --user="trajChunk$ichunk.gsd --iframe=$iframe --nframes=$nframes --saveISgsd=False --saveThermalgsd=False"
 
