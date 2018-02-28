@@ -158,6 +158,9 @@ ron_BB=myLJpair.pair_coeff.get_metadata()[2]['r_on']
 ################################################################
 analyzer_quantities = ['temperature', 'potential_energy', 'kinetic_energy']
 analyzer = hoomd.analyze.log(filename=None, overwrite=True, quantities=analyzer_quantities, period=1)
+groupA = hoomd.group.type(name='a-particles', type='A')
+groupB = hoomd.group.type(name='b-particles', type='B')
+groupAll=hoomd.group.all()
 
 
 ################################################################
@@ -232,45 +235,46 @@ def VpairPrime(r, eps, sigma, r_cut):
 
 #LJ potential with the XPLOR smoothing
 def Vij(r, eps, sigma, r_on, r_cut):
-    if r>=r_cut:
-        return 0
-    if(r_on<r_cut):
-        return S(r,r_on,r_cut)*Vpair(r,eps, sigma,r_cut)
-    elif(r_on>=r_cut):
-        return Vpair(r,eps,sigma,r_cut)-Vpair(r_cut,eps,sigma,r_cut)
+	if r>=r_cut:
+		return 0
+	if(r_on<r_cut):
+		return S(r,r_on,r_cut)*Vpair(r,eps, sigma,r_cut)
+	elif(r_on>=r_cut):
+		return Vpair(r,eps,sigma,r_cut)-Vpair(r_cut,eps,sigma,r_cut)
 
 #Derivative of the potential with XPLOR smoothing
 def Vprime(r, eps, sigma, r_on, r_cut):
-    if r>=r_cut:
-        return 0
-    elif r<=r_on:
-        return VpairPrime(r, eps, sigma, r_cut)
-    else:
-        return VpairPrime(r, eps, sigma, r_cut)*Stilde(r,r_on,r_cut)+(Vpair(r, eps, sigma, r_cut)*StildePrime(r, r_on, r_cut))/r
+	if r>=r_cut:
+		return 0
+	elif r<=r_on:
+		return VpairPrime(r, eps, sigma, r_cut)
+	else:
+		return VpairPrime(r, eps, sigma, r_cut)*Stilde(r,r_on,r_cut)+(Vpair(r, eps, sigma, r_cut)*StildePrime(r, r_on, r_cut))/r
 
 #Calculate energy explicitly from the positions
 def CalculatePosEnergySlow():
-    energiaAA=0
-    for p1 in groupA:
-	for p2 in groupA:
-	    if p1.tag>=p2.tag:
-	        continue
-	    r=PeriodicDistance(np.array(p1.position, dtype=np.float64),np.array(p2.position, dtype=np.float64),L)
-	    energiaAA+=Vij(r,eps_AA,sig_AA,ron_AA,rcut_AA)
+	energiaAA=0
+	for p1 in groupA:
+		for p2 in groupA:
+			if p1.tag>=p2.tag:
+				continue
+			r=PeriodicDistance(np.array(p1.position, dtype=np.float64),np.array(p2.position, dtype=np.float64),L)
+			energiaAA+=Vij(r,eps_AA,sig_AA,ron_AA,rcut_AA)
 
-    energiaAB=0
-    for p1 in groupA:
-	for p2 in groupB:
-	    r=PeriodicDistance(np.array(p1.position, dtype=np.float64),np.array(p2.position, dtype=np.float64),L)
-	    energiaAB+=Vij(r,eps_AB,sig_AB,ron_AB,rcut_AB)
-    energiaBB=0
-    for p1 in groupB:
-	for p2 in groupB:
-	    if p1.tag>=p2.tag:
-	        continue
-	    r=PeriodicDistance(np.array(p1.position, dtype=np.float64),np.array(p2.position, dtype=np.float64),L)
-	    energiaBB+=Vij(r,eps_BB,sig_BB,ron_BB,rcut_BB)
-    return (energiaAA+energiaBB+energiaAB)/Natoms
+	energiaAB=0
+	for p1 in groupA:
+		for p2 in groupB:
+			r=PeriodicDistance(np.array(p1.position, dtype=np.float64),np.array(p2.position, dtype=np.float64),L)
+			energiaAB+=Vij(r,eps_AB,sig_AB,ron_AB,rcut_AB)
+
+	energiaBB=0
+	for p1 in groupB:
+		for p2 in groupB:
+			if p1.tag>=p2.tag:
+				continue
+			r=PeriodicDistance(np.array(p1.position, dtype=np.float64),np.array(p2.position, dtype=np.float64),L)
+			energiaBB+=Vij(r,eps_BB,sig_BB,ron_BB,rcut_BB)
+	return (energiaAA+energiaBB+energiaAB)/Natoms
 
 #Calculate energy explicitly from the snapshot
 def CalculateSnapEnergySlow(snapshot):
@@ -384,11 +388,6 @@ def CalculateGradient(snapshot):
 # CALCULATE ENERGY
 #
 ################################################################
-
-groupA = hoomd.group.type(name='a-particles', type='A')
-groupB = hoomd.group.type(name='b-particles', type='B')
-groupAll=hoomd.group.all()
-
 snapshot=system.take_snapshot(dtype='double')
 positions=np.array(snapshot.particles.position, dtype=np.float64)
 modeT=md.integrate.mode_standard(dt=1e-13)
