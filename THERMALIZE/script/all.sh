@@ -9,6 +9,7 @@ bash CreateInitialIS.sh
 
 #Launch thermalization runs for all temperatures
 bash ThermalizeAll.sh
+bash ThermalizeN1080.sh #thermalizza alcune sample di prova con N=1000
 
 #Check thermalization for all the systems. Calculates msd, Fkt and tau.
 #Launches SelfIntermediateScatteringFunction.sh
