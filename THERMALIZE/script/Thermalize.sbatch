@@ -3,6 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH -p longgpu # partition (queue) 
 #SBATCH --gres=gpu:1 
+#SBATCH --time=0-06:00:00
 
 
 echo exeDIR: $exeDIR
@@ -17,12 +18,8 @@ echo thermostat: $thermostat
 echo backupFreq: $backupFreq
 echo heavyTrajFreq: $heavyTrajFreq
 
-module list
-ls /packages/anaconda2/4.4.0/bin/python
-which python
-python --version
 
-
+echo "python $exeDIR/ReadAndThermalize.py --user=\"$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq\""
 python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq" 
 
 echo "-------------------------------------"

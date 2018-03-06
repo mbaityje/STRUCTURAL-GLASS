@@ -6,7 +6,7 @@
 
 readonly PROC_TAG="ct"
 readonly USERNAME=`whoami`
-queue=longgpu
+queue=gpu
 #queue=short
 
 
@@ -39,7 +39,7 @@ declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5/$dt |bc) 
 
 
 
-for Tdir in T0.6 T0.49 #`ls -d T*|sort -r`
+for Tdir in T0.6 #`ls -d T*|sort -r`
 do
     T=`echo $Tdir | sed 's/^T//'`
 
@@ -56,7 +56,7 @@ do
 	N=`echo $Ndir | sed 's/^N//'`
 	echo "N=$N"
 	cd $Ndir
-	for SAMdir in `ls -d S*`
+	for SAMdir in S0 S1 S2 S3 S4 S5 S6 S7 S8 S9 #`ls -d S*`
 	do
 	    ISAM=`echo $SAMdir | sed 's/^S//'`
 	    echo "ISAM=$ISAM"
