@@ -8,7 +8,7 @@ if os.path.isfile('module_measurements.py'):
 else:
 	import lib.module_measurements as med #python3 import style
 
-class LJ():
+class LJ:
 	""" A class that contains all the information on the potential
 	type: KA, KAshort
 	"""
@@ -246,7 +246,7 @@ class LJ():
 
 
 
-class JammingSphere():
+class JammingSphere:
 	""" A class that contains all the information on the potential
 	type: Harmonic, Hertzian
 	"""
