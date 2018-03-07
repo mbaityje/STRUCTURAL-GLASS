@@ -20,7 +20,10 @@ echo "We are at"
 pwd
 
 
-if [ `hostname` == "PennPuter" ]; then SYSTEM="PennPuter";
+if [ `hostname` == "PennPuter" ];
+then SYSTEM="PennPuter";
+elif [ `hostname` == "tango" ];
+then SYSTEM="PennPuter";
 else SYSTEM="talapas"; fi
 
 #DIRECTORIES
@@ -66,7 +69,6 @@ readonly Natoms=65
 maxFrames=1000 #The (first) trajectory we construct has at most 1000 frames
 ratio=`echo "$nsteps/$maxFrames" | bc`
 trajFreq=-1000 #A negative trajFreq means we sample -trajFreq logarithmically distributed bins
-
 
 #
 #Some checks to make sure that the input is good
@@ -118,7 +120,7 @@ addsteps='True'
 label="_ifr$iframe"
 rm -f trajectory${label}.gsd
 echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps\"
-python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$label"
+python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$label --startfromzero=True"
 
 #
 # Calculate Fk(t), MSD and tau for the first time
@@ -138,7 +140,7 @@ then
     filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
     nstepsgap=`echo 20*${nsteps} | bc`
     labelgap='_gap'
-    python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps=$addsteps -l$labelgap"
+    python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps=$addsteps -l$labelgap --startfromzero=True"
 
     #
     # Run 3tau saving the trajectory

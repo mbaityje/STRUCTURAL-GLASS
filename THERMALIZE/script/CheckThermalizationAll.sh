@@ -13,7 +13,10 @@ queue=gpu
 #Script Options
 readonly tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the last configuration
 
-if [ `hostname` == "PennPuter" ]; then SYSTEM="PennPuter";
+if [ `hostname` == "PennPuter" ];
+then SYSTEM="PennPuter";
+elif [ `hostname` == "tango" ];
+then SYSTEM="PennPuter";
 else SYSTEM="talapas"; fi
 
 #DIRECTORIES
@@ -51,12 +54,12 @@ do
     cd $Tdir
     nsteps=${NSTEPS_LIST[$T]}
     
-    for Ndir in `ls -d N*`
+    for Ndir in N65 #`ls -d N*`
     do
 	N=`echo $Ndir | sed 's/^N//'`
 	echo "N=$N"
 	cd $Ndir
-	for SAMdir in S0 S1 S2 S3 S4 S5 S6 S7 S8 S9 #`ls -d S*`
+	for SAMdir in S0 #`ls -d S*`
 	do
 	    ISAM=`echo $SAMdir | sed 's/^S//'`
 	    echo "ISAM=$ISAM"
