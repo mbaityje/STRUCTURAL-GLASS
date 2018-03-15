@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##############################################################
 #                                                            #
 # This utility counts the number of particles in a gsd file. #

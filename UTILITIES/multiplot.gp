@@ -1,4 +1,4 @@
-#!/usr/bin/gnuplot
+#!/usr/bin/env gnuplot
 #
 # This sample script plots a generic bunch of graphs in a single figure.
 #

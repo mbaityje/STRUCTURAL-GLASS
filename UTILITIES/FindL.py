@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ####################################################################
 #                                                                  #
 # This utility gives the size of the simulation box of a gsd file. #

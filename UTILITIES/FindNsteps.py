@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ###########################################################
 #                                                         #
 # This utility counts the number of frames in a gsd file. #
