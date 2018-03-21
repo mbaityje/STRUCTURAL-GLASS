@@ -7,6 +7,7 @@
 
 
 echo exeDIR: $exeDIR
+echo sample: $isam
 echo initConf: $initConf
 echo Natoms: $Natoms
 echo seed: $seed
@@ -17,10 +18,10 @@ echo dt: $dt
 echo thermostat: $thermostat
 echo backupFreq: $backupFreq
 echo heavyTrajFreq: $heavyTrajFreq
+echo startfromzero: $startfromzero
 
 
-echo "python $exeDIR/ReadAndThermalize.py --user=\"$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq\""
-python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq" 
+python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq --startfromzero=$startfromzero" 
 
 echo "-------------------------------------"
 echo Finished `basename "$0"`

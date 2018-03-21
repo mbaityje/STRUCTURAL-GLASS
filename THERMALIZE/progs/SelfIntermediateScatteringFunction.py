@@ -94,11 +94,11 @@ with open(filename, 'rb') as flow:
         raise SystemExit
 
     Nframes = len(hoomdTraj)
-    trajDuration = Nframes/every_forMemory
+    trajDuration = np.int64(Nframes/every_forMemory)
     print('there are Nframes=', Nframes, 'in the file, but we only use trajDuration=',trajDuration, ' of them.')
 
     #Allocate memory
-    trajectory = np.zeros((trajDuration,Natoms,3), dtype=np.float64)
+    trajectory = np.zeros((trajDuration,Natoms,3))
     initialPositions=np.array(hoomdTraj[0].particles.position, dtype=np.float64)
     times=np.zeros(trajDuration, dtype=np.float64)
     msd=np.zeros(trajDuration, dtype=np.float64)
@@ -111,7 +111,7 @@ with open(filename, 'rb') as flow:
     ################################################################
     for iframe in range(0, trajDuration, 1):
         ## we only look 1 frame every "every_forMemory" frame, to save memory: 
-        trajectory[iframe] = np.array(hoomdTraj[iframe*every_forMemory].particles.position)
+        trajectory[iframe] = np.array(hoomdTraj[iframe*every_forMemory].particles.position, dtype=np.float64)
         time=np.int64(hoomdTraj[iframe*every_forMemory].configuration.step)-time0
         times[iframe]=time*every_forMemory*dt
 
