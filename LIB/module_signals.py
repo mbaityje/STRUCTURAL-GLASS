@@ -1,4 +1,5 @@
 import signal
+import sys
 class GracefulKiller:
 	'''
 	Class to catch the sigterm,sigint signals and exit after having performed the due operations.
@@ -16,6 +17,7 @@ class GracefulKiller:
 		signal.signal(signal.SIGTERM, signal.SIG_DFL)
 		return
 
-	def exit_gracefully(self,signum, frame):
+	def exit_gracefully(self,signum, frame):              
+		sys.stdout.flush()
 		self.kill_now = True
 		return

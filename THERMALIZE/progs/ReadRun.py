@@ -5,10 +5,10 @@
 # This program reads a configuration and runs the MD for a while.
 #
 ################################################################
-from __future__ import print_function #for compatibility with python3.5
+from __future__ import print_function #for compatibility between python 2 and 3
 import hoomd #hoomd is the MD package from the Glotzer group
 from hoomd import md #md is the subsection strictly about the properties of the system
-import sys #this has some system tools like sys.exit() that can be useful
+import sys
 import os 
 import argparse #for processing arguments
 import numpy as np #Handles some mathematical operations
@@ -98,7 +98,7 @@ class Cparams:
 		return
 
 	def Show(self):
-		print("#----------------------------------------------------#")
+		print("#-----------------------------------------------------#")
 		print("# Simulation directory : ",os.getcwd())
 		print("# Parameter File Name  : ",self.paramfilename)
 		print("# Timestep File Name   : ",self.timestepName)
@@ -121,7 +121,7 @@ class Cparams:
 		print("# trajFreq             = ",self.trajFreq)
 		print("# addsteps             = ",self.addsteps)
 		print("# startfromzero        = ",self.startfromzero)
-		print("#----------------------------------------------------#")
+		print("#-----------------------------------------------------#")
 		return
 
 
@@ -203,7 +203,7 @@ class Csim:
 			if self.numFullCycles==0: raise SystemExit(self.params.timestepName+" looks empty (at most it has the header). Please delete it and then rerun.")
 			self.params.iCycle=timedata['iCycle'][self.numFullCycles-1] #take the last line of the file
 			self.params.stepsPerCycle=timedata['stepsPerCycle'][self.numFullCycles-1]
-			self.params.totOldCycleStep=timedata['totSteps'][self.numFullCycles-1] #steps done in previous cycles
+			self.params.totOldCycleStep=np.int64(timedata['totSteps'][self.numFullCycles-1]) #steps done in previous cycles
 
 
 		#How many steps need to be done, considering the ones already done, and the addsteps option (which tells you to forget about the past steps)
@@ -212,12 +212,13 @@ class Csim:
 		#Now enforce the run to have maximum HOOMDMAXSTEPS
 		self.params.runSteps=min(self.params.runSteps, HOOMDMAXSTEPS)
 
-		print("#----------------------------------------------------#")
+		print("#-----------------------------------------------------#")
 		print("# initial step      = ",self.params.iniStep)
 		print("# older steps       = ",self.params.totOldCycleStep)
 		print("# total steps simulated for this sample = ", self.params.totOldCycleStep + self.params.iniStep)
+		print("# total steps requested for this sample = ", self.params.nSteps)
 		print("# steps to do in this run =",self.params.runSteps)
-		print("#----------------------------------------------------#")
+		print("#-----------------------------------------------------#")
 
 		return
 
@@ -282,7 +283,8 @@ class Csim:
 		If trajFreq>=0, it just does hoomd.run()
 		otherwise, it takes care of saving the trajectory in logarithmic steps.
 		'''
-		print(self.params.runSteps," steps with the ",self.params.thermostat," thermostat at T=",self.params.temperature)
+		print("# ",self.params.runSteps," steps with the ",self.params.thermostat," thermostat at T=",self.params.temperature)
+		sys.stdout.flush()
 		if self.params.trajFreq>=0:
 			hoomd.run(self.params.runSteps, quiet=False)
 		else:
@@ -300,7 +302,8 @@ class Csim:
 		'''
 		Runs dynamics with Andersen thermostat
 		'''
-		print(self.params.runSteps," MB steps with the Andersen thermostat at T=",self.params.temperature)
+		print("# ",self.params.runSteps," MB steps with the Andersen thermostat at T=",self.params.temperature)
+		sys.stdout.flush()
 		if self.params.trajFreq>=0:
 			stepsTauT = min(int(self.params.tauT/self.params.dt),self.params.runSteps)
 			while( hoomd.get_step()-self.params.iniStep <self.params.runSteps):
@@ -338,11 +341,11 @@ class Csim:
 		#If the cycle is finished (we did the maximum number of steps allowed by hoomd)
 		#then we need to set the count to zero, and update the configuration
 		curTimeStep=hoomd.get_step()
-		if (curTimeStep == HOOMDMAXSTEPS): 
+		if (curTimeStep + (params.iniStep%HOOMDMAXSTEPS) >= HOOMDMAXSTEPS): 
 			self.params.endatzero=True
 			self.AppendTimeDataFile()
 		else: 
-			print("step:",hoomd.get_step(),"  maxsteps:",HOOMDMAXSTEPS)
+			print("# step:",hoomd.get_step(),"  maxsteps:",HOOMDMAXSTEPS)
 
 		#disable integrator
 		if self.integrator.enabled: self.integrator.disable()
@@ -372,9 +375,4 @@ sim.Run()
 sim.Finalize()
 
 
-
-
-
-
-
-print("Finished!\n")
+print("# Finished!")
