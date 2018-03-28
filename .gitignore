@@ -1,6 +1,7 @@
 #Heavy Directories and symlinks to directories
 PLOTS/*/
 PLAYGROUND/
+LOGS/
 OUTPUT/
 OUTPUT
 benchmarks/
@@ -14,3 +15,4 @@ benchmarks/
 
 #Temporary files
 MinimizeSegment.txt
+helloworld.py
