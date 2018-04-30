@@ -60,8 +60,6 @@ print("temperature = ",temperature)
 assert(temperature>=0)
 print("tauT = ",tauT)
 
-    
-
 
 #Read configuration
 restart_name_old    ="restartChunk"+str(ichunk-1)+label+".gsd"
