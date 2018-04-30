@@ -13,17 +13,17 @@ class LJ:
 	type: KA, KAshort
 	"""
 	def __init__(self, NeighborsList, type="KAshort", mode="xplor"):
-		self.mode=mode
-		assert(self.mode=="xplor") #I only implement xplor, cause it's the only one I use. To obtain the other modes you only need to remove pieces and look at tutorials T11, T12.
-		if type=="KA": #Kob-Andersen potential
-			self.setKA(NeighborsList)
-		elif type=="KAshort": #Kob-Andersen for small systems, as proposed by Heuer
-			self.setKA(NeighborsList, r_cutoff=1.4, r_buff=0.0)
+		
+		if type=="KA":        self.setKA(NeighborsList)
+		elif type=="KAshort": self.setKA(NeighborsList, r_cutoff=1.4, r_buff=0.0)
+		elif type=="LJmono":  self.setLJmono(NeighborsList)
 		else:
 			print("type Non implementato")
 			raise SystemExit
  
-	def setKA(self,NeighborsList, r_on_cutoff=1.2, r_cutoff=2.5, r_buff=None):
+	def setKA(self,NeighborsList, r_on_cutoff=1.2, r_cutoff=2.5, r_buff=None, mode="xplor"):
+		assert(mode=="xplor")
+		self.mode=mode
 		self.eps_AA=1
 		self.eps_AB=1.5
 		self.eps_BB=0.5
@@ -46,6 +46,13 @@ class LJ:
 		self.myLjPair.pair_coeff.set('A', 'B', epsilon=self.eps_AB, sigma=self.sig_AB, r_cut=self.rcut_AB, r_on=self.ron_AB)
 		self.myLjPair.pair_coeff.set('B', 'B', epsilon=self.eps_BB, sigma=self.sig_BB, r_cut=self.rcut_BB, r_on=self.ron_BB)
 		self.myLjPair.set_params(mode=self.mode)
+
+	def setLJmono(self, NeighborsList):
+		self.eps=1
+		self.sig=1
+		self.rcut=4
+		self.myLjPair = md.pair.lj(r_cut=self.rcut, nlist=NeighborsList)
+		self.myLjPair.pair_coeff.set('A', 'A', epsilon=self.eps, sigma=self.sig, r_cut=self.rcut)
 
 	def GetLJpair(self):
 		return self.myLjPair
