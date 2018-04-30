@@ -40,32 +40,49 @@ import kobandersen #Here I have put the Kob-Andersen parameters
 # 
 ################################################################
 
-#Overlap with the configurations as input
 def OverlapConfs(conf1, conf2,box_size):
-   posizioni1=np.array(conf1.particles.position)
-   posizioni2=np.array(conf2.particles.position)
-   return OverlapPos(posizioni1,posizioni2,box_size)
+	'''Overlap with the configurations as input'''
+	posizioni1=np.array(conf1.particles.position)
+	posizioni2=np.array(conf2.particles.position)
+	return OverlapPos(posizioni1,posizioni2,box_size)
 
-#Overlap with the positions as input
 def OverlapPos(posizioni1, posizioni2,box_size):
-   dist=PeriodicDistance(posizioni1,posizioni2,box_size)
-   return OverlapDist(dist,box_size)
+	'''Overlap with the positions as input'''
+	dist=PeriodicDistance(posizioni1,posizioni2,box_size)
+	return OverlapDist(dist,box_size)
 
-#Overlap with the distance between confs as input
 def OverlapDist(dist,box_size):
-   delta=0.22 #half small particle diameter
-   return np.where(dist<delta,1.,0.).sum()/Natoms
+	'''Overlap with the distance between confs as input'''
+	delta=0.22 #half small particle diameter
+	return np.where(dist<delta,1.,0.).sum()/Natoms
 
 
 def PeriodicDistance(vec_a, vec_b, box_size):
-# This function measures the distance between two lists of points, vec_a and vec_b,
-# that can be vectors.
-# box_size can be np.array([Lx,Ly,Lz]) or even just L
-    delta = np.abs(vec_a - vec_b) #substraction and abs are done component by component
-    delta = np.where(delta > 0.5 * box_size, delta - box_size, delta) #condition==True ? return second arg :otherwise return third
-    return delta.sum(axis=-1)
+	'''
+	This function measures the distance between two lists of points, vec_a and vec_b,
+	that can be vectors.
+	box_size can be np.array([Lx,Ly,Lz]) or even just L
+	'''
+	delta = np.abs(vec_a - vec_b) #substraction and abs are done component by component
+	delta = np.where(delta > 0.5 * box_size, delta - box_size, delta) #condition==True ? return second arg :otherwise return third
+	return delta.sum(axis=-1)
 
- ################################################################
+
+def InvPRconfs(snap1, snap2, L):
+	''' Inverse Participation Ratio of the displacement between two snapshots'''
+	return InvPRpos(np.array(snap1.particles.position), np.array(snap2.particles.position), L)
+
+def InvPRpos(posizioni1, posizioni2,L):
+	'''Inverse Participation Ratio with the positions as input'''
+	dist=np.abs(PeriodicDistance(posizioni1,posizioni2,L))
+	return InvPRdist(dist)
+
+def InvPRdist(dist):
+	'''Inverse participation ratio of the distances. dist must be made of only positive elements for the result to make sense'''
+	return np.square(dist).sum()/np.square(dist.sum())
+
+
+################################################################
 #
 # SET UP THE SIMULATION CONTEXT
 # 
@@ -86,14 +103,14 @@ print("\n\n\nREAD ARGUMENTS\n")
 
 #The we create a parser for the User files 
 parser = argparse.ArgumentParser(prog='python ReadAndEvolve.py [--hoomdi-flags] --user=" HERE YOU PUT THE FOLLOWING ARGUMENTS"',
-                                 description='The program reads a .gsd configuration and runs it in NVT',
-                                 add_help=True)
+								 description='The program reads a .gsd configuration and runs it in NVT',
+								 add_help=True)
 parser.add_argument('-t','--nNVTsteps', #optional argument
-                    nargs=1,
-                    type=int,
-                    required=False,
-                    default=[10],
-                    help='number of NVT steps (default 0)'
+					nargs=1,
+					type=int,
+					required=False,
+					default=[10],
+					help='number of NVT steps (default 0)'
 )
 
 args = parser.parse_args(more_arguments)
@@ -116,15 +133,15 @@ print("\n\n\nCREATE CONFIGURATION\n")
 #We need to define it with 5 elements, because the particle types are assigned at this stage
 #For a monodisperse mixture we could use the hoomd built-in unit cells
 uc = hoomd.lattice.unitcell(N = 5, #Number of particles in the unit cell
-                            a1 = [  a,   0,   0], #Basis vectors of the unit cell
-                            a2 = [  0,   a,   0],
-                            a3 = [  0,   0,   a],
-                            dimensions = 3,
-                            position = [[0, 0, 0], [0.5, 0.0, 0.0], [0.0,0.5,0.0], [0.0,0.0,0.5], [0.5,0.5,0.5]],
-                            type_name = ['A','A','A','A','B'], #An 80%-20% mixture
-                            mass = [1.0, 1.0, 1.0, 1.0, 1.0],
-                            charge = [0.0, 0.0, 0.0, 0.0, 0.0],
-                            diameter = [1./2, 1./2, 1./2, 1./2, 0.88/2] #I believe that the diameter only plays a role in visualization
+							a1 = [  a,   0,   0], #Basis vectors of the unit cell
+							a2 = [  0,   a,   0],
+							a3 = [  0,   0,   a],
+							dimensions = 3,
+							position = [[0, 0, 0], [0.5, 0.0, 0.0], [0.0,0.5,0.0], [0.0,0.0,0.5], [0.5,0.5,0.5]],
+							type_name = ['A','A','A','A','B'], #An 80%-20% mixture
+							mass = [1.0, 1.0, 1.0, 1.0, 1.0],
+							charge = [0.0, 0.0, 0.0, 0.0, 0.0],
+							diameter = [1./2, 1./2, 1./2, 1./2, 0.88/2] #I believe that the diameter only plays a role in visualization
 );
 # lattice made of repeat of unit cell:
 system = hoomd.init.create_lattice(unitcell=uc, n=L)
@@ -193,7 +210,7 @@ print("c2:")
 fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025)
 integrator_nve = md.integrate.nve(group=hoomd.group.all())
 while not(fire.has_converged()):
-   hoomd.run(100)
+	hoomd.run(100)
 print('FIRE minimization converged')
 E2 = analyzer.query('potential_energy')
 print("E2 = ",E2)
@@ -221,7 +238,7 @@ print("c4:")
 fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025)
 integrator_nve.enable()
 while not(fire.has_converged()):
-   hoomd.run(100)
+	hoomd.run(100)
 print('FIRE minimization converged')
 E4 = analyzer.query('potential_energy')
 print("E4 = ",E4)
@@ -249,7 +266,7 @@ print("c6:")
 fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025)
 integrator_nve.enable()
 while not(fire.has_converged()):
-   hoomd.run(100)
+	hoomd.run(100)
 print('FIRE minimization converged')
 integrator_nve.disable()
 E6 = analyzer.query('potential_energy')
@@ -293,3 +310,12 @@ print("Overlap between the last thermal configuration and its IS:")
 print("q56 = ", OverlapDist(dist56,box_size))
 
 
+print("Inverse participation ratios")
+print("Y11 = ",InvPRconfs(c1,c1,box_size))
+print("Y12 = ",InvPRconfs(c1,c2,box_size))
+print("Y23 = ",InvPRconfs(c2,c3,box_size))
+print("Y33 = ",InvPRconfs(c3,c3,box_size))
+print("Y34 = ",InvPRconfs(c3,c4,box_size))
+print("Y35 = ",InvPRconfs(c3,c5,box_size))
+print("Y46 = ",InvPRconfs(c4,c6,box_size))
+print("Y56 = ",InvPRconfs(c5,c6,box_size))
