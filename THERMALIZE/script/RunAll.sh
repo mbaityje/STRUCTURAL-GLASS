@@ -7,6 +7,9 @@
 #
 # QUEUE PROPERTIES 
 #
+echo "# RunAll.sh #"
+echo "# $(date)"
+
 set -a #This must stay. It exports all the variables to ReadRun.sh (and other scripts)
 
 readonly PROC_TAG="ra"
