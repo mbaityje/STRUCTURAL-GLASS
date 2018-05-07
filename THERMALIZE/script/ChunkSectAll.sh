@@ -4,9 +4,9 @@
 readonly PROC_TAG="cs"
 
 #Script Options
-readonly doTS=0 #0: only does IS, 1: does IS and TS
+readonly doridge=1 #0: only does IS, 1: does IS and Ridge
 
-if [ `hostname` == "PennPuter" ]; then SYSTEM="PennPuter";
+if [ `hostname` == "PennPuter" ] || [ `hostname` == "tango" ]; then SYSTEM="PennPuter";
 else SYSTEM="talapas"; fi
 
 #DIRECTORIES
@@ -19,9 +19,9 @@ utilDIR=$rootDIR/UTILITIES
 
 #Parameters
 readonly dt=0.0025
-readonly ttot=`echo 2*10^7|bc` #We will want 10^9 steps
+readonly ttot=600000 #`echo 2*10^7|bc` #We will want 10^9 steps
 TLIST="0.49" #"10.0 2.0 0.6 0.466 0.44 0.43 0.42 0.41"
-readonly deltaE=0.0001
+readonly deltaE=0.00001
 
 cd $workDIR
 for T in $(echo $TLIST)
@@ -40,14 +40,14 @@ do
 			pwd
 			if [ $SYSTEM == "PennPuter" ]
 			then
-			    bash $scriptDIR/ChunkSect.sh $T $dt $deltaE $ttot $doTS
+			    bash $scriptDIR/ChunkSect.sh $T $dt $deltaE $ttot $doridge
 			elif [ $SYSTEM == "talapas" ]
 			then
 			    nombre=N$Natoms${PROC_TAG}T${T}i${ISAM}
 			    if [ 0 == `squeue -u$(whoami) -n $nombre|grep $(whoami)|wc -l` ]
 			    then
-				echo "sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doTS=$doTS $scriptDIR/ChunkSect.sh"
-				sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doTS=$doTS $scriptDIR/ChunkSect.sh
+				echo "sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh"
+				sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh
 			    fi
 			fi
 			cd ..

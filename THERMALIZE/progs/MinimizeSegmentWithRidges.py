@@ -37,6 +37,7 @@ parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('filename', nargs=1, help='name of the initial state .gsd')
 parser.add_argument('--nframes', nargs=1, type=int, required=True, help='Total number of frames')
 parser.add_argument('--iframe', nargs=1, type=int, required=False, default=[0], help='Frame to read from the gsd file (default is 0)')
+parser.add_argument('--deltaE', type=float, required=False, default=1e-6, help='energy difference in order to consider different two configurations')
 parser.add_argument('--saveISgsd', nargs=1, type=bool, required=False, default=[False], help='If True, saves the IS trajectory')
 parser.add_argument('--saveThermalgsd', nargs=1, type=bool, required=False, default=[False], help='If True, saves the thermal trajectory')
 parser.add_argument('-l','--label', nargs=1, required=False, default=[''], help='label for distinguishing runs and continuations')
@@ -48,7 +49,7 @@ iframe=args.iframe[0]
 saveISgsd=args.saveISgsd[0]
 saveThermalgsd=args.saveThermalgsd[0]
 label=str(args.label[0])
-THRES=1e-6
+
 
 #Integrator parameters
 dtFIRE=0.0025
@@ -110,17 +111,11 @@ snapT.particles.velocity[:] = np.zeros((Natoms,3))
 
 ################################################################
 # 
-# Set potential
+# Set potential and analyzer
 #
 ################################################################
-NeighborsListLJ = md.nlist.cell()
-potential=pot.LJ(NeighborsListLJ,type="KAshort")
-
-################################################################
-# 
-# Set analyzer
-#
-################################################################
+NeighborsList = md.nlist.cell()
+potential=pot.LJ(NeighborsList,type="KAshort")
 analyzer_quantities = ['temperature', 'pressure', 'potential_energy', 'kinetic_energy', 'momentum'] #, 'volume', 'num_particles']
 analyzer = hoomd.analyze.log(filename=None, quantities=analyzer_quantities, period=None)
 
@@ -164,32 +159,37 @@ def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002):
 	print('···ConfBisect···')
 	print('eis1 = ',eis1,'; eis2 = ',eis2)
 
-	if np.abs(eis1-eis2)<THRES: raise SystemExit('ConfBisect ERROR: the two starting ISs the same one [abs(eis1-eis2)<THRES]')
+	if np.abs(eis1-eis2)<args.deltaE: raise ValueError('ConfBisect ERROR: the two starting ISs the same one [abs(eis1-eis2)<args.deltaE]')
 	dstart=0.5*dmax
 	Natoms=snap1.particles.N
 	dist12=med.PeriodicDistance(snap1.particles.position, snap2.particles.position, L).sum()/Natoms #the box is cubic
 	snap12=LinearConfInterpolation(snap1, snap2, L)
 
 	eis12,snapis12=Minimize(snap12)
+	print('snap1 .particles.position[0] = ',snap1.particles.position[0])
+	print('snap2 .particles.position[0] = ',snap2.particles.position[0])
+	print('snap12.particles.position[0] = ',snap12.particles.position[0])
 
 	count=0
 	maxcount=100
 	while dist12>dstart:
 		print('eis1 = ',eis1,'; eis2 = ',eis2,'; eis12 = ',eis12)
-		if np.abs(eis1-eis12) <= THRES: #If snap12 belongs to snap1, snap1=snap12
+		if np.abs(eis1-eis12) <= args.deltaE: #If snap12 belongs to snap1, snap1=snap12
 			snap1.particles.position[:]=snap12.particles.position
 			eis1=eis12
-		elif np.abs(eis2-eis12) <= THRES: #If snap12 belongs to snap2, snap2=snap12
+		elif np.abs(eis2-eis12) <= args.deltaE: #If snap12 belongs to snap2, snap2=snap12
 			snap2.particles.position[:]=snap12.particles.position
 			eis2=eis12
 		else: #If snap12 does not belong to either, we print a warning and change snap2
-			print("ConfBisect: found an intermediate IS while searching the TS (Eis=%.14g)"%eis12)
+			print("ConfBisect: found an intermediate IS while searching the TS (Eis12=%.14g)"%eis12)
 			snap2.particles.position[:]=snap12.particles.position
 			eis2=eis12
 		dist12=med.PeriodicDistance(snap1.particles.position, snap2.particles.position, L).sum()/Natoms
+		print("dist12=",dist12)
 		count+=1
-		if  np.abs(eis1-eis2)<THRES: raise SystemExit('ConfBisect ERROR: the two ISs became the same one [abs(eis1-eis2)<THRES]')
+		if  np.abs(eis1-eis2)<args.deltaE: raise ValueError('ConfBisect ERROR: the two ISs became the same one [abs(eis1-eis2)<args.deltaE]')
 		snap12=LinearConfInterpolation(snap1, snap2, L)
+		print('snap12.particles.position[0] = ',snap12.particles.position[0])
 		eis12,snapis12=Minimize(snap12)
 
 		if count>maxcount:
@@ -267,10 +267,10 @@ def CalculateRidge(snapT1, snapT2, Eis1, Eis2, L):
 			For this reason, I just take the energy of one of the two confs at the previous step.
 			'''
 			if eis1>eis2: 
-				Eridge=ConsistentRidge(eis1_old,Eis1,Eis2,THRES)
+				Eridge=ConsistentRidge(eis1_old,Eis1,Eis2,args.deltaE)
 				snapRidge=snapis1_old
 			else : 
-				Eridge=ConsistentRidge(eis2_old,Eis1,Eis2,THRES)
+				Eridge=ConsistentRidge(eis2_old,Eis1,Eis2,args.deltaE)
 				snapRidge=snapis2_old
 			print("Eridge = ",Eridge)
 			break
@@ -326,13 +326,10 @@ def EnerSnapshot(snapshot):
 #
 ################################################################
 
-#Define lists of observables
-EISlist=[]
-ETlist=[]
-EridgeList=[]
-tRidgeList=[]
-msdlist=[]
-nmovedlist=[]
+for t in range(nframes):
+	print(t+iframe,posizioni[t][0][0])
+
+sys.exit('fine prova')
 
 #Integrators
 modeT=md.integrate.mode_standard(dt=1e-24)
@@ -350,6 +347,14 @@ integrator_fire = md.integrate.nve(group=hoomd.group.all())
 
 Eis_old,snapIS_old=Minimize(snapT_old)
 print("ET=",ET," Eis=",Eis_old)
+
+#Define lists of observables
+EISlist=[Eis_old]
+ETlist=[ET]
+EridgeList=[]
+tRidgeList=[]
+msdlist=[]
+nmovedlist=[]
 
 
 #
@@ -372,7 +377,7 @@ for jframe in range(iframe+1,finalframe):
 	Eis,snapIS=Minimize(snapT)
 	if saveISgsd==True: hoomd.dump.gsd(confnameIS, period=None, group=hoomd.group.all(), overwrite=False, truncate=False, phase=-1)
 
-	if np.abs(Eis - Eis_old)>THRES:
+	if np.abs(Eis - Eis_old)>args.deltaE:
 		tRidgeList.append(jframe-0.5) #Ridge is between the two steps
 		Eridge,snapRidge=CalculateRidge(snapT_old, snapT, Eis_old, Eis, L)
 		print('>>>>>>>>>>>>>>>>')
@@ -395,13 +400,13 @@ print("totmoved=",totmoved)
 
 
 #Output of IS energies
-output=np.column_stack((range(iframe+1,finalframe), ETlist, EISlist, msdlist, nmovedlist))
-np.savetxt('MinimizeSegmentWithRidges'+label+'.txt', output,fmt='%d %.14g %.14g %.14g %.14g', header='1)iframe 2)E(T)(iframe) 3)Eis(iframe) 4)msd(iframe-1,iframe) 5)nmoved(iframe-1,iframe)')
+output=np.column_stack((range(iframe,finalframe), ETlist, EISlist))
+np.savetxt('MinimizeSegmentWithRidges'+label+'.txt', output,fmt='%d %.14g %.14g', header='1)iframe 2)E(T)(iframe) 3)Eis(iframe)')
 
 
 #output of ridges
 Eante=[EISlist[int(i-0.5)-iframe] for i in tRidgeList]
 Epost=[EISlist[int(i+0.5)-iframe] for i in tRidgeList]
-outputridge=np.column_stack((tRidgeList,EridgeList,Eante,Epost))
-np.savetxt('MinimizeSegmentWithRidges'+label+'_Eridge.txt', outputridge,fmt='%g %.14g %.14g %.14g', header='1)iframe 2)Eridge 3)Eante 4)Epost')
+outputridge=np.column_stack((tRidgeList,EridgeList,Eante,Epost, msdlist, nmovedlist))
+np.savetxt('MinimizeSegmentWithRidges'+label+'_Eridge.txt', outputridge,fmt='%g %.14g %.14g %.14g %.14g %.14g', header='1)iframe 2)Eridge 3)Eante 4)Epost 5)msd(iframe-1,iframe) 6)nmoved(iframe-1,iframe)')
 

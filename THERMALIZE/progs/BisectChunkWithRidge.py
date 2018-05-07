@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 ################################################################
 #
 # DESCRIPTION
@@ -59,16 +59,18 @@ parser.add_argument('-l','--label', required=False, default='', help='label for 
 parser.add_argument('--deltaE', type=float, required=False, default=1e-6, help='energy difference in order to consider different two configurations')
 parser.add_argument('--skiprows', type=int, required=False, default=0, help='how many rows we can skip when reading elist (we need only the last one)')
 parser.add_argument('--doridge', type=bool, required=False, default=False, help='If True, calculate ridge between ISs.')
+parser.add_argument('--verbose', type=bool, required=False, default=False, help='If True, print extra information to stdout.')
 args = parser.parse_args(more_arguments)
 
 filename=args.filename
 del parser
 
-print("filename: ",args.filename)
-print("ichunk = ",args.ichunk)
-print("tchunk = ",args.tchunk)
-print("deltaE = ",args.deltaE)
-print("doRidge = ",args.doridge)
+print("filename = ",args.filename)
+print("ichunk   = ",args.ichunk)
+print("tchunk   = ",args.tchunk)
+print("deltaE   = ",args.deltaE)
+print("doRidge  = ",args.doridge)
+print("verbose  = ",args.verbose)
 
 
 
@@ -123,8 +125,8 @@ if(args.ichunk>0):
 # Set potential and analyzer
 #
 ################################################################
-NeighborsListLJ = md.nlist.cell()
-potential=pot.LJ(NeighborsListLJ,type="KAshort") #myLJpair is now an attribute of potential. To call it: potential.GetLJpair()
+NeighborsList = md.nlist.cell()
+potential=pot.LJ(NeighborsList,type="KAshort") #myLJpair is now an attribute of potential. To call it: potential.GetLJpair()
 analyzer_quantities = ['temperature', 'pressure', 'potential_energy', 'kinetic_energy', 'momentum'] #, 'volume', 'num_particles']
 analyzer = hoomd.analyze.log(filename=None, quantities=analyzer_quantities, period=1)
 
@@ -148,9 +150,12 @@ analyzer = hoomd.analyze.log(filename=None, quantities=analyzer_quantities, peri
 def Minimize(snap):
 	system.restore_snapshot(snap)
 	fire.cpp_integrator.reset()
+	if not integrator_fire.enabled: integrator_fire.enable()
 	while not(fire.has_converged()):
 		hoomd.run(100)
 	eIS=analyzer.query('potential_energy')
+	# snapnew=system.take_snapshot()
+	integrator_fire.disable()
 	return eIS
 
 
@@ -184,9 +189,10 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 		t12=int(0.5*(t1+t2))
 		snap12=system.take_snapshot()
 		snap12.particles.position[:]=posizioni[t12]
-		e12=Minimize(snap12)
 		Bisect(t1,snap1,t12,snap12,e1, doRidge=doRidge)
-		Bisect(t12,snap12,t2,snap2,e12, doRidge=doRidge)
+		# e12=Minimize(snap12)
+		# Bisect(t12,snap12,t2,snap2,e12, doRidge=doRidge)
+		Bisect(t12,snap12,t2,snap2, doRidge=doRidge)
 
 
 def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=True):
@@ -197,17 +203,25 @@ def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=True):
 	#0.002 is about half the typical distance between confs at subsequent time steps w/ dt=0.0025
 	"""
 	print('···ConfBisect···')
-	assert(np.abs(eis1-eis2)>args.deltaE)
+	print('eis1 = ',eis1,'; eis2 = ',eis2)
+
+	if np.abs(eis1-eis2)<args.deltaE: raise ValueError('ConfBisect ERROR: the two starting ISs the same one [abs(eis1-eis2)<args.deltaE]')
 	dstart=0.5*dmax
 	Natoms=snap1.particles.N
 	dist12=med.PeriodicDistance(snap1.particles.position, snap2.particles.position, L).sum()/Natoms #the box is cubic
 	snap12=LinearConfInterpolation(snap1, snap2, L)
 
 	eis12=Minimize(snap12)
+	if verbose: 
+		print('snap1 .particles.position[0] = ',snap1.particles.position[0])
+		print('snap2 .particles.position[0] = ',snap2.particles.position[0])
+		print('snap12.particles.position[0] = ',snap12.particles.position[0])
+
 
 	count=0
 	maxcount=100
 	while dist12>dstart:
+		print('eis1 = ',eis1,'; eis2 = ',eis2,'; eis12 = ',eis12)
 		if np.abs(eis1-eis12) <= args.deltaE: #If snap12 belongs to snap1, snap1=snap12
 			snap1.particles.position[:]=snap12.particles.position
 			eis1=eis12
@@ -215,27 +229,32 @@ def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=True):
 			snap2.particles.position[:]=snap12.particles.position
 			eis2=eis12
 		else: #If snap12 does not belong to either, we throw a warning and change snap2
-			print("ConfBisect: found an intermediate IS while searching the TS (Eis=%.14g)"%eis2)
+			print("ConfBisect: found an intermediate IS while searching the TS (Eis12=%.14g)"%eis12)
 			snap2.particles.position[:]=snap12.particles.position
 			eis2=eis12
 		dist12=med.PeriodicDistance(snap1.particles.position, snap2.particles.position, L).sum()/Natoms
 		if verbose: print("dist12=",dist12)
+			
 		count+=1
-		assert(np.abs(eis1-eis2)>args.deltaE)
+		if  np.abs(eis1-eis2)<args.deltaE: raise ValueError('ConfBisect ERROR: the two ISs became the same one [abs(eis1-eis2)<args.deltaE]')
 		snap12=LinearConfInterpolation(snap1, snap2, L)
+		if verbose: print('snap12.particles.position[0] = ',snap12.particles.position[0])
 		eis12=Minimize(snap12)
+
 		if count>maxcount:
-			sys.exit("ConfBisect ERROR: the interpolation bisection is not converging.")
+			raise RecursionError("ConfBisect ERROR: the interpolation bisection is not converging.")
 	return snap1,snap2,snap12,eis1,eis2,eis12,dist12
 
 def LinearConfInterpolation(snap1, snap2, box_size):
-	'''returns a linear interpolation between snap1 and snap2
-	new_positions = (snap1 + snap2)/2'''
-	pos1=np.array(snap1.particles.position,dtype=np.float64)
-	pos2=np.array(snap2.particles.position,dtype=np.float64)
+	'''
+	returns a linear interpolation between snap1 and snap2
+	new_positions = (snap1 + snap2)/2
+	'''
 	snap12=system.take_snapshot()
-	pos12=med.PeriodicIntermPoints(pos1,pos2,box_size)
-	snap12.particles.position[:]=pos12
+	snap12.particles.position[:] = med.PeriodicIntermPoints(
+		np.array(snap1.particles.position,dtype=np.float64),
+		np.array(snap2.particles.position,dtype=np.float64),
+		box_size)
 	return snap12
 
 def CalcF():
@@ -268,7 +287,7 @@ def CalculateRidge(snapT1, snapT2, Eis1, Eis2, L, verbose=True, dtFIRE=0.0025, t
 	snapT2.particles.velocity[:]=np.zeros((Natoms, 3))
 
 	#snapis are not inherent structures, but the gradually approach them
-	snapis1,snapis2,snapis12,Eis1,Eis2,Eis12,dist12=ConfBisect(snapT1, snapT2, Eis1, Eis2, L, dmax=dmax, verbose=False)
+	snapis1,snapis2,snapis12,Eis1,Eis2,Eis12,dist12=ConfBisect(snapT1, snapT2, Eis1, Eis2, L, dmax=dmax, verbose=True)
 
 	if verbose: print("- Eis1=",Eis1,'; Eis2=',Eis2,' (after ConfBisect)')
 
@@ -398,7 +417,7 @@ def ConsistentRidge(Eridge, Eis1, Eis2, thres, EtolFIRE=0):
 #
 ################################################################
 fire=hoomd.md.integrate.mode_minimize_fire(dt=0.0025, alpha_start=alphaFIRE, ftol=ftolFIRE, Etol=EtolFIRE, wtol=wtolFIRE, min_steps=minstepsFIRE)
-integrator = md.integrate.nve(group=hoomd.group.all())
+integrator_fire = md.integrate.nve(group=hoomd.group.all())
 hoomd.run(2)
 
 #List of energies
@@ -415,7 +434,7 @@ Bisect(0,snap_ini,Nframes-1,snap_final, e1=None, doRidge=args.doridge)
 # Cleanup
 #
 ################################################################
-integrator.disable()
+if integrator_fire.enabled: integrator_fire.disable()
 
 ################################################################
 # 
@@ -438,5 +457,5 @@ Eante=[elist[int(t)]   for t in list(eRidgelist.keys())]
 Epost=[elist[int(t)+1] for t in list(eRidgelist.keys())]
 np.savetxt(outRidge, 
 			np.column_stack(( list(eRidgelist.keys()), list(eRidgelist.values()), Eante, Epost)),
-			fmt='%d %.14g %.14g %.14g', header=headerRidge)
+			fmt='%.1f %.14g %.14g %.14g', header=headerRidge)
 outRidge.close()
