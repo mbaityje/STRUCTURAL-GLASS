@@ -341,7 +341,7 @@ class Csim:
 		#If the cycle is finished (we did the maximum number of steps allowed by hoomd)
 		#then we need to set the count to zero, and update the configuration
 		curTimeStep=hoomd.get_step()
-		if (curTimeStep + (params.iniStep%HOOMDMAXSTEPS) >= HOOMDMAXSTEPS): 
+		if (curTimeStep + (self.params.iniStep%HOOMDMAXSTEPS) >= HOOMDMAXSTEPS): 
 			self.params.endatzero=True
 			self.AppendTimeDataFile()
 		else: 
