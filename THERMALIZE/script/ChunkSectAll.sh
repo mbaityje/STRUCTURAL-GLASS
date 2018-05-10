@@ -27,7 +27,7 @@ utilDIR=$rootDIR/UTILITIES
 readonly dt=0.0025
 readonly ttot=`echo 10^9|bc` #We will want 10^9 steps
 TLIST="0.49" #"10.0 2.0 0.6 0.466 0.44 0.43 0.42 0.41"
-readonly deltaE=0.00001
+readonly deltaE=0.0001
 
 cd $workDIR
 for T in $(echo $TLIST)
