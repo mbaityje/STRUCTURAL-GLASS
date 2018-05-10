@@ -208,7 +208,7 @@ def OverlapDisp(disp,box_size):
 	"""
 	Overlap. With the distance between confs as input
 	"""
-	delta=0.13333 #1/3 of the smallest particle diameter
+	delta=0.1 #1/4 of the smallest particle radius
 	return np.where(disp<delta,1.,0.).sum()/len(disp)
 
 ######################################################################
@@ -217,7 +217,7 @@ def HowManyMovedPos(posizioni1, posizioni2,box_size):
 	How many particles moved between posizioni1 and posizioni2.
 	"""
 	disp=PeriodicDisplacement(posizioni1,posizioni2,box_size).sum(axis=1)
-	delta=0.13333 #1/3 of the smallest particle diameter
+	delta=0.1 #1/4 of the smallest particle radius
 	return np.where(disp>delta,1.,0.).sum()
 
 
