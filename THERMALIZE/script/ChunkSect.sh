@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH -p longgpu # partition (queue)
+#SBATCH -p gpu # partition (queue)
 #SBATCH --gres=gpu:1
 
 # 
@@ -89,7 +89,7 @@ fi
 
 #Hard-coded parameters
 readonly tauT=0.1
-readonly tchunk=`echo 10^5|bc`
+readonly tchunk=`echo 10^3|bc` #`echo 10^5|bc`
 nchunks=`echo $ttot/$tchunk|bc`
 let nchunksm1=$nchunks-1
 

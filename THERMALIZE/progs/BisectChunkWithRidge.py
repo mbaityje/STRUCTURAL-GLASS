@@ -117,7 +117,7 @@ snap_final.particles.position[:]=posizioni[Nframes-1]
 #Otherwise, we open it and make sure that the time step is consistent.
 if(args.ichunk>0):
 	elist_old=np.loadtxt('elistIS.txt',skiprows=args.skiprows)
-	if int(elist_old[len(elist_old)-1][0])!=t0-1: raise ValueError('Discrepacy with the previous chunk:\n elist_old[len(elist_old)-1][0])=',+str(int(elist_old[len(elist_old)-1][0]))+', t0-1='+str(t0-1))
+	if int(elist_old[len(elist_old)-1][0])!=t0-1: raise ValueError('Discrepacy with the previous chunk:\n elist_old[len(elist_old)-1][0])='+str(int(elist_old[len(elist_old)-1][0]))+', t0-1='+str(t0-1))
 	del elist_old
 
 ################################################################
@@ -174,8 +174,19 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 		if doRidge and (ediff>args.deltaE): 
 			eRidge,snapRidge=CalculateRidge(snap1, snap2, e1, e2, L, verbose=True, time=t0+t2)
 			if eRidge != None:
-				eRidgelist[t0+t2-0.5]=eRidge
+				ridgetime=t0+t2-0.5
+				eRidgelist[ridgetime] = eRidge
+				nmovedlist['12'][ridgetime] = med.HowManyMovedPos(    snap1.particles.position,     snap2.particles.position, L)
+				nmovedlist['1r'][ridgetime] = med.HowManyMovedPos(    snap1.particles.position, snapRidge.particles.position, L)
+				nmovedlist['r2'][ridgetime] = med.HowManyMovedPos(snapRidge.particles.position,     snap2.particles.position, L)
+				msdlist['12'][ridgetime] = med.PeriodicSquareDistance(    snap1.particles.position,     snap2.particles.position, L)
+				msdlist['1r'][ridgetime] = med.PeriodicSquareDistance(    snap1.particles.position, snapRidge.particles.position, L)
+				msdlist['r2'][ridgetime] = med.PeriodicSquareDistance(snapRidge.particles.position,     snap2.particles.position, L)
+				qlist['12'][ridgetime] = med.OverlapPos(    snap1.particles.position,     snap2.particles.position, L)
+				qlist['1r'][ridgetime] = med.OverlapPos(    snap1.particles.position, snapRidge.particles.position, L)
+				qlist['r2'][ridgetime] = med.OverlapPos(snapRidge.particles.position,     snap2.particles.position, L)
 		elist[t0+t2]=e2
+
 		return
 
 	#If they are the same I save and finish
@@ -379,7 +390,8 @@ class RidgeConvergence:
 		self.filename='ridge'+self.label+'.log'
 		mode = 'w' if self.ichunk==0 else 'a'
 		out = open(self.filename   , mode)
-		print('This log tracks the times when the ridge was not found after ',self.niter,' iterations (NC: Non Converged)', file=out)
+		if self.ichunk==0:
+			print('This log tracks the times the ridge was not found after ',self.niter,' iterations (NC: Non Converged)', file=out)
 		print('ichunk = ',self.ichunk)
 		out.close()
 		return
@@ -423,9 +435,15 @@ hoomd.run(2)
 #List of energies
 elist={t0:Minimize(snap_ini)}
 if args.doridge:
-	eRidgelist={}
+	eRidgelist={} # List of ridge energies
+	nmovedlist ={'12':{}, '1r':{}, 'r2':{}} # How many particles moved around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
+	msdlist    ={'12':{}, '1r':{}, 'r2':{}} # Mean square displacement around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
+	qlist={'12':{}, '1r':{}, 'r2':{}} # Overlap around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
 	niter=10000
 	ridgeLog=RidgeConvergence(niter,tolerant=True, ichunk=args.ichunk, label=args.label)
+	
+
+
 Bisect(0,snap_ini,Nframes-1,snap_final, e1=None, doRidge=args.doridge)
 
 
@@ -445,17 +463,30 @@ mode='wb' if args.ichunk==0 else 'ab'
 
 #list of inherent structure energies
 outIS    = open('elistIS'+args.label+'.txt', mode)
-headerIS = '1)time 2)Eis' if args.ichunk==0 else ''
+headerIS = 'time Eis' if args.ichunk==0 else ''
 outputIS = np.column_stack(( list(elist.keys()), list(elist.values())))
 np.savetxt(outIS, outputIS,fmt='%d %.14g', header=headerIS)
 outIS.close()
 
 #list of ridge energies
 outRidge    = open('elistRidge'+args.label+'.txt', mode)
-headerRidge='1)time 2)Eridge 3)Eante 4)Epost' if args.ichunk==0 else ''
+headerRidge='time Eridge Eante Epost n12 n1r nr2 msd12 msd1r msdr2 q12 q1r qr2' if args.ichunk==0 else ''
 Eante=[elist[int(t)]   for t in list(eRidgelist.keys())]
 Epost=[elist[int(t)+1] for t in list(eRidgelist.keys())]
 np.savetxt(outRidge, 
-			np.column_stack(( list(eRidgelist.keys()), list(eRidgelist.values()), Eante, Epost)),
-			fmt='%.1f %.14g %.14g %.14g', header=headerRidge)
+			np.column_stack(
+				( 	list(eRidgelist.keys()), 
+					list(eRidgelist.values()), 
+					Eante, 
+					Epost,
+					list(nmovedlist['12'].values()),
+					list(nmovedlist['1r'].values()),
+					list(nmovedlist['r2'].values()),
+					list(msdlist['12'].values()),
+					list(msdlist['1r'].values()),
+					list(msdlist['r2'].values()),
+					list(qlist['12'].values()),
+					list(qlist['1r'].values()),
+					list(qlist['r2'].values())	)),
+			fmt='%.1f %.14g %.14g %.14g %d %d %d %.14g %.14g %.14g %.14g %.14g %.14g', header=headerRidge)
 outRidge.close()
