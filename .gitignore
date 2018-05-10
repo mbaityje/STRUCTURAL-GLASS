@@ -16,3 +16,6 @@ benchmarks/
 #Temporary files
 MinimizeSegment.txt
 helloworld.py
+
+#jupyter shit
+.ipynb_checkpoints
