@@ -167,7 +167,7 @@ plt.ylabel('$\mathcal{C}_t/\mathcal{C}_0$')
 plt.grid(True)
 plt.legend()
 plt.savefig('./test-output/corrPP-FF'+args.label+"_KA.png")
-plt.show()
+# plt.show()
 
 # plt.xlim((0, 1))
 # plt.ylim((-20, 20))
@@ -181,11 +181,13 @@ plt.ylabel('$\mathcal{C}_t/T$')
 plt.grid(True)
 plt.legend()
 plt.savefig('./test-output/corrOnT'+args.label+"_KA.png")
-plt.show()
+# plt.show()
+
+
 
 
 ################################################################
-# USE AVERAGED CORRELATORS TO CALCULATE THE NOISE FRICTION
+# WITH TRUNCATED CORRELATION FUNCTIONS
 ################################################################
 print('Measure Noise correlation functions')
 maxiter=1000
@@ -195,10 +197,10 @@ xdata=np.arange(0,Ncorr)*args.dt
 
 invT=np.float64(1./args.temperature)
 for iter in range(maxiter):
+	# Kold=np.where(np.abs(Kold)>nsigma*errCFP, Kold,0)
 	for n in range(Ncorr):
 		Knew[n] = CFF[n] + invT * np.array([CFP[n-i]*Kold[i] for i in range(n)]).sum() * args.dt
 	err=np.max(np.abs(Knew-Kold))
-	# print(CFF[200],Kold[200], Knew[200])
 	print("iter:",iter," err = ",err)
 	if err<1e-10: break
 	Kold[:]=Knew[:] #Curiosamente, se metto Kold=Knew, converge subito al risultato giusto
@@ -209,46 +211,7 @@ plt.xlabel('$t$')
 plt.ylabel('Correlation')
 plt.grid(True)
 plt.legend()
-plt.savefig('./test-output/corrNoise-selfconsistent'+args.label+"_KA.png")
-plt.show()
-
-
-
-################################################################
-# TRUNCATE CORRELATION FUNCTIONS
-################################################################
-print('Truncated correlation functions')
-def TruncateCorrelator(corr, err):
-	
-	
-CFF
-CFP
-Kold
-
-
-
-
-maxiter=1000
-Kold=np.copy(CFF)
-Knew=np.zeros(Ncorr,dtype=np.float64)
-xdata=np.arange(0,Ncorr)*args.dt
-
-invT=np.float64(1./args.temperature)
-for iter in range(maxiter):
-	for n in range(Ncorr):
-		Knew[n] = CFF[n] + invT * np.array([CFP[n-i]*Kold[i] for i in range(n)]).sum() * args.dt
-	err=np.max(np.abs(Knew-Kold))
-	# print(CFF[200],Kold[200], Knew[200])
-	print("iter:",iter," err = ",err)
-	if err<1e-10: break
-	Kold[:]=Knew[:] #Curiosamente, se metto Kold=Knew, converge subito al risultato giusto
-
-plt.plot(xdata, Knew,label='$\mathcal{K}_t$')
-plt.plot(xdata, CFF,label='$\mathcal{C}^{F}_t$')
-plt.xlabel('$t$')
-plt.ylabel('Correlation')
-plt.grid(True)
-plt.legend()
+plt.title('$\\rho = $%.1f,  $T = $%g,  $n = $%d,  $dt = $%g'%(rho,args.temperature,args.nchunk,args.dt))
 plt.savefig('./test-output/corrNoise-selfconsistent'+args.label+"_KA.png")
 plt.show()
 

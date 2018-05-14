@@ -89,10 +89,9 @@ fi
 
 #Hard-coded parameters
 readonly tauT=0.1
-readonly tchunk=`echo 10^3|bc` #`echo 10^5|bc`
+readonly tchunk=`echo 10^5|bc` #`echo 10^5|bc`
 nchunks=`echo $ttot/$tchunk|bc`
 let nchunksm1=$nchunks-1
-
 
 #--------------------------------------------#
 # Here starts the actual bisection by chunks #
@@ -123,6 +122,7 @@ echo "tlast: = $tlast"
 for ichunk in $(seq $firstChunk $nchunksm1)
 do
 	echo "+++ ichunk = $ichunk +++"
+	date
 
 	#First generate the thermal trajectory of the cunk
 	python $exeDIR/CreateChunk.py --user="$filename --ichunk=$ichunk --tchunk=$tchunk --dt=$dt --temperature=$T --tauT=$tauT"
@@ -137,13 +137,23 @@ do
 	else skiprows=`wc -l $elistFILE | awk '{print $1-2}'`; fi
 	echo "skiprows: $skiprows"
 
-	echo "python $exeDIR/BisectChunkWithRidge.py --user=\"trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE --doridge=True --skiprows=$skiprows\""
-	python $exeDIR/BisectChunkWithRidge.py --user="trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE --doridge=$doridge --skiprows=$skiprows --verbose=True"
+	echo "python $exeDIR/BisectChunkWithRidge.py --user=\"trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE --doridge=True --skiprows=$skiprows --moreobs=False\""
+	python $exeDIR/BisectChunkWithRidge.py --user="trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE --doridge=$doridge --skiprows=$skiprows --verbose=True --moreobs=False"
 
 	#Now that trajChunk$ichunk has been fully analyzed, we can delete it
 	#Uncomment if we want to delete
 	#rm -f trajChunk$ichunk.gsd
-	
+
+	# If we are on talapas, instead of keeping with the cycle,
+	# we end the process and we queue a new one.
+	if [ $SYSTEM == "talapas" ]
+	then
+	    echo "Submitting new process to queue"
+	    date
+	    cd ~/STRUCTURAL-GLASS/THERMALIZE/script
+	    bash ./ChunkSectAll.sh
+	    exit
+	fi
 done
 #--------------------------------#
 # End of the bisection by chunks #
