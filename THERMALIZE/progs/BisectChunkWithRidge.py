@@ -440,10 +440,10 @@ hoomd.run(2)
 elist={t0:Minimize(snap_ini)}
 if args.doridge:
 	eRidgelist={} # List of ridge energies
-		if args.moreobs:
-			nmovedlist ={'12':{}, '1r':{}, 'r2':{}} # How many particles moved around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
-			msdlist    ={'12':{}, '1r':{}, 'r2':{}} # Mean square displacement around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
-			qlist={'12':{}, '1r':{}, 'r2':{}} # Overlap around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
+	if args.moreobs:
+		nmovedlist ={'12':{}, '1r':{}, 'r2':{}} # How many particles moved around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
+		msdlist    ={'12':{}, '1r':{}, 'r2':{}} # Mean square displacement around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
+		qlist={'12':{}, '1r':{}, 'r2':{}} # Overlap around a ridge (12: the two IS, 1r: initial IS and ridge, r2: ridge and final IS)
 	niter=10000
 	ridgeLog=RidgeConvergence(niter,tolerant=True, ichunk=args.ichunk, label=args.label)
 
