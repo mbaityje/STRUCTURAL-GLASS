@@ -12,7 +12,7 @@ then
 else
 	SYSTEM="talapas";
 	queue=gpu
-	simTime="0-02:00:00" #Days-HH:MM:SS
+	simTime="0-12:00:00" #Days-HH:MM:SS
 fi
 
 #DIRECTORIES
