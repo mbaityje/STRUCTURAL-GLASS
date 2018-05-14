@@ -86,6 +86,17 @@ if ! [ $doridge -eq 0 -o $doridge -eq 1 ]; then
 	exit
 fi
 
+#doridge must be 0 or 1
+if [ $doridge -eq 0 ]; then
+	doridgeflag=''
+elif [ $doridge -eq 1 ]; then
+	doridgeflag='--doridge'
+else
+	echo "doridge ($doridge) must be 0 or 1."
+	echo "Launch as: $0 <T> <dt> <deltaE> <ttot> [<doridge>]"
+	exit
+fi
+
 
 #Hard-coded parameters
 readonly tauT=0.1
@@ -108,8 +119,8 @@ if [ -f $elistFILE ];
 then
 	if [ `wc -l $elistFILE |cut -f1 -d" "` -gt 0 ]
 	then
-	    tlast=`tail -1 $elistFILE|cut -f1 -d" "`;
-	    firstChunk=`echo "($tlast+1)/$tchunk"|bc`
+		tlast=`tail -1 $elistFILE|cut -f1 -d" "`;
+		firstChunk=`echo "($tlast+1)/$tchunk"|bc`
 	fi
 fi
 
@@ -137,22 +148,23 @@ do
 	else skiprows=`wc -l $elistFILE | awk '{print $1-2}'`; fi
 	echo "skiprows: $skiprows"
 
-	echo "python $exeDIR/BisectChunkWithRidge.py --user=\"trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE --doridge=True --skiprows=$skiprows --moreobs=False\""
-	python $exeDIR/BisectChunkWithRidge.py --user="trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE --doridge=$doridge --skiprows=$skiprows --verbose=True --moreobs=False"
+	echo "python $exeDIR/BisectChunkWithRidge.py --user=\"trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE $doridgeflag --skiprows=$skiprows\""
+	python $exeDIR/BisectChunkWithRidge.py --user="trajChunk$ichunk.gsd --ichunk=$ichunk --tchunk=$tchunk --deltaE=$deltaE $doridgeflag --skiprows=$skiprows"
 
 	#Now that trajChunk$ichunk has been fully analyzed, we can delete it
 	#Uncomment if we want to delete
 	#rm -f trajChunk$ichunk.gsd
 
+	date
+
 	# If we are on talapas, instead of keeping with the cycle,
 	# we end the process and we queue a new one.
 	if [ $SYSTEM == "talapas" ]
 	then
-	    echo "Submitting new process to queue"
-	    date
-	    cd ~/STRUCTURAL-GLASS/THERMALIZE/script
-	    bash ./ChunkSectAll.sh
-	    exit
+		echo "Submitting new process to queue"
+		cd ~/STRUCTURAL-GLASS/THERMALIZE/script
+		bash ./ChunkSectAll.sh
+		exit
 	fi
 done
 #--------------------------------#
