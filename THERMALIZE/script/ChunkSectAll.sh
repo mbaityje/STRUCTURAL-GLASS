@@ -25,9 +25,10 @@ utilDIR=$rootDIR/UTILITIES
 
 #Parameters
 readonly dt=0.0025
-readonly ttot=`echo 10^9|bc` #We will want 10^9 steps
+readonly ttot=`echo 10^6|bc` #We will want 10^9 steps
 TLIST="0.49" #"10.0 2.0 0.6 0.466 0.44 0.43 0.42 0.41"
 readonly deltaE=0.0001
+nqueue=5 #number of processes in queue
 
 cd $workDIR
 for T in $(echo $TLIST)
@@ -53,7 +54,10 @@ do
 				if [ 0 == `squeue -u$(whoami) -n $nombre|grep $(whoami)|wc -l` ]
 				then
 				echo "sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh"
-				sbatch  -p $queue --time=$simTime --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh
+				for iqueue in `seq 0 $nqueue`
+				do
+				    jobid=$(sbatch  -p $queue --dependency=afterany:$jobid --time=$simTime --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh)
+				done
 				fi
 			fi
 			cd ..

@@ -133,7 +133,7 @@ echo "tlast: = $tlast"
 for ichunk in $(seq $firstChunk $nchunksm1)
 do
 	echo "+++ ichunk = $ichunk +++"
-	date
+	STARTTIME=$(date +%s)
 
 	#First generate the thermal trajectory of the cunk
 	python $exeDIR/CreateChunk.py --user="$filename --ichunk=$ichunk --tchunk=$tchunk --dt=$dt --temperature=$T --tauT=$tauT"
@@ -155,18 +155,11 @@ do
 	#Uncomment if we want to delete
 	#rm -f trajChunk$ichunk.gsd
 
-	date
-
-	# If we are on talapas, instead of keeping with the cycle,
-	# we end the process and we queue a new one.
-	if [ $SYSTEM == "talapas" ]
-	then
-		echo "Submitting new process to queue"
-		cd ~/STRUCTURAL-GLASS/THERMALIZE/script
-		bash ./ChunkSectAll.sh
-		exit
-	fi
+	ENDTIME=$(date +%s)
+	ELAPSEDTIME=`echo "($ENDTIME - $STARTTIME)/60"|bc -l`
+	echo "ichunk: $ichunk  time: $ELAPSEDTIME min >> bisect.profile"
 done
+
 #--------------------------------#
 # End of the bisection by chunks #
 #--------------------------------#
