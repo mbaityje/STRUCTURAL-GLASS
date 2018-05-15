@@ -210,7 +210,7 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 		Bisect(t12,snap12,t2,snap2, doRidge=doRidge)
 
 
-def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=True):
+def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=False):
 	"""
 	This function takes two thermal snapshots that end in two separate IS,
 	and makes a linear interpolation between the positions of the two.
@@ -292,7 +292,7 @@ def SetupAnalyzer(logname=None, period=None, quantities=['temperature', 'pressur
 								 phase=0)
 	return analyzer
 
-def CalculateRidge(snapT1, snapT2, Eis1, Eis2, L, verbose=True, dtFIRE=0.0025, time=None):
+def CalculateRidge(snapT1, snapT2, Eis1, Eis2, L, verbose=False, dtFIRE=0.0025, time=None):
 	''' Calculates energy at the ridge between two snapshots '''
 	if verbose: print("--- Calculate Ridge ---\n- Eis1:",Eis1,' Eis2:',Eis2)
 
