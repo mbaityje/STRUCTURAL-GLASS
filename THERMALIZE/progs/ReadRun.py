@@ -147,7 +147,7 @@ class Csim:
 		self.params.iniStep=0 if self.params.startfromzero==True else None
 		self.system = hoomd.init.read_gsd(filename=self.params.initconfname, restart=self.params.backupName, frame=self.params.iframe, time_step=self.params.iniStep)
 		if not self.params.Natoms==len(self.system.particles): raise SystemExit("Read configuration has Natoms="+str(len(self.system.particles))+"!="+str(self.params.Natoms))
-		self.params.iniStep = hoomd.get_step()
+		self.params.iniStep = np.int64(hoomd.get_step())
 		return
 
 	def InitPotential(self):
@@ -210,7 +210,7 @@ class Csim:
 		self.params.runSteps = max(0,self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep)) if self.params.addsteps==False else self.params.nSteps
 
 		#Now enforce the run to have maximum HOOMDMAXSTEPS
-		self.params.runSteps=min(self.params.runSteps, HOOMDMAXSTEPS)
+		self.params.runSteps = min(self.params.runSteps, HOOMDMAXSTEPS)
 
 		print("#-----------------------------------------------------#")
 		print("# initial step      = ",self.params.iniStep)

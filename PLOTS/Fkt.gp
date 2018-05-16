@@ -5,9 +5,10 @@
 #
 set xlabel "t"
 set ylabel "F_k(t)"
+set xtics format "10^{%T}"
 set logs x
 set key bottom left invert
-plot [][0:1] 0 linecolor -1 notitle, exp(-1) lc 0 lt 3 notitle,\
+plot [:1e8][0:1] 0 linecolor -1 notitle, exp(-1) lc 0 lt 3 notitle,\
      "../OUTPUT/T10.0/N65/Fkt_ifr0.txt" u 1:2:3 w errorl t "T = 10.0",\
      "../OUTPUT/T10.0/N65/Fkt_aftergap.txt" u 1:2:3 w errorl t "T = 10.0",\
      "../OUTPUT/T2.0/N65/Fkt_ifr0.txt" u 1:2:3 w errorl t "T = 2.0",\

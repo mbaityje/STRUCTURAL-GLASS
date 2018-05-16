@@ -27,7 +27,7 @@ do
     do
 	for tipo in ifr0 aftergap
 	do
-	    input=$outDIR/T$T/N$N/S*/Fkt_${tipo}.txt
+	    input=$outDIR/T$T/N$N/S[0-9]/Fkt_${tipo}.txt
 	    output=$outDIR/T$T/N$N/Fkt_${tipo}.txt
 	    average $input > $output
 	done
