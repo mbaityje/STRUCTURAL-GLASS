@@ -217,8 +217,8 @@ def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=False):
 	Through bisection, the point that separates the two basins is found.
 	#0.002 is about half the typical distance between confs at subsequent time steps w/ dt=0.0025
 	"""
-	print('···ConfBisect···')
-	print('eis1 = ',eis1,'; eis2 = ',eis2)
+	if verbose: print('···ConfBisect···')
+	if verbose: print('eis1 = ',eis1,'; eis2 = ',eis2)
 
 	if np.abs(eis1-eis2)<args.deltaE: raise ValueError('ConfBisect ERROR: the two starting ISs the same one [abs(eis1-eis2)<args.deltaE]')
 	dstart=0.5*dmax
@@ -236,7 +236,7 @@ def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=False):
 	count=0
 	maxcount=100
 	while dist12>dstart:
-		print('eis1 = ',eis1,'; eis2 = ',eis2,'; eis12 = ',eis12)
+		if verbose: print('eis1 = ',eis1,'; eis2 = ',eis2,'; eis12 = ',eis12)
 		if np.abs(eis1-eis12) <= args.deltaE: #If snap12 belongs to snap1, snap1=snap12
 			snap1.particles.position[:]=snap12.particles.position
 			eis1=eis12
@@ -342,7 +342,7 @@ def CalculateRidge(snapT1, snapT2, Eis1, Eis2, L, verbose=False, dtFIRE=0.0025, 
 
 		dist12=med.PeriodicDistance(snapis1.particles.position, snapis2.particles.position, L).sum()/Natoms
 
-		print("iter: ",iter," dist12=",dist12,"eis1: %.14f"%eis1," eis2: %.14f"%eis2)
+		if verbose: print("iter: ",iter," dist12=",dist12,"eis1: %.14f"%eis1," eis2: %.14f"%eis2)
 
 		if dist12>dmax:
 			'''
