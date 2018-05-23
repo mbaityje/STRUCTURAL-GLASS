@@ -203,10 +203,8 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 	else:
 		t12=int(0.5*(t1+t2))
 		snap12=system.take_snapshot()
-		snap12.particles.position[:]=posizioni[t12]
+		snap12.particles.position[:]=posizioni[t12][:]
 		Bisect(t1,snap1,t12,snap12,e1, doRidge=doRidge)
-		# e12=Minimize(snap12)
-		# Bisect(t12,snap12,t2,snap2,e12, doRidge=doRidge)
 		Bisect(t12,snap12,t2,snap2, doRidge=doRidge)
 
 
@@ -238,14 +236,14 @@ def ConfBisect(snap1, snap2, eis1, eis2, L, dmax=0.002, verbose=False):
 	while dist12>dstart:
 		if verbose: print('eis1 = ',eis1,'; eis2 = ',eis2,'; eis12 = ',eis12)
 		if np.abs(eis1-eis12) <= args.deltaE: #If snap12 belongs to snap1, snap1=snap12
-			snap1.particles.position[:]=snap12.particles.position
+			snap1.particles.position[:]=snap12.particles.position[:]
 			eis1=eis12
 		elif np.abs(eis2-eis12) <= args.deltaE: #If snap12 belongs to snap2, snap2=snap12
-			snap2.particles.position[:]=snap12.particles.position
+			snap2.particles.position[:]=snap12.particles.position[:]
 			eis2=eis12
 		else: #If snap12 does not belong to either, we throw a warning and change snap2
 			print("ConfBisect: found an intermediate IS while searching the TS (Eis12=%.14g)"%eis12)
-			snap2.particles.position[:]=snap12.particles.position
+			snap2.particles.position[:]=snap12.particles.position[:]
 			eis2=eis12
 		dist12=med.PeriodicDistance(snap1.particles.position, snap2.particles.position, L).sum()/Natoms
 		if verbose: print("dist12=",dist12)
