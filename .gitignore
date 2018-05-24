@@ -13,6 +13,7 @@ test-output/
 *.png
 *.eps
 *.gsd
+*.in
 
 #Temporary files
 MinimizeSegment.txt
