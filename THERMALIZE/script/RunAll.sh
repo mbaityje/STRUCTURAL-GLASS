@@ -30,7 +30,7 @@ fi
 
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
 hottestT=10.0
-TLIST="0.6 0.49 0.466 0.44 0.43"
+TLIST="0.466" #"0.6 0.49" #"0.466 0.44 0.43"
 samLIST="0 1 2 3 4 5 6 7 8 9"
 nsamples=`echo $samLIST|wc|awk '{print $2}'`
 
