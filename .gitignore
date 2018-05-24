@@ -5,6 +5,7 @@ LOGS/
 OUTPUT/
 OUTPUT
 benchmarks/
+test-output/
 
 #Unwanted extensions
 *.pyc
