@@ -28,6 +28,11 @@ import gsd.hoomd #
 HOOMDMAXSTEPS=4000000000 #Hoomd does not support more than 2^32-1 steps, which we truncate to 4x10^9 for eye friendliness
 
 from pandas import read_csv
+
+
+
+#------------------------------------------------#
+
 class Cparams:
 	"""
 	Class containing all the parameters of the simulation.
@@ -48,8 +53,12 @@ class Cparams:
 		self.iframe = args.iframe
 
 		#Read the file containing the simulation parameters
-		params=np.array(read_csv(self.paramfilename, sep=' ', comment='#',header=None))
-		paramdict = {rows[0]:rows[1] for rows in params}
+		try:
+			params=np.array(read_csv(self.paramfilename, sep=' ', comment='#',header=None))
+		except (ValueError, AttributeError):
+			print("No parameters filename given. Running with default bullshit parameters")
+		else:
+			paramdict = {rows[0]:rows[1] for rows in params}
 		self.filename = self.paramfilename
 		self.Natoms = 65         if self.paramfilename==None else np.int32(paramdict['Natoms']) #Number of particles
 		self.seed = 12345        if self.paramfilename==None else np.int32(paramdict['seed']) #seed for random numbers. If negative we get it from /dev/urandom
@@ -58,20 +67,23 @@ class Cparams:
 		self.dt=0.0025           if self.paramfilename==None else np.float(paramdict['dt'])
 		self.thermostat='NVT'    if self.paramfilename==None else str(paramdict['thermostat'])
 		self.tauT=0.1            if self.paramfilename==None else np.float(paramdict['tauT']) #Tau of the thermostat
-		self.heavyTrajFreq=0     if self.paramfilename==None else int(np.float64(paramdict['heavyTrajFreq'])) #interval between heavy trajectory backups (default:0, means no backups)
 		self.backupFreq=0        if self.paramfilename==None else int(np.float64(paramdict['backupFreq'])) #interval between backups (default:0, means no backups)
 		self.trajFreq=0          if self.paramfilename==None else int(np.float64(paramdict['trajFreq'])) #save trajectory every trajFreq steps (default:0, means no trajectory). If negative, use a logarithmic succession of times, where -trajFreq is the number of configurations in the trajectory (or slightly less, since some times two logarithmic times correspond to the same integer time step)
 		self.addsteps=False      if self.paramfilename==None else (False if paramdict['addsteps']     =='False' else True) #If True, nNVTsteps are done from the input configuration. If False, we substract ini_step. [Default: False]
 		self.startfromzero=False if self.paramfilename==None else (False if paramdict['startfromzero']=='False' else True) #If False, initial step is read from the gsd configuration. If True, it is set to zero. [Default: False]
 		self.endatzero=False     if self.paramfilename==None else (False if paramdict['endatzero']    =='False' else True) #If True, the time_step of the final configuration is set to zero. [Default: False]
 		self.potential='KAshort' if self.paramfilename==None else str(paramdict['potential']) #If True, the time_step of the final configuration is set to zero. [Default: False]
+		heavyTrajFreq=0          if self.paramfilename==None else np.int64(np.float64(paramdict['heavyTrajFreq'])) #interval between heavy trajectory backups (default:0, means no backups)
+		dumpAcc=True             if self.paramfilename==None else (False if paramdict['dumpAcc']    =='False' else True) #If True, heavy trajectory dumps accelerations. [Default: True]
+		maxtimesHT=40            if self.paramfilename==None else np.int32(paramdict['maxtimesHT']) #Number of dumps in the heavy trajectory
+		self.heavyTraj=HeavyTraj(freq=heavyTrajFreq, dumpAcc=dumpAcc,maxtimes=maxtimesHT)
 
 		#Derived or hardcoded parameters
 		self.logname=self.label+".txt"
 		self.analyzer_quantities = ['temperature', 'pressure', 'potential_energy', 'kinetic_energy', 'momentum'] #, 'volume', 'num_particles']
-		self.analyzer_period = int(5./self.dt) #Take measurements once every 5 Lennard Jones times
+		self.analyzer_period = int(10./self.dt) #Take measurements once every 5 Lennard Jones times
 		self.backupName=self.label+"_backup.gsd"
-		self.heavyTrajName=self.label+'_heavyTraj.gsd'
+		self.heavyTrajDir='./heavyTraj/'
 		self.trajName=self.label+'_trajectory.gsd'
 		self.timestepName=self.label+'_timestep.in'
 		self.finalstatename=self.label+".gsd"
@@ -82,13 +94,13 @@ class Cparams:
 		self.CheckConsistency()
 
 	def CheckConsistency(self):
-		if self.Natoms<=0: raise SystemExit("Natoms="+str(self.Natoms)+" cannot be negative")
-		if not self.nSteps > 0: raise SystemExit("nSteps="+str(self.nSteps)+" cannot be negative")
-		if not self.temperature > 0: raise SystemExit("temperature="+str(self.temperature)+" cannot be negative")
-		if not self.dt > 0: raise SystemExit("dt="+str(self.dt)+" cannot be negative")
-		if not self.dt < 0.01: raise SystemExit("dt="+str(self.dt)+" is too big")
-		if self.thermostat not in ['NVT','NVE','MB']: raise SystemExit("thermostat="+str(self.thermostat)+" should be NVT, NVE or MB")
-		if not self.tauT > 0: raise SystemExit("tauT="+str(self.tauT)+" cannot be negative")
+		if self.Natoms<=0: raise ValueError("Natoms="+str(self.Natoms)+" cannot be negative")
+		if not self.nSteps > 0: raise ValueError("nSteps="+str(self.nSteps)+" cannot be negative")
+		if not self.temperature > 0: raise ValueError("temperature="+str(self.temperature)+" cannot be negative")
+		if not self.dt > 0: raise ValueError("dt="+str(self.dt)+" cannot be negative")
+		if not self.dt < 0.01: raise ValueError("dt="+str(self.dt)+" is too big")
+		if self.thermostat not in ['NVT','NVE','MB']: raise ValueError("thermostat="+str(self.thermostat)+" should be NVT, NVE or MB")
+		if not self.tauT > 0: raise ValueError("tauT="+str(self.tauT)+" cannot be negative")
 		return
 
 	def InitSeed(self):
@@ -103,7 +115,6 @@ class Cparams:
 		print("# Parameter File Name  : ",self.paramfilename)
 		print("# Timestep File Name   : ",self.timestepName)
 		print("# Backup File Name     : ",self.backupName)
-		print("# HeavyTraj File Name  : ",self.heavyTrajName)
 		print("# Trajectory File Name : ",self.trajName)
 		print("# Input configuration  : ",self.initconfname)
 		print("# iframe               : ",self.iframe)
@@ -116,14 +127,69 @@ class Cparams:
 		print("# dt                   = ",self.dt)
 		print("# thermostat           = ",self.thermostat)
 		print("# label                = ",self.label)
-		print("# heavyTrajFreq        = ",self.heavyTrajFreq)
 		print("# backupFreq           = ",self.backupFreq)
 		print("# trajFreq             = ",self.trajFreq)
 		print("# addsteps             = ",self.addsteps)
 		print("# startfromzero        = ",self.startfromzero)
+		self.heavyTraj.Show()
+		return
+
+
+#------------------------------------------------#
+
+class HeavyTraj:
+	def __init__(self, directory='./heavyTraj/', freq=0, dumpAcc=True, maxtimes=40):
+		if freq>HOOMDMAXSTEPS:
+			raise OverflowError('Maximum admitted freq for Heavy Trajectory is %d. Change the settings in the parameters file (usually params.in)'%HOOMDMAXSTEPS)
+		if freq<0: raise ValueError('Found a negative heavyTrajFreq:'+str(freq))
+		self.freq=np.int64(freq)        # How often I record a heavy trajectory
+		if freq>0:
+			self.dir=directory    # Output directory for the heavy trajectories
+			try: os.mkdir(self.dir)
+			except FileExistsError: pass
+			self.len=self.freq-1                    # Length of each heavy trajectory
+			self.t0=None                            # Starting time of the ongoing Heavy Trajectory
+			self.nextt0=None                        # Starting time of the next Heavy Trajectory
+			self.nextt=None                         # Next time at which dump is needed
+			self.nextit=None                        # Index of next time at which dump is needed
+			self.nameTimes=self.dir+'/times.txt'    # Name of the times
+			self.namePos=self.dir+'/pos.npy'        # Name of the positions
+			self.nameVel=self.dir+'/vel.npy'        # Name of the velocites
+			self.nameAcc=self.dir+'/acc.npy'        # Name of the accelerations
+			self.maxtimes=maxtimes                  # How many configurations in a heavy trajectory
+			self.ntimes=None                        # How many configurations in a heavy trajectory
+			self.outTimes=open(self.nameTimes,'at') # Stream for writing the time list
+			self.dumpAcc=dumpAcc                    # Whether to dump accelerations besides the positions
+			self.outPos=open(self.namePos,'ab')     # Stream for writing the time list
+			if dumpAcc:
+				self.outVel=open(self.nameVel,'ab') # Stream for writing the time list
+				self.outAcc=open(self.nameAcc,'ab') # Stream for writing accelerations
+
+	def Initt0(self, current_step):
+		if self.freq > 0:
+			i0    = current_step//self.freq
+			self.t0        = np.int64(i0*self.freq)
+			inext = i0+1
+			self.nextt0    = np.int64(inext*self.freq)
+			self.timelist=np.int64(self.t0)+tl.ListaLogaritmica(1, self.len, self.maxtimes, ints=True, addzero=True) if self.freq>0 else None
+			self.ntimes=len(self.timelist)
+			#Now find at which element of timelist we are currently
+			for i in range(self.ntimes):
+				if self.timelist[i] >= current_step: break
+			self.nextit=i
+			self.nextt=self.timelist[self.nextit]
+		return
+
+	def Show(self):
+		'''Print all the variables of the class'''
+		print("#-----------------------------------------------------#")
+		print("# - Heavy Trajectory -")
+		for attr in vars(self):
+			print("# ",attr,": ",getattr(self,attr))
 		print("#-----------------------------------------------------#")
 		return
 
+#------------------------------------------------#
 
 class Csim:
 	def __init__(self):
@@ -135,7 +201,6 @@ class Csim:
 		self.InitAnalyzer()
 		self.InitIntegrator()
 		self.InitDumps()
-		return
 
 	def InitContext(self):
 		self.context=hoomd.context.initialize()
@@ -199,15 +264,15 @@ class Csim:
 			self.RemoveBackup()
 			raise SystemExit
 		else: 
-			self.numFullCycles=len(timedata)
+			self.numFullCycles=np.int64(len(timedata))
 			if self.numFullCycles==0: raise SystemExit(self.params.timestepName+" looks empty (at most it has the header). Please delete it and then rerun.")
-			self.params.iCycle=timedata['iCycle'][self.numFullCycles-1] #take the last line of the file
-			self.params.stepsPerCycle=timedata['stepsPerCycle'][self.numFullCycles-1]
+			self.params.iCycle=np.int64(timedata['iCycle'][self.numFullCycles-1]) #take the last line of the file
+			self.params.stepsPerCycle=np.int64(timedata['stepsPerCycle'][self.numFullCycles-1])
 			self.params.totOldCycleStep=np.int64(timedata['totSteps'][self.numFullCycles-1]) #steps done in previous cycles
 
 
 		#How many steps need to be done, considering the ones already done, and the addsteps option (which tells you to forget about the past steps)
-		self.params.runSteps = max(0,self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep)) if self.params.addsteps==False else self.params.nSteps
+		self.params.runSteps = np.int64(max(0,self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep))) if self.params.addsteps==False else self.params.nSteps
 
 		#Now enforce the run to have maximum HOOMDMAXSTEPS
 		self.params.runSteps = min(self.params.runSteps, HOOMDMAXSTEPS)
@@ -223,10 +288,9 @@ class Csim:
 		return
 
 	def CreateTimeDataFile(self):
-		outf=open(self.params.timestepName,"wt")
-		print("iCycle stepsPerCycle totSteps",file=outf)
-		print("%g %g %g"%(self.params.iCycle,self.params.stepsPerCycle,self.params.totOldCycleStep),file=outf)
-		outf.close()
+		with open(self.params.timestepName,"wt") as outf:
+			print("iCycle stepsPerCycle totSteps",file=outf)
+			print("%g %g %g"%(self.params.iCycle,self.params.stepsPerCycle,self.params.totOldCycleStep),file=outf)
 		return
 
 	def AppendTimeDataFile(self):
@@ -237,33 +301,77 @@ class Csim:
 		'''
 		newiCycle        = self.params.iCycle + 1
 		newStepsPerCycle = hoomd.get_step()
-		totCycleStep     = newStepsPerCycle + self.params.totOldCycleStep
-		outf=open(self.params.timestepName,"at")
-		print("%g %g %g"%(newiCycle,newStepsPerCycle,totCycleStep),file=outf)
-		outf.close()
+		totCycleStep     = np.int64(newStepsPerCycle) + self.params.totOldCycleStep
+		with open(self.params.timestepName,"at") as outf:
+			print("%g %g %g"%(newiCycle,newStepsPerCycle,totCycleStep),file=outf)
 		return
 
 	def InitDumps(self):
 		'''
 		Initialize settings for writing configurations to disk.
 		- backup: in case the run is interrupted
-		- heavy trajectory: checkpoints that can be reused
 		- trajectory: save evolution of a trajectory (can be logarithmically spaced)
+		- heavy trajectory:
+			-at each time t0 create a new trajectory of length heavyTrajFreq and save it
 		'''
+
+		# BACKUPS
 		if self.params.backupFreq>0:
-			hoomd.dump.gsd(filename=self.params.backupName, overwrite=True, truncate=True, period=self.params.backupFreq, group=hoomd.group.all(), phase=0)
-		if self.params.heavyTrajFreq>0:
-			hoomd.dump.gsd(filename=self.params.heavyTrajName, overwrite=False, period=self.params.heavyTrajFreq, group=hoomd.group.all())
+			self.backupDump=hoomd.dump.gsd(filename=self.params.backupName, overwrite=True, truncate=True, period=self.params.backupFreq, group=hoomd.group.all(), phase=0)
+
+		# TRAJECTORY
 		if self.params.trajFreq>0:
-			hoomd.dump.gsd(filename=self.params.trajName, overwrite=False, period=self.params.trajFreq, group=hoomd.group.all(),phase=0)
+			self.trajDump=hoomd.dump.gsd(filename=self.params.trajName, overwrite=False, period=self.params.trajFreq, group=hoomd.group.all(),phase=0)
 		elif self.params.trajFreq<0:
 			self.params.listat=tl.ListaLogaritmica(1, self.params.runSteps, self.params.nt, ints=True, addzero=True)
-			hoomd.dump.gsd(filename=self.params.trajName, overwrite=False, period=None, group=hoomd.group.all(),phase=-1)
-			self.params.nt=len(self.params.listat) #Since it's a logarithmic list of integers, it might end up having less elements than declare
+			self.trajDump=hoomd.dump.gsd(filename=self.params.trajName, overwrite=False, period=None, group=hoomd.group.all(),phase=-1)
+			self.params.nt=len(self.params.listat) #Since listat is a logarithmic list of integers, it might end up having less elements than declared
 
+		#HEAVY TRAJECTORY
+		self.runCallback=None
+		self.runCallbackFreq=0
+		if self.params.heavyTraj.freq>0:
+			if self.params.trajFreq<0: print('WARNING - HEAVY TRAJECTORY IS NOT IMPLEMENTED FOR trajFreq<0')
+			if self.params.thermostat == 'MB' : print('WARNING - HEAVY TRAJECTORY IS NOT IMPLEMENTED FOR MB thermostat')
+			totaltime = self.params.totOldCycleStep+self.params.iniStep
+			self.params.heavyTraj.Initt0(totaltime) #This is needed in case the previous run didn't complete the heavy trajectory
+			# self.heavyTrajPhase = (self.params.heavyTraj.nextt0 - totaltime)%self.params.heavyTraj.freq
+			self.runCallback=self.MakeHeavyTrajectory
+			self.runCallbackFreq=1
+			with open(self.params.heavyTraj.dir+'L.txt','w') as outL:
+				outL.write("%.16g\n"%self.system.box.Lx)
+				outL.write("%.16g\n"%self.params.dt)			
+		return
 
-		# self.params.listat=tl.ListaLogaritmica(1, self.params.runSteps, 10, ints=True, addzero=True)
-		# print(self.params.listat)
+	def MakeHeavyTrajectory(self,timestep):
+		totaltime = self.params.totOldCycleStep+np.int64(timestep)
+
+		if totaltime%self.params.heavyTraj.freq == 0:
+			self.params.heavyTraj.Initt0(totaltime)
+			# np.savetxt(self.params.heavyTraj.outTimes, np.column_stack(( self.params.heavyTraj.t0*np.ones( self.params.heavyTraj.ntimes), self.params.heavyTraj.timelist)),fmt='%lu')
+
+		if totaltime==self.params.heavyTraj.nextt:
+			killer = sig.GracefulKiller()
+
+			#save time
+			self.params.heavyTraj.outTimes.write("%d %d\n"%(self.params.heavyTraj.t0,totaltime))
+
+			#save positions, velocities and accelerations
+			snap=self.system.take_snapshot()
+			np.save(self.params.heavyTraj.outPos, np.array(snap.particles.position))
+			if self.params.heavyTraj.dumpAcc==True:
+				np.save(self.params.heavyTraj.outVel, np.array(snap.particles.velocity))
+				np.save(self.params.heavyTraj.outAcc, np.array(snap.particles.acceleration))
+
+			#Update iterators
+			self.params.heavyTraj.nextit=self.params.heavyTraj.nextit+1
+			if self.params.heavyTraj.nextit < self.params.heavyTraj.ntimes:
+				self.params.heavyTraj.nextt = self.params.heavyTraj.timelist[self.params.heavyTraj.nextit]
+
+			if killer.kill_now: raise SystemExit("Termination signal was caught. Exiting Gracefully...")
+			killer.resetSignals() #Now that we are past the dangerous zone, we go back to normal signal handling
+			del killer
+		return
 
 	def Run(self):
 		'''
@@ -286,7 +394,7 @@ class Csim:
 		print("# ",self.params.runSteps," steps with the ",self.params.thermostat," thermostat at T=",self.params.temperature)
 		sys.stdout.flush()
 		if self.params.trajFreq>=0:
-			hoomd.run(self.params.runSteps, quiet=False)
+			hoomd.run(self.params.runSteps, quiet=False, callback=self.runCallback, callback_period=self.runCallbackFreq)
 		else:
 			for it in range(self.params.nt-1):
 				curstep = hoomd.get_step()-self.params.iniStep
@@ -306,16 +414,12 @@ class Csim:
 		sys.stdout.flush()
 		if self.params.trajFreq>=0:
 			stepsTauT = min(int(self.params.tauT/self.params.dt),self.params.runSteps)
-			while( hoomd.get_step()-self.params.iniStep <self.params.runSteps):
-				for iterations in range(0,int(self.params.runSteps/stepsTauT)):
-					snap = self.system.take_snapshot()
-					vel = np.random.normal(0,np.sqrt(self.params.temperature), (self.params.Natoms,3)) #each component is a gaussian of variance sigma
-					vel *= np.sqrt(self.params.temperature)/np.std(vel,axis=0)
-					vel-=vel.mean(axis=0)
-					snap.particles.velocity[:] = vel
-					self.system.restore_snapshot(snap)
-					md.update.zero_momentum(phase=-1)
-					hoomd.run(stepsTauT, quiet=False)
+			for it in range(0,int(self.params.runSteps/stepsTauT)):
+				print('it: ',it,'stepsTauT=',stepsTauT)
+				self.integrator.randomize_velocities(kT=self.params.temperature, seed=np.random.randint(2**32))
+				print('randomize_velocities finished')
+				hoomd.run(stepsTauT, quiet=False)
+				print('run finished')
 		else: 
 			raise SystemExit("Logarithmic times (trajFreq<0) is not implemented for the MB (Andersen) thermostat")
 
@@ -356,6 +460,14 @@ class Csim:
 		if os.path.isfile(self.params.finalstatename): self.RemoveBackup()
 		else: raise SystemExit('Error writing '+self.params.finalstatename)
 
+		#Close open streams
+		if self.params.heavyTraj.freq>0:
+			self.params.heavyTraj.outTimes.close()
+			self.params.heavyTraj.outPos.close()
+			if self.params.heavyTraj.dumpAcc: 
+				self.params.heavyTraj.outVel.close()
+				self.params.heavyTraj.outAcc.close()
+
 		#If a sigterm was sent, now we can terminate the process
 		if killer.kill_now: raise SystemExit("Termination signal was caught. Exiting Gracefully...")
 		killer.resetSignals() #Now that we are past the dangerous zone, we go back to normal signal handling
@@ -364,15 +476,19 @@ class Csim:
 		return
 
 
+
+
+
 ################################################################
 #
 # HERE STARTS THE PROGRAM
 # 
 ################################################################
+from lib import module_debug as dbg
+# sys.settrace(dbg.trace)
 
-sim=Csim()
-sim.Run()
-sim.Finalize()
-
-
-print("# Finished!")
+if __name__ == "__main__":
+	sim=Csim()
+	sim.Run()
+	sim.Finalize()
+	print("# Finished!")
