@@ -42,15 +42,16 @@ do
 	echo "SYSTEM: $SYSTEM"
 	echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\"" >> $samOUT
 	if [ $SYSTEM == 'PennPuter' ]; then
-	    echo "SYSTEM=PennPuter. Launching minibatch serially."
-	    python $exeDIR/ReadRun.py --user="$initConf -p$paramsFILE" >> $samOUT
+		echo "SYSTEM=PennPuter. Launching minibatch serially."
+		echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\" >> $samOUT"
+		python $exeDIR/ReadRun.py --user="$initConf -p$paramsFILE" >> $samOUT
 	elif [ $SYSTEM == 'talapas' ];  then
-	    echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\"" >> $samOUT
-	    python $exeDIR/ReadRun.py --user="$initConf -p$paramsFILE" >> $samOUT &
-	    echo "python script finished" >> $samOUT
+		echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\"" >> $samOUT
+		python $exeDIR/ReadRun.py --user="$initConf -p$paramsFILE" >> $samOUT &
+		echo "python script finished" >> $samOUT
 	else 
-	    echo "SYSTEM=$SYSTEM is not a recognised option. Choose between PennPuter and talapas"
-	    exit
+		echo "SYSTEM=$SYSTEM is not a recognised option. Choose between PennPuter and talapas"
+		exit
 	fi
 	cd $workDIR
 done

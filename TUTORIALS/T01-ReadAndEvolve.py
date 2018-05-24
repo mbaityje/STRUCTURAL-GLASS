@@ -31,21 +31,38 @@ import gsd.hoomd #
 # 
 ################################################################
 
+def KApotentialShort(NeighborsList):
+	eps_AA=1
+	eps_AB=1.5
+	eps_BB=0.5
+	sig_AA=1
+	sig_AB=0.8
+	sig_BB=0.88
+	r_on_cutoff=1.2
+	r_cutoff=1.4
+	NeighborsList.set_params(r_buff=0.0)
+	myLjPair = md.pair.lj(r_cut=r_cutoff, nlist=NeighborsList)
+	myLjPair.pair_coeff.set('A', 'A', epsilon=eps_AA, sigma=sig_AA, r_cut=r_cutoff*sig_AA, r_on=r_on_cutoff*sig_AA)
+	myLjPair.pair_coeff.set('A', 'B', epsilon=eps_AB, sigma=sig_AB, r_cut=r_cutoff*sig_AB, r_on=r_on_cutoff*sig_AB)
+	myLjPair.pair_coeff.set('B', 'B', epsilon=eps_BB, sigma=sig_BB, r_cut=r_cutoff*sig_BB, r_on=r_on_cutoff*sig_BB)
+	myLjPair.set_params(mode="xplor")
+	return myLjPair
+
 def KApotential(NeighborsListLJ): #Defines a Kob-Anderson potential
-    r_cutoff=2.5
-    eps_AA=1 
-    eps_AB=1.5
-    eps_BB=0.5
-    sig_AA=1
-    sig_AB=0.8
-    sig_BB=0.88
-    r_on_cutoff=1.2
-    myLjPair = md.pair.lj(r_cut=r_cutoff, nlist=NeighborsListLJ)
-    myLjPair.pair_coeff.set('A', 'A', epsilon=eps_AA, sigma=sig_AA, r_cut=r_cutoff*sig_AA, r_on=r_on_cutoff*sig_AA)
-    myLjPair.pair_coeff.set('A', 'B', epsilon=eps_AB, sigma=sig_AB, r_cut=r_cutoff*sig_AB, r_on=r_on_cutoff*sig_AB)
-    myLjPair.pair_coeff.set('B', 'B', epsilon=eps_BB, sigma=sig_BB, r_cut=r_cutoff*sig_BB, r_on=r_on_cutoff*sig_BB)
-    myLjPair.set_params(mode="xplor")
-    return myLjPair
+	r_cutoff=2.5
+	eps_AA=1 
+	eps_AB=1.5
+	eps_BB=0.5
+	sig_AA=1
+	sig_AB=0.8
+	sig_BB=0.88
+	r_on_cutoff=1.2
+	myLjPair = md.pair.lj(r_cut=r_cutoff, nlist=NeighborsListLJ)
+	myLjPair.pair_coeff.set('A', 'A', epsilon=eps_AA, sigma=sig_AA, r_cut=r_cutoff*sig_AA, r_on=r_on_cutoff*sig_AA)
+	myLjPair.pair_coeff.set('A', 'B', epsilon=eps_AB, sigma=sig_AB, r_cut=r_cutoff*sig_AB, r_on=r_on_cutoff*sig_AB)
+	myLjPair.pair_coeff.set('B', 'B', epsilon=eps_BB, sigma=sig_BB, r_cut=r_cutoff*sig_BB, r_on=r_on_cutoff*sig_BB)
+	myLjPair.set_params(mode="xplor")
+	return myLjPair
 
 
 
@@ -88,32 +105,32 @@ print("\n\n\nREAD ARGUMENTS\n")
 
 #The we create a parser for the User files 
 parser = argparse.ArgumentParser(prog='python ReadAndEvolve.py [--hoomdi-flags] --user=" HERE YOU PUT THE FOLLOWING ARGUMENTS"',
-                                 description='The program reads a .gsd configuration and runs it in NVE and NVT',
-                                 add_help=True)
+								 description='The program reads a .gsd configuration and runs it in NVE and NVT',
+								 add_help=True)
 parser.add_argument('filename', #positional argument
-                    nargs=1,
-                    help='name of the .gsd configuration we want to read'
+					nargs=1,
+					help='name of the .gsd configuration we want to read'
 )
 parser.add_argument('-e','--nNVEsteps', #optional argument
-                    nargs=1,
-                    type=int,
-                    required=False,
-                    default=[0],
-                    help='number of NVE steps (default 0)'
+					nargs=1,
+					type=int,
+					required=False,
+					default=[0],
+					help='number of NVE steps (default 0)'
 )
 parser.add_argument('-t','--nNVTsteps', #optional argument
-                    nargs=1,
-                    type=int,
-                    required=False,
-                    default=[0],
-                    help='number of NVT steps (default 0)'
+					nargs=1,
+					type=int,
+					required=False,
+					default=[0],
+					help='number of NVT steps (default 0)'
 )
 parser.add_argument('--thermostat', #optional argument
-                    nargs=1,
-                    required=False,
-                    default=['NVT'],
-                    choices=['NVT', 'MB'],
-                    help='can be NVT (Nose-Hoover thermostat, default) or MB (Anderson thermostat)'
+					nargs=1,
+					required=False,
+					default=['NVT'],
+					choices=['NVT', 'MB'],
+					help='can be NVT (Nose-Hoover thermostat, default) or MB (Anderson thermostat)'
 )
 args = parser.parse_args(more_arguments)
 filename=args.filename[0]
@@ -176,7 +193,7 @@ print("\n\n\nSET UP POTENTIAL\n")
 NeighborsListLJ = md.nlist.cell()
 
 #Set Kob-Andersen potential
-myLjPair=KApotential(NeighborsListLJ)
+myLjPair=KApotential(NeighborsListLJ) if Natoms >500 else KApotentialShort(NeighborsListLJ)
 #These are two alternative ways of seeing the values we inserted
 #print(myLjPair.pair_coeff.get_metadata())
 print(myLjPair.pair_coeff.values)
@@ -199,10 +216,10 @@ print("In ",logname," we write ",analyzerManyVariables_quantities)
 #Every how many integrations we want to log the observables
 analyzer_period=100
 analyzerManyVariables = hoomd.analyze.log(filename=logname, \
-                                          quantities=analyzerManyVariables_quantities, period=analyzer_period, \
-                                          header_prefix = 'This is a test output of the toy program'+sys.argv[0]+'\n', \
-                                          overwrite=True,
-                                          phase=0)
+										  quantities=analyzerManyVariables_quantities, period=analyzer_period, \
+										  header_prefix = 'This is a test output of the toy program'+sys.argv[0]+'\n', \
+										  overwrite=True,
+										  phase=0)
 
  
 ################################################################
@@ -231,35 +248,35 @@ md.integrate.mode_standard(dt=dt) ##allows Nose-Hoover in NVT, for instance
 print(nNVTsteps," NVT steps with the ",thermostat," thermostat")
 if nNVTsteps > 0 :
 
-    if thermostat == 'NVT' :
-        integrator_nvt = md.integrate.nvt(group=hoomd.group.all(), kT=TemperatureGoal, tau=tauT)
-        hoomd.run(nNVTsteps, quiet=False) 
+	if thermostat == 'NVT' :
+		integrator_nvt = md.integrate.nvt(group=hoomd.group.all(), kT=TemperatureGoal, tau=tauT)
+		hoomd.run(nNVTsteps, quiet=False) 
 
-    elif thermostat == 'MB' :
-        stepsTauT = int(tauT/dt)
-        integrator_nvt = md.integrate.nve(group=hoomd.group.all())
-        for iterations in range(0,int(nNVTsteps/stepsTauT)):
-            snap = system.take_snapshot()
-            # each component is a gaussian of variance sigma, that's it.
-            vel = np.random.normal(0,sqrt(TemperatureGoal), (Natoms,3))
-            print('\nVelocities were rescaled by ',TemperatureGoal**0.5/np.std(vel),'\n')
-            vel *= sqrt(TemperatureGoal)/np.std(vel) #Riscalo le velocita` per essere sicuro che non ci sono effetti di taglia finita sulla varianza della distribuzione
-            snap.particles.velocity[:] = vel
-            system.restore_snapshot(snap)
-            hoomd.run(stepsTauT, quiet=False)
-    else:
-        print("In this tutorial the only implemented thermostats are NVT (Nose-Hoover) and MB (Anderson)\n")
-        sys.exit()
+	elif thermostat == 'MB' :
+		stepsTauT = int(tauT/dt)
+		integrator_nvt = md.integrate.nve(group=hoomd.group.all())
+		for iterations in range(0,int(nNVTsteps/stepsTauT)):
+			snap = system.take_snapshot()
+			# each component is a gaussian of variance sigma, that's it.
+			vel = np.random.normal(0,sqrt(TemperatureGoal), (Natoms,3))
+			print('\nVelocities were rescaled by ',TemperatureGoal**0.5/np.std(vel),'\n')
+			vel *= sqrt(TemperatureGoal)/np.std(vel) #Riscalo le velocita` per essere sicuro che non ci sono effetti di taglia finita sulla varianza della distribuzione
+			snap.particles.velocity[:] = vel
+			system.restore_snapshot(snap)
+			hoomd.run(stepsTauT, quiet=False)
+	else:
+		print("In this tutorial the only implemented thermostats are NVT (Nose-Hoover) and MB (Anderson)\n")
+		sys.exit()
 
-    integrator_nvt.disable()
-        
+	integrator_nvt.disable()
+		
 ######## NVE ########
 print(nNVEsteps," NVE steps via Velocity-Verlet")
 if nNVEsteps > 0 :
-    curStep = hoomd.get_step()
-    integrator_nve = md.integrate.nve(group=hoomd.group.all())
-    hoomd.run(nNVEsteps, profile=False, quiet=False)
-    integrator_nve.disable()
+	curStep = hoomd.get_step()
+	integrator_nve = md.integrate.nve(group=hoomd.group.all())
+	hoomd.run(nNVEsteps, profile=False, quiet=False)
+	integrator_nve.disable()
 
 analyzerManyVariables.disable()
 

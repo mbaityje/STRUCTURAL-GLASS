@@ -172,7 +172,7 @@ def PeriodicDisplacement(vec_a, vec_b, box_size):
 def PeriodicIntermPoints(vec_a, vec_b, L):
 	Lm=0.5*L
 	delta = np.abs(vec_a - vec_b)
-	out = np.where(delta < Lm, 0.5*(vec_a+vec_b), np.where( vec_a+vec_b<0, 0.5*(vec_a+vec_b+L),0.5*(vec_a+vec_b-L)) )
+	out = np.where(delta < Lm, 0.5*(vec_a+vec_b), np.where( vec_a+vec_b<0, 0.5*(vec_a+vec_b+L),0.5*(vec_a+vec_b-L)) )[:]
 	return out
 
 

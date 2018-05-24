@@ -15,8 +15,8 @@ set -a #This must stay. It exports all the variables to ReadRun.sh (and other sc
 readonly PROC_TAG="ra"
 readonly USERNAME=`whoami`
 
-#readonly SYSTEM='PennPuter'
-readonly SYSTEM='talapas'
+readonly SYSTEM='PennPuter'
+#readonly SYSTEM='talapas'
 
 if [ $SYSTEM == 'talapas' ]; then
     # enforce python 3
@@ -30,8 +30,13 @@ fi
 
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
 hottestT=10.0
+<<<<<<< HEAD
 TLIST="0.466" #"0.6 0.49" #"0.466 0.44 0.43"
 samLIST="0 1 2 3 4 5 6 7 8 9"
+=======
+TLIST="10.0" #"0.6 0.49 0.466 0.44 0.43"
+samLIST="0" # 1 2 3 4 5 6 7 8 9"
+>>>>>>> 63b86f82db9f514eadfa25c60984553cc0278a40
 nsamples=`echo $samLIST|wc|awk '{print $2}'`
 
 

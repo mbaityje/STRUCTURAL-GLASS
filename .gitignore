@@ -5,6 +5,7 @@ LOGS/
 OUTPUT/
 OUTPUT
 benchmarks/
+test-output/
 
 #Unwanted extensions
 *.pyc
@@ -12,6 +13,7 @@ benchmarks/
 *.png
 *.eps
 *.gsd
+*.in
 
 #Temporary files
 MinimizeSegment.txt

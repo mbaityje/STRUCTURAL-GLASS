@@ -30,28 +30,28 @@ from numba import jit
 ################################################################
 parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('filename', #positional argument
-                    nargs=1,
-                    help='name of the .gsd trajectory we want to read'
+					nargs=1,
+					help='name of the .gsd trajectory we want to read'
 )
 parser.add_argument('--every_forMemory', #optional argument
-                    nargs=1,
-                    type=int,
-                    required=False,
-                    default=[1],
-                    help='We only take one frame every every_forMemory frames'
+					nargs=1,
+					type=int,
+					required=False,
+					default=[1],
+					help='We only take one frame every every_forMemory frames'
 )
 parser.add_argument('--dt', #optional argument
-                    nargs=1,
-                    type=float,
-                    required=False,
-                    default=[0.0025],
-                    help='dt of the MD dynamics (it is only used for the x axis in the figures and txt)'
+					nargs=1,
+					type=float,
+					required=False,
+					default=[0.0025],
+					help='dt of the MD dynamics (it is only used for the x axis in the figures and txt)'
 )
 parser.add_argument('-l','--label', #optional argument
-                    nargs=1,
-                    required=False,
-                    default=[''],
-                    help='label for distinguishing runs and continuations'
+					nargs=1,
+					required=False,
+					default=[''],
+					help='label for distinguishing runs and continuations'
 )
 args = parser.parse_args()
 filename=args.filename[0]
@@ -80,48 +80,44 @@ del parser
 # 
 ################################################################
 with open(filename, 'rb') as flow:
-    HoomdFlow = gsd.pygsd.GSDFile(flow)
-    hoomdTraj = gsd.hoomd.HOOMDTrajectory(HoomdFlow);
-    s0=hoomdTraj.read_frame(0) #This is a snapshot of the initial configuration (frame zero)
-    Natoms=s0.particles.N
-    boxParams=s0.configuration.box
-    L=np.float64(boxParams[0])
-    time0=np.int64(s0.configuration.step)
-    print("TIME_0:",time0)
-    if boxParams[0] != boxParams[1] or  boxParams[1]!= boxParams[2] or  boxParams[0]!= boxParams[2]:
-        print('box dimensions are : ', boxParams[0])
-        print('and are not supported (only isotropic systems supported)')
-        raise SystemExit
+	HoomdFlow = gsd.pygsd.GSDFile(flow)
+	hoomdTraj = gsd.hoomd.HOOMDTrajectory(HoomdFlow);
+	s0=hoomdTraj.read_frame(0) #This is a snapshot of the initial configuration (frame zero)
+	Natoms=s0.particles.N
+	boxParams=s0.configuration.box
+	L=np.float64(boxParams[0])
+	time0=np.int64(s0.configuration.step)
+	print("TIME_0:",time0)
+	if boxParams[0] != boxParams[1] or  boxParams[1]!= boxParams[2] or  boxParams[0]!= boxParams[2]:
+		raise NotImplementedError('box dimensions are : '+str(boxParams[0])+'and are not supported (only isotropic systems supported)')
 
-    Nframes = len(hoomdTraj)
-    trajDuration = np.int64(Nframes/every_forMemory)
-    print('there are Nframes=', Nframes, 'in the file, but we only use trajDuration=',trajDuration, ' of them.')
+	Nframes = len(hoomdTraj)
+	trajDuration = np.int64(Nframes/every_forMemory)
+	print('there are Nframes=', Nframes, 'in the file, but we only use trajDuration=',trajDuration, ' of them.')
 
-    #Allocate memory
-    trajectory = np.zeros((trajDuration,Natoms,3))
-    initialPositions=np.array(hoomdTraj[0].particles.position, dtype=np.float64)
-    times=np.zeros(trajDuration, dtype=np.float64)
-    msd=np.zeros(trajDuration, dtype=np.float64)
-    Fk=np.zeros(trajDuration,dtype=np.float64)
+	#Allocate memory
+	trajectory = np.zeros((trajDuration,Natoms,3))
+	initialPositions=np.array(hoomdTraj[0].particles.position, dtype=np.float64)
+	times=np.zeros(trajDuration, dtype=np.float64)
+	msd=np.zeros(trajDuration, dtype=np.float64)
+	Fk=np.zeros(trajDuration,dtype=np.float64)
 
-    ################################################################
-    #
-    # SAVE TRAJECTORY AND CALCULATE MEAN SQUARE DISPLACEMENT
-    #
-    ################################################################
-    for iframe in range(0, trajDuration, 1):
-        ## we only look 1 frame every "every_forMemory" frame, to save memory: 
-        trajectory[iframe] = np.array(hoomdTraj[iframe*every_forMemory].particles.position, dtype=np.float64)
-        time=np.int64(hoomdTraj[iframe*every_forMemory].configuration.step)-time0
-        times[iframe]=time*every_forMemory*dt
+	################################################################
+	#
+	# SAVE TRAJECTORY AND CALCULATE MEAN SQUARE DISPLACEMENT
+	#
+	################################################################
+	for iframe in range(0, trajDuration, 1):
+		## we only look 1 frame every "every_forMemory" frame, to save memory: 
+		trajectory[iframe] = np.array(hoomdTraj[iframe*every_forMemory].particles.position, dtype=np.float64)
+		time=np.int64(hoomdTraj[iframe*every_forMemory].configuration.step)-time0
+		times[iframe]=time*every_forMemory*dt
 
-        msd[iframe]=med.PeriodicSquareDistance(trajectory[iframe], initialPositions, L)/Natoms
-        all_displacements=med.PeriodicDisplacement(trajectory[iframe], initialPositions, L)
+		msd[iframe]=med.PeriodicSquareDistance(trajectory[iframe], initialPositions, L)/Natoms
+		all_displacements=med.PeriodicDisplacement(trajectory[iframe], initialPositions, L)
 
-        Fk[iframe]=med.ComputeFkt(n1, n2, n3, L, all_displacements)
-    HoomdFlow.close()
-    
-
+		Fk[iframe]=med.ComputeFkt(n1, n2, n3, L, all_displacements)
+	HoomdFlow.close()
 
 ################################################################
 # 
@@ -138,12 +134,12 @@ nameFkt_txt='Fkt'+label+'.txt'
 namemsd_png='msd'+label+'.png'
 nameFkt_png='Fkt'+label+'.png'
 try:
-    remove(namemsd_txt)
-    remove(namemsd_png)
-    remove(nameFkt_txt)
-    remove(nameFkt_png)
+	remove(namemsd_txt)
+	remove(namemsd_png)
+	remove(nameFkt_txt)
+	remove(nameFkt_png)
 except OSError:
-    pass
+	pass
 
 #
 # Text outputs
