@@ -157,7 +157,10 @@ do
 
 	ENDTIME=$(date +%s)
 	ELAPSEDTIME=`echo "($ENDTIME - $STARTTIME)/60"|bc -l`
-	echo "ichunk: $ichunk  time: $ELAPSEDTIME min >> bisect.profile"
+	echo "ichunk: $ichunk  time: $ELAPSEDTIME min" >> bisect.profile
+
+	#The following `exit` is to optimize computing time: instead doing a new chunk, we let the next process do it
+	exit
 done
 
 #--------------------------------#

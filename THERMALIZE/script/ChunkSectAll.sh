@@ -56,7 +56,15 @@ do
 				echo "sbatch --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh"
 				for iqueue in `seq 0 $nqueue`
 				do
-				    jobid=$(sbatch  -p $queue --dependency=afterany:$jobid --time=$simTime --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh)
+				    if [ $iqueue == 0 ]
+				    then
+					jobidnew=`sbatch  -p $queue --time=$simTime --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh`
+				    else
+					jobidnew=$(sbatch  -p $queue --dependency=afterany:$jobid --time=$simTime --job-name=$nombre --export=T=$T,dt=$dt,deltaE=$deltaE,ttot=$ttot,doridge=$doridge $scriptDIR/ChunkSect.sh)
+				    fi
+				    jobid=`echo $jobidnew| cut -d" " -f4`
+				    echo "iqueue: $iqueue, jobid=$jobid"
+
 				done
 				fi
 			fi
