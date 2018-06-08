@@ -25,6 +25,7 @@ import gsd.hoomd #
 # 
 ################################################################
 
+#HOOMDMAXSTEPS=4000000100
 HOOMDMAXSTEPS=4000000000 #Hoomd does not support more than 2^32-1 steps, which we truncate to 4x10^9 for eye friendliness
 
 from pandas import read_csv
@@ -172,6 +173,7 @@ class HeavyTraj:
 			inext = i0+1
 			self.nextt0    = np.int64(inext*self.freq)
 			self.timelist=np.int64(self.t0)+tl.ListaLogaritmica(1, self.len, self.maxtimes, ints=True, addzero=True) if self.freq>0 else None
+			print('timelist: ',self.timelist)
 			self.ntimes=len(self.timelist)
 			#Now find at which element of timelist we are currently
 			for i in range(self.ntimes):
@@ -272,10 +274,11 @@ class Csim:
 
 
 		#How many steps need to be done, considering the ones already done, and the addsteps option (which tells you to forget about the past steps)
-		self.params.runSteps = np.int64(max(0,self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep))) if self.params.addsteps==False else self.params.nSteps
-
-		#Now enforce the run to have maximum HOOMDMAXSTEPS
-		self.params.runSteps = min(self.params.runSteps, HOOMDMAXSTEPS)
+                if self.params.addsteps==False:
+			self.params.runSteps = self.params.nSteps % HOOMDMAXSTEPS
+                else:
+			totStepsRemaining=self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep)
+			self.params.runSteps = totStepsRemaining% HOOMDMAXSTEPS - self.params.iniStep
 
 		print("#-----------------------------------------------------#")
 		print("# initial step      = ",self.params.iniStep)
@@ -355,6 +358,7 @@ class Csim:
 
 			#save time
 			self.params.heavyTraj.outTimes.write("%d %d\n"%(self.params.heavyTraj.t0,totaltime))
+			self.params.heavyTraj.outTimes.flush()
 
 			#save positions, velocities and accelerations
 			snap=self.system.take_snapshot()
@@ -394,7 +398,11 @@ class Csim:
 		print("# ",self.params.runSteps," steps with the ",self.params.thermostat," thermostat at T=",self.params.temperature)
 		sys.stdout.flush()
 		if self.params.trajFreq>=0:
-			hoomd.run(self.params.runSteps, quiet=False, callback=self.runCallback, callback_period=self.runCallbackFreq)
+#			self.params.runSteps=10000
+			print(self.params.runSteps,'steps to do')
+			hoomd.run(int(self.params.runSteps), quiet=False, callback=self.runCallback, callback_period=self.runCallbackFreq)
+#			hoomd.run(10000, quiet=False, callback=self.runCallback, callback_period=self.runCallbackFreq)
+			print(self.params.runSteps,'steps done')
 		else:
 			for it in range(self.params.nt-1):
 				curstep = hoomd.get_step()-self.params.iniStep
