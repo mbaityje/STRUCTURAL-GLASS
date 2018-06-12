@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #Process tag is used for the queue scheduler
 readonly PROC_TAG="cs"
 
@@ -25,7 +24,7 @@ utilDIR=$rootDIR/UTILITIES
 
 #Parameters
 readonly dt=0.0025
-readonly ttot=`echo 10^6|bc` #We will want 10^9 steps
+readonly ttot=`echo 10^8|bc` #We will want 10^9 steps
 TLIST="0.49" #"10.0 2.0 0.6 0.466 0.44 0.43 0.42 0.41"
 readonly deltaE=0.0001
 nqueue=5 #number of processes in queue

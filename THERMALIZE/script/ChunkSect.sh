@@ -160,7 +160,7 @@ do
 	echo "ichunk: $ichunk  time: $ELAPSEDTIME min" >> bisect.profile
 
 	#The following `exit` is to optimize computing time: instead doing a new chunk, we let the next process do it
-	exit
+#	exit
 done
 
 #--------------------------------#
