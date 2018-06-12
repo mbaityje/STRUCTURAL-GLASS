@@ -275,7 +275,7 @@ class Csim:
 
 		#How many steps need to be done, considering the ones already done, and the addsteps option (which tells you to forget about the past steps)
                 if self.params.addsteps==False:
-			self.params.runSteps = self.params.nSteps % HOOMDMAXSTEPS
+			self.params.runSteps = self.params.nSteps % HOOMDMAXSTEPS # questo non va bene
                 else:
 			totStepsRemaining=self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep)
 			self.params.runSteps = totStepsRemaining% HOOMDMAXSTEPS - self.params.iniStep
