@@ -141,7 +141,7 @@ class Cparams:
 class HeavyTraj:
 	def __init__(self, directory='./heavyTraj/', freq=0, dumpAcc=True, maxtimes=40):
 		if freq>HOOMDMAXSTEPS:
-			raise OverflowError('Maximum admitted freq for Heavy Trajectory is %d. Change the settings in the parameters file (usually params.in)'%HOOMDMAXSTEPS)
+			raise OverflowError("Maximum admitted freq for Heavy Trajectory is %d (it is %lu). Change the settings in the parameters file (usually params.in)"%(HOOMDMAXSTEPS,freq))
 		if freq<0: raise ValueError('Found a negative heavyTrajFreq:'+str(freq))
 		self.freq=np.int64(freq)        # How often I record a heavy trajectory
 		if freq>0:
@@ -173,7 +173,6 @@ class HeavyTraj:
 			inext = i0+1
 			self.nextt0    = np.int64(inext*self.freq)
 			self.timelist=np.int64(self.t0)+tl.ListaLogaritmica(1, self.len, self.maxtimes, ints=True, addzero=True) if self.freq>0 else None
-			print('timelist: ',self.timelist)
 			self.ntimes=len(self.timelist)
 			#Now find at which element of timelist we are currently
 			for i in range(self.ntimes):
@@ -274,17 +273,18 @@ class Csim:
 
 
 		#How many steps need to be done, considering the ones already done, and the addsteps option (which tells you to forget about the past steps)
-                if self.params.addsteps==False:
-			self.params.runSteps = self.params.nSteps % HOOMDMAXSTEPS # questo non va bene
-                else:
-			totStepsRemaining=self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep)
-			self.params.runSteps = totStepsRemaining% HOOMDMAXSTEPS - self.params.iniStep
+		if self.params.addsteps==True:
+			self.params.runSteps = self.params.nSteps % (HOOMDMAXSTEPS-self.params.iniStep)
+		else:
+			totStepsRemaining = self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep)
+			self.params.runSteps = totStepsRemaining% HOOMDMAXSTEPS
 
 		print("#-----------------------------------------------------#")
 		print("# initial step      = ",self.params.iniStep)
 		print("# older steps       = ",self.params.totOldCycleStep)
 		print("# total steps simulated for this sample = ", self.params.totOldCycleStep + self.params.iniStep)
 		print("# total steps requested for this sample = ", self.params.nSteps)
+		print("# HOOMDMAXSTEPS = ", HOOMDMAXSTEPS)
 		print("# steps to do in this run =",self.params.runSteps)
 		print("#-----------------------------------------------------#")
 
@@ -398,11 +398,7 @@ class Csim:
 		print("# ",self.params.runSteps," steps with the ",self.params.thermostat," thermostat at T=",self.params.temperature)
 		sys.stdout.flush()
 		if self.params.trajFreq>=0:
-#			self.params.runSteps=10000
-			print(self.params.runSteps,'steps to do')
 			hoomd.run(int(self.params.runSteps), quiet=False, callback=self.runCallback, callback_period=self.runCallbackFreq)
-#			hoomd.run(10000, quiet=False, callback=self.runCallback, callback_period=self.runCallbackFreq)
-			print(self.params.runSteps,'steps done')
 		else:
 			for it in range(self.params.nt-1):
 				curstep = hoomd.get_step()-self.params.iniStep
