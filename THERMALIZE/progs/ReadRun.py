@@ -179,8 +179,8 @@ class HeavyTraj:
 				if self.timelist[i] >= current_step: break
 			self.nextit=i
 			self.nextt=self.timelist[self.nextit]
-                        print('Next t for heavytraj: ',self.nextt)
-                        print(timelist)
+			print('Next t for heavytraj: ',self.nextt)
+			print(timelist)
 		return
 
 	def Show(self):
