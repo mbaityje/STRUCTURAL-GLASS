@@ -12,7 +12,7 @@
 # - calculates noise correlation function
 # 
 # Launch as:
-# run T21-OrthogonalCorrelationsFancyFits.py './test-output/correlations_dt0.0025_n10_T10_N1080_rho1.2.npz' --dt=0.0025 --temperature=10 --filter --truncate --scheme='rectangles' --label='prova'
+# python T22-OrthogonalCorrelationsInterps.py './test-output/correlations_dt0.0025_n10_T10_N1080_rho1.2.npz' --dt=0.0025 --temperature=10 --scheme='rectangles' --label='prova'
 # 
 ################################################################
 
@@ -145,7 +145,7 @@ plt.xlabel('$t$')
 plt.ylabel('Correlation')
 plt.grid(True)
 plt.legend()
-plt.title('Using fits - $T$ = %g, $dt$ = %g, $du$ = %g'%(args.temperature,args.dt,du))
+plt.title('Using interpolations - $T$ = %g, $dt$ = %g, $du$ = %g'%(args.temperature,args.dt,du))
 plt.savefig('./test-output/corrNoise-selfconsistent'+args.label+"_KAfits.png")
 plt.show()
 

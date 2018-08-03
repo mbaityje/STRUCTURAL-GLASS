@@ -9,13 +9,12 @@
 # but this has not been implemented.
 #
 # To display help:
-# python T2-CreateAndMeltLattice.py --user="-h"
+# python T02-CreateAndMeltLattice.py --user="-h"
 #
 # To launch a simulation:
-# python T2-CreateAndMeltLattice.py --user="-t nNVTsteps --thermostat thermostat"
+# python T02-CreateAndMeltLattice.py --user="-t nNVTsteps --thermostat thermostat"
 #
 # For example:
-# python T2-CreateAndMeltLattice.py --user="-t 1000 --thermostat NVT"
 ################################################################
 
 from __future__ import print_function #for compatibility with python3.5
@@ -227,6 +226,7 @@ if nNVTsteps > 0 :
        integrator_nvt = md.integrate.nvt(group=hoomd.group.all(), kT=0.5*TemperatureGoal, tau=tauT)
        print("Running at T=",TemperatureGoal*0.5)
        hoomd.run(nNVTsteps, quiet=False)
+       integrator_nvt.disable()
        integrator_nvt.set_params(tau=tauT, kT=TemperatureGoal)
        print("Running at T=",TemperatureGoal)
        hoomd.run(nNVTsteps, quiet=False)

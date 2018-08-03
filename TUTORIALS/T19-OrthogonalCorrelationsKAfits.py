@@ -17,8 +17,8 @@
 # F=dP/dt: (acceleration of particle 1)
 # 
 # Launch as:
-# python T18-OrthogonalCorrelationsKA.py --user="./sample-states/rotenbergKA_T10.0_N1080.gsd -N1080 -t10000 --dt=0.001 --temperature=10 --seed=0 --tauT=0.1 --extraThermalizing --filtering --truncate"
-# python T18-OrthogonalCorrelationsKA.py --user="./sample-states/rotenbergKA_T10.0_N1080.gsd -N1080 -t80000 --dt=0.0025 --temperature=10 --seed=0 --tauT=0.1 --extraThermalizing --nchunk=200"
+# python T19-OrthogonalCorrelationsKAfits.py --user="./sample-states/rotenbergKA_T10.0_N1080.gsd -N1080 -t10000 --dt=0.001 --temperature=10 --seed=0 --tauT=0.1 --extraThermalizing --filtering --truncate"
+# python T19-OrthogonalCorrelationsKAfits.py --user="./sample-states/rotenbergKA_T10.0_N1080.gsd -N1080 -t200000 --dt=0.001 --temperature=10 --seed=0 --tauT=0.1 --extraThermalizing --nchunk=200"
 ################################################################
 
 from __future__ import print_function #for compatibility with python3.5

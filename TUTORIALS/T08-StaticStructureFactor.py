@@ -193,10 +193,10 @@ hoomd.context.initialize('--notice-level=0')
 
 #Read arguments in a more simple way
 if len(sys.argv)==2:
-    filename = sys.argv[1]
+	filename = sys.argv[1]
 else:
-    print("Launch as:")
-    print(sys.argv[0]," configuration.gsd")
+	print("Launch as:")
+	print(sys.argv[0]," configuration.gsd")
 print(filename)
 
 #Read configuration
