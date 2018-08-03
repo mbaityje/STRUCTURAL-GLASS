@@ -155,28 +155,71 @@ def CalculateRelativeDistances(positions, Natoms, L):
 
 ######################################################################
 # Periodic displacement 
-# Returns a vector of the Natoms 3D displacements (one 3D vector for each particle)
 def PeriodicDisplacement(vec_a, vec_b, box_size):
+	'''
+	Returns a vector of the Natoms 3D displacements (one 3D vector for each particle)
+	'''
 	# First we substract one to the other
 	delta = vec_a - vec_b
 	#Then we apply periodic boundary conditions through a double ternary
 	return np.where(delta > 0.5 * box_size, delta - box_size, np.where(delta < -0.5 * box_size, delta+box_size, delta))
 
 ######################################################################
+# Periodic sum
+def PeriodicSum(vec_a, vec_b, box_size):
+	'''
+	Sums a configuration to another one, respecting the periodic boundary conditions
+	'''
+	thesum = vec_a + vec_b
+	#Then we apply periodic boundary conditions through a double ternary
+	return np.where(2*thesum > box_size, thesum - box_size, np.where(2*thesum < - box_size, thesum+box_size, thesum))
+
+######################################################################
 # Periodic intermediate point
-# Given two lists of 3D points, it returns a list of points half way in between.
-# For two points xA and xB, it is usually (xA+xB)/2, unless they are 
-# across the periodic boundary conditions.
-#
-# Poi devo scrivere questa funzione in modo meno inefficiente
 def PeriodicIntermPoints(vec_a, vec_b, L):
+	'''
+	Given two lists of 3D points, it returns a list of points half way in between.
+	For two points xA and xB, it is usually (xA+xB)/2, unless they are 
+	across the periodic boundary conditions.
+	'''
 	Lm=0.5*L
 	delta = np.abs(vec_a - vec_b)
 	out = np.where(delta < Lm, 0.5*(vec_a+vec_b), np.where( vec_a+vec_b<0, 0.5*(vec_a+vec_b+L),0.5*(vec_a+vec_b-L)) )[:]
 	return out
 
-
-
+def PeriodicInterpPoints(vec_a, vec_b, L, alpha):
+	'''
+	Given two lists of 3D points, it returns a list of points in between.
+	alpha defines the interpolation.
+	For two points xA and xB, it is usually (alpha*xA+(1-alpha*xB), unless they are 
+	across the periodic boundary conditions.
+	Poi devo scrivere questa funzione in modo meno inefficiente.
+	'''
+	assert(alpha<=1 and alpha>=0)
+	beta=1-alpha
+	Lm=0.5*L
+	Natoms=len(vec_a)
+	DIM=len(vec_a[0])
+	out=np.ndarray((Natoms,DIM))
+	for i in range(Natoms): #loop particles
+		for dim in range(DIM): #loop dimensions
+			xa=vec_a[i][dim]
+			xb=vec_b[i][dim]
+			delta=np.abs(xa-xb)
+			interpnaif=alpha*xa+beta*xb
+			if delta<=Lm:
+				out[i][dim]=interpnaif
+			else:
+				if xa+xb>0:
+					correction = beta*L if xa>xb else alpha*L
+					interp=interpnaif+correction
+					if interp>Lm: interp-=L
+				else: #xa+xb<0
+					correction = -alpha*L if xa>xb else -beta*L
+					interp=interpnaif+correction
+					if interp<-Lm: interp+=L
+				out[i][dim]=interp
+	return out
 
 
 
