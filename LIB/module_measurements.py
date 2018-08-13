@@ -255,12 +255,12 @@ def OverlapDisp(disp,box_size):
 	return np.where(disp<delta,1.,0.).sum()/len(disp)
 
 ######################################################################
-def HowManyMovedPos(posizioni1, posizioni2,box_size):
+def HowManyMovedPos(posizioni1, posizioni2,box_size, delta=0.1):
 	"""
 	How many particles moved between posizioni1 and posizioni2.
+	delta=0.1 is 1/4 of the smallest particle radius
 	"""
 	disp=PeriodicDisplacement(posizioni1,posizioni2,box_size).sum(axis=1)
-	delta=0.1 #1/4 of the smallest particle radius
 	return np.where(disp>delta,1.,0.).sum()
 
 
