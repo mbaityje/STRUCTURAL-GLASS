@@ -1,11 +1,15 @@
 #Heavy Directories and symlinks to directories
 PLOTS/*/
+PAPERS/
 PLAYGROUND/
 LOGS/
 OUTPUT/
 OUTPUT
 benchmarks/
-test-output/
+test-output/*
+heavytraj*/
+borrar
+DRAFT
 
 #Unwanted extensions
 *.pyc
