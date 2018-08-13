@@ -6,7 +6,7 @@ LOGS/
 OUTPUT/
 OUTPUT
 benchmarks/
-test-output/*
+TUTORIALS/test-output/*
 heavytraj*/
 borrar
 DRAFT
