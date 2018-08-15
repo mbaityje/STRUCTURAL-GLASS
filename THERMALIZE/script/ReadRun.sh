@@ -15,6 +15,8 @@
 
 
 echo "-- Comincia readRun.sh --"
+source /etc/profile.d/modules.sh
+module load anaconda3/4.4.0
 
 for isam in $(echo $batch)
 do
@@ -40,11 +42,10 @@ do
 	pwd
 	echo "File di output: $PWD/$samOUT"
 	echo "SYSTEM: $SYSTEM"
-	echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\"" >> $samOUT
 	if [ $SYSTEM == 'PennPuter' ]; then
-		echo "SYSTEM=PennPuter. Launching minibatch serially."
-		echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\" >> $samOUT"
-		python $exeDIR/ReadRun.py --user="$initConf -p$paramsFILE" >> $samOUT
+	    echo "SYSTEM=PennPuter. Launching minibatch serially."
+	    echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\""
+	    python $exeDIR/ReadRun.py --user="$initConf -p$paramsFILE"
 	elif [ $SYSTEM == 'talapas' ];  then
 		echo "python $exeDIR/ReadRun.py --user=\"$initConf -p$paramsFILE\"" >> $samOUT
 		python $exeDIR/ReadRun.py --user="$initConf -p$paramsFILE" >> $samOUT &
