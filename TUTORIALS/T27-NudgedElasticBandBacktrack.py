@@ -253,7 +253,7 @@ for t in range(1,args.maxiter):
 		fmax=np.abs(force).max()
 		if t==1:
 			if args.alpha<0: #If the user didnt set the initial alpha, we choose it now
-				alpha[i]=L/fmax*0.005 #In the first iteration the maximum displacement is 0.5% of the box
+				alpha[i]=L/fmax*0.001 #In the first iteration the maximum displacement is 0.1% of the box
 		else:
 			alpha[i], nBack[i] = BackTrack(fRMS, fRMSold[i], alpha[i], fmax, L, nBack[i])
 		pivots[i] = med.PeriodicSum(pivots[i], alpha[i]*force, L)
@@ -269,7 +269,7 @@ for t in range(1,args.maxiter):
 	energies=PathEnergies(pivots)
 	error=np.abs(energies-energiesOld).sum()/args.npoints
 	print('error: ',error)
-	if error<1e-8:
+	if error<1e-3:
 		break
 	energiesOld=energies
 	plt.plot(distances, energies,'.', label='$t$ = '+str(t))
@@ -278,13 +278,13 @@ plt.plot(distances, energies, label='$t$ = '+str(t))
 plt.xlabel('distance')
 plt.ylabel('energy')
 # plt.legend()
-plt.savefig('neb_all.png')
+plt.savefig('./test-output/neb_all.png')
 plt.show()
 
 plt.plot(distances, energies, label='$t$ = '+str(t))
 plt.xlabel('distance')
 plt.ylabel('energy')
 # plt.legend()
-plt.savefig('neb_final.png')
+plt.savefig('./test-output/neb_final.png')
 plt.show()
 

@@ -14,7 +14,7 @@
 # python T26-NudgedElasticBand.py --user="-h"
 #
 # To launch a simulation:
-# python T26-NudgedElasticBand.py --user="conf1 conf2 --f1=frame1 --f2=frame2 -n=npoints"
+# python T26-NudgedElasticBand.py --user="conf1 conf2 --f1=frame1 --f2=frame2 -n=npoints --maxiter=maxiter --alpha=learning_rate --k=elastic_constant"
 #
 # For example:
 # python T26-NudgedElasticBand.py --user="./sample-states/rotenbergKA_T2.0_N1080.gsd ./sample-states/rotenbergKA_T2.0_N1080.gsd -n20"
@@ -243,7 +243,7 @@ for t in range(1,args.maxiter):
 	energies=PathEnergies(pivots)
 	error=np.abs(energies-energiesOld).sum()/args.npoints
 	print('error: ',error)
-	if error<1e-8:
+	if error<1e-3:
 		break
 	energiesOld=energies
 	plt.plot(distances, energies,'.', label='$t$ = '+str(t))
@@ -252,13 +252,13 @@ plt.plot(distances, energies, label='$t$ = '+str(t))
 plt.xlabel('distance')
 plt.ylabel('energy')
 # plt.legend()
-plt.savefig('neb_all.png')
+plt.savefig('./test-output/neb_all.png')
 plt.show()
 
 plt.plot(distances, energies, label='$t$ = '+str(t))
 plt.xlabel('distance')
 plt.ylabel('energy')
 # plt.legend()
-plt.savefig('neb_final.png')
+plt.savefig('./test-output/neb_final.png')
 plt.show()
 
