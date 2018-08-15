@@ -323,9 +323,9 @@ for t in range(1,args.maxiter):
 		# error=np.abs(energies-energiesOld).sum()/np.float64(len(pivots)-2) 
 		error=np.abs(energies-energiesOld).max() 
 		print('error: ',error,'\timax=',imax,'\tEmax=',Emax)
-		if error<1e-4:
+		if error<1e-3:
 			climb=True
-			if error<1e-8:
+			if error<1e-6:
 				break
 	elif displacementCriterion:
 		displErr=np.abs(newdistances-distances).max()
@@ -350,7 +350,7 @@ plt.plot(distances, energies, label='$t$ = '+str(t))
 plt.xlabel('distance')
 plt.ylabel('energy')
 # plt.legend()
-plt.savefig('./test-output/neb_all.png')
+plt.savefig('./test-output/string0_all.png')
 plt.show()
 
 
@@ -364,7 +364,8 @@ plt.show()
 #Number of particles moving between initial and final state
 if args.temperature>0:
 	ek=1.5*args.temperature
-	delta=0.01
+	delta=0.05
+	nmovedEnergy=int(min((0.5/ek)*(2*energies[imax]-energies[0]-energies[-1]),Natoms))
 	print('')
 	print('')
 	print('------')
@@ -385,8 +386,101 @@ if args.temperature>0:
 	print('Number of particles moving between transition and final state: ',med.HowManyMovedPos(pivots[imax], pivots[-1], L, delta=delta))
 	print('From the energy barrier height I expect it to be: ',(energies[imax]-energies[-1])/ek)
 	print('------')
+else:
+	print('temperature = ',args.temperature)
+
+# Save the path
+np.save('./test-output/pivots.npy',pivots)
+
+#
+# Now some measurements on the path
+#
+
+# Histogram of the motion with the transition state, and participation ratios
+import seaborn as sns
+disp_inimax=np.linalg.norm(med.PeriodicDisplacement(pivots[   0], pivots[imax], L),axis=1)
+disp_maxfin=np.linalg.norm(med.PeriodicDisplacement(pivots[imax], pivots[  -1], L),axis=1)
+disp_inifin=np.linalg.norm(med.PeriodicDisplacement(pivots[   0], pivots[  -1], L),axis=1)
+ipr_inimax =med.InvPRdist(disp_inimax)
+ipr_maxfin=med.InvPRdist(disp_maxfin)
+ipr_inifin =med.InvPRdist(disp_inifin)
+nmovedIPR=int(round(2.0/(ipr_inimax+ipr_maxfin)))
+
+disps_pivots=np.ndarray((len(pivots)-1,Natoms))
+ipr_pivots=np.ndarray((len(pivots)-1))
+for i in range(len(pivots)-1):
+	disps_pivots[i]=np.linalg.norm(med.PeriodicDisplacement(pivots[i], pivots[i+1], L),axis=1)
+	ipr_pivots[i]=med.InvPRdist(disps_pivots[i])
 
 
+#Plot histogram of displacements
+plt.subplot(2,2,1)
+plt.title('Displacement distributions between TP and IS')
+plt.xlabel('distance')
+plt.ylabel('h(distance)')
+sns.distplot(disp_inimax, label='Initial IS to Transition State',color='blue', kde=False, rug=True)
+sns.distplot(disp_maxfin, label='Transition State to Final IS',color='cyan', kde=False, rug=True)
+plt.axvline(x=np.sort(disp_inimax)[-nmovedIPR], color='blue')
+plt.axvline(x=np.sort(disp_maxfin)[-nmovedIPR], color='cyan')
+plt.axvline(x=np.sort(disp_inimax)[-nmovedEnergy], color='black')
+plt.axvline(x=np.sort(disp_maxfin)[-nmovedEnergy], color='black')
+plt.xlim((0,0.6))
+plt.grid()
+plt.legend()
+plt.subplot(2,2,2)
+plt.title('Displacement distributions between subsequent images')
+sns.distplot(disps_pivots.flatten(), label='Along the whole path', color='green', kde=False, rug=True)
+plt.xlabel('distance')
+plt.ylabel('h(distance)')
+plt.xlim((0,0.6))
+plt.grid()
+plt.legend()
+plt.subplot(2,2,3)
+plt.title('Displacement distributions between TP and IS')
+plt.xlabel('distance/average')
+plt.ylabel('h(distance/average)')
+sns.distplot(disp_inimax/disp_inimax.mean(), label='Initial IS to Transition State',color='blue', kde=False, rug=True)
+sns.distplot(disp_maxfin/disp_maxfin.mean(), label='Transition State to Final IS',color='cyan', kde=False, rug=True)
+plt.axvline(x=np.sort(disp_inimax/disp_inimax.mean())[-nmovedIPR], color='blue')
+plt.axvline(x=np.sort(disp_maxfin/disp_maxfin.mean())[-nmovedIPR], color='cyan')
+plt.axvline(x=np.sort(disp_inimax/disp_inimax.mean())[-nmovedEnergy], color='black')
+plt.axvline(x=np.sort(disp_maxfin/disp_maxfin.mean())[-nmovedEnergy], color='black')
+plt.xlim(xmin=0)
+plt.grid()
+plt.legend()
+plt.subplot(2,2,4)
+plt.title('Displacement distributions between subsequent images')
+sns.distplot(np.array([ disps_pivots[i]/disps_pivots[i].mean() for i in range(len(disps_pivots))]).flatten(), label='Along the whole path', color='green', kde=False, rug=True)
+plt.xlabel('distance/average')
+plt.ylabel('h(distance/average)')
+plt.xlim(xmin=0)
+plt.grid()
+plt.legend()
+
+plt.show()
 
 
-
+# Plot Inverse Participation Ratio
+plt.subplot(1,2,1)
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), ipr_pivots,                         label='IPR along the path',      color='red')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),ipr_inimax),label='Initial IS to TS',        color='darkgreen')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),ipr_maxfin),label='TS to final IS',          color='lightgreen')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),ipr_inifin),label='Initial to Final IS',     color='green')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.ones(len(ipr_pivots)),           label='Ideal: fully localized',  color='darkblue')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),1./Natoms), label='Ideal: fully delocalized',color='lightblue')
+plt.xlabel('Reaction Coordinate')
+plt.ylabel('Inverse Participation Ratio')
+plt.legend()
+plt.grid()
+plt.subplot(1,2,2)
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), ipr_pivots,                         label='IPR along the path',      color='red')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),ipr_inimax),label='Initial IS to TS',        color='darkgreen')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),ipr_maxfin),label='TS to final IS',          color='lightgreen')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),ipr_inifin),label='Initial to Final IS',     color='green')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),1./Natoms), label='Ideal: fully delocalized',color='lightblue')
+plt.plot(np.arange(0, 1+1./(len(ipr_pivots)-1),1./(len(ipr_pivots)-1)), np.full(len(ipr_pivots),1./nmovedIPR),      label='%d particles moving'%nmovedIPR,   color='black', linestyle='--')
+plt.xlabel('Reaction Coordinate')
+plt.ylabel('Inverse Participation Ratio')
+plt.legend()
+plt.grid()
+plt.show()

@@ -277,7 +277,7 @@ def InvPRconfs(snap1, snap2, L):
 
 def InvPRpos(posizioni1, posizioni2,L):
 	'''Inverse Participation Ratio with the positions as input'''
-	dist=np.abs(PeriodicDistance(posizioni1,posizioni2,L))
+	dist=np.linalg.norm(PeriodicDisplacement(posizioni1,posizioni2,L),axis=1)
 	return InvPRdist(dist)
 
 def InvPRdist(dist):
