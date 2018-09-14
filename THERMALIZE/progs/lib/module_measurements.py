@@ -208,8 +208,8 @@ def OverlapDisp(disp,box_size):
 	"""
 	Overlap. With the distance between confs as input
 	"""
-	delta=0.1 #1/4 of the smallest particle radius
-	return np.where(disp<delta,1.,0.).sum()/len(disp)
+	delta=0.3 #As in Karmakar, S., Dasgupta, C., & Sastry, S. (2009) Proceedings of the National Academy of Sciences, 106(10), 3675-3679.
+	return np.where(np.abs(disp)<delta,1.,0.).sum()/len(disp)
 
 ######################################################################
 def HowManyMovedPos(posizioni1, posizioni2,box_size):
