@@ -101,6 +101,7 @@ with open(filename, 'rb') as flow:
 	times=np.zeros(trajDuration, dtype=np.float64)
 	msd=np.zeros(trajDuration, dtype=np.float64)
 	Fk=np.zeros(trajDuration,dtype=np.float64)
+	qself=np.zeros(trajDuration,dtype=np.float64)
 
 	################################################################
 	#
@@ -113,10 +114,12 @@ with open(filename, 'rb') as flow:
 		time=np.int64(hoomdTraj[iframe*every_forMemory].configuration.step)-time0
 		times[iframe]=time*every_forMemory*dt
 
-		msd[iframe]=med.PeriodicSquareDistance(trajectory[iframe], initialPositions, L)/Natoms
-		all_displacements=med.PeriodicDisplacement(trajectory[iframe], initialPositions, L)
+		msd[iframe] = med.PeriodicSquareDistance(trajectory[iframe], initialPositions, L)/Natoms
+		all_displacements = med.PeriodicDisplacement(trajectory[iframe], initialPositions, L)
 
-		Fk[iframe]=med.ComputeFkt(n1, n2, n3, L, all_displacements)
+		Fk[iframe] = med.ComputeFkt(n1, n2, n3, L, all_displacements)
+
+		qself[iframe] = med.OverlapPos(trajectory[iframe], initialPositions, L)
 	HoomdFlow.close()
 
 ################################################################
@@ -131,13 +134,17 @@ with open(filename, 'rb') as flow:
 #Remove preexisting output files to avoid conflicts
 namemsd_txt='msd'+label+'.txt'
 nameFkt_txt='Fkt'+label+'.txt'
+nameq_txt='qself'+label+'.txt'
 namemsd_png='msd'+label+'.png'
 nameFkt_png='Fkt'+label+'.png'
+nameq_png='qself'+label+'.png'
 try:
 	remove(namemsd_txt)
 	remove(namemsd_png)
 	remove(nameFkt_txt)
 	remove(nameFkt_png)
+	remove(nameq_txt)
+	remove(nameq_png)
 except OSError:
 	pass
 
@@ -148,6 +155,8 @@ output_msd=np.column_stack((times, msd))
 np.savetxt(namemsd_txt, output_msd,fmt='%g %.14g', header="#1)time step 2)msd")
 output_Fk=np.column_stack((times, Fk))
 np.savetxt(nameFkt_txt,output_Fk,fmt='%g %.14g', header="#n=("+str(n1)+","+str(n2)+","+str(n3)+")\n#1)time 2)Fk(t)")
+output_q=np.column_stack((times, qself))
+np.savetxt(nameq_txt, output_q,fmt='%g %.14g', header="#1)time step 2)qself")
 
 
 #
@@ -158,11 +167,12 @@ plt.switch_backend('agg') #In order to be able to use pyplot without Xterm
 
 #Figure of msd
 plt.figure(1)
-plt.loglog(times, msd)
+plt.loglog(times, msd, label='MSD$')
 plt.xlabel('t')
 plt.ylabel('mean square displacement')
 plt.title('Mean square displacement')
 plt.grid(True)
+plt.legend()
 plt.savefig(namemsd_png)
 
 #Figure of Fk(t)
@@ -170,12 +180,14 @@ plt.figure(2)
 axes = plt.gca()
 axes.set_ylim([0,1])
 line=np.empty(len(times)); line.fill(height)
-plt.semilogx(times, Fk)
+plt.semilogx(times, Fk, label='$F_k(t)$')
+plt.semilogx(times, qself, label='$q_{self}(t)$')
 plt.semilogx(times, line, linewidth=0.1, color='black')
 plt.xlabel('t')
 plt.ylabel('self-intermediate scattering function')
 plt.title('Self-intermediate scattering function')
 plt.grid(True)
+plt.legend()
 plt.savefig(nameFkt_png)
 
 

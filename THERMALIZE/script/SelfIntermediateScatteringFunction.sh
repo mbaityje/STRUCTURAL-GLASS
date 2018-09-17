@@ -30,8 +30,8 @@ else SYSTEM="talapas"; fi
 if [ $SYSTEM == "talapas" ];
 then rootDIR=/home/mbaity/STRUCTURAL-GLASS/
 else 
-    rootDIR=$PWD/../../../..
-    echo "Setting rootDIR: $rootDIR"
+	rootDIR=$PWD/../../../..
+	echo "Setting rootDIR: $rootDIR"
 fi
 thermDIR=$rootDIR/THERMALIZE
 exeDIR=$thermDIR/progs
@@ -63,7 +63,7 @@ echo "dt = $dt"
 echo "tau_of_t: $tau_of_t"
 
 #Some hardcoded parameters that I might decide to put as command-line input
-readonly thermostat='NVT'
+readonly thermostat='NVE'
 readonly tauT=0.1
 readonly Natoms=65
 maxFrames=1000 #The (first) trajectory we construct has at most 1000 frames
@@ -116,11 +116,11 @@ fi
 #Now we run a simulation of the chosen length, in which the configuration is dumped often
 #
 echo "|--> Creating first trajectory..."
-addsteps='True'
-label="_ifr$iframe"
+pot_mode='xplor'
+label="_ifr${iframe}_${pot_mode}"
 rm -f trajectory${label}.gsd
-echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps\"
-python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$label --startfromzero=True"
+echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps --startfromzero --pot_mode=$pot_mode\"
+python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps -l$label --startfromzero --pot_mode=$pot_mode"
 
 #
 # Calculate Fk(t), MSD and tau for the first time
@@ -132,38 +132,36 @@ python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${label}.gsd --d
 
 if [ 0 -eq $tau_of_t ]
 then
-    #
-    # Now run a gap of 20tau without saving any backup
-    #
-    echo "\n|--> Running gap of 20 tau..."
-    addsteps='True'
-    filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
-    nstepsgap=`echo 20*${nsteps} | bc`
-    labelgap='_gap'
-    python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps=$addsteps -l$labelgap --startfromzero=True"
+	#
+	# Now run a gap of 20tau without saving any backup
+	#
+	echo "\n|--> Running gap of 20 tau..."
+	filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
+	nstepsgap=`echo 20*${nsteps} | bc`
+	labelgap="_gap_${pot_mode}"
+	python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps -l$labelgap --startfromzero --pot_mode=$pot_mode"
 
-    #
-    # Run 3tau saving the trajectory
-    #
-    echo "\n|--> Running new trajectory for a new measurement of Fk(t)..."
-    addsteps='True'
-    filenameaftergap=$labelgap.gsd #We read from the output of the previous simulation, which is $labelgap.gsd
-    labelaftergap='_aftergap'
-    nstepsaftergap=$nsteps
-    
-    rm -f trajectory${labelaftergap}.gsd
-    python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps=$addsteps -l$labelaftergap"
-    
-    
-    #
-    # Calculate Fk(t), MSD and tau for the second time
-    #
-    echo "\n|--> Calculating Fk(t) again..."
-    python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${labelaftergap}.gsd --dt=$dt --every_forMemory=1 -l${labelaftergap}
+	#
+	# Run 3tau saving the trajectory
+	#
+	echo "\n|--> Running new trajectory for a new measurement of Fk(t)..."
+	filenameaftergap=$labelgap.gsd #We read from the output of the previous simulation, which is $labelgap.gsd
+	labelaftergap="_aftergap_${pot_mode}"
+	nstepsaftergap=$nsteps
+	
+	rm -f trajectory${labelaftergap}.gsd
+	python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps -l$labelaftergap --pot_mode=$pot_mode"
+	
+	
+	#
+	# Calculate Fk(t), MSD and tau for the second time
+	#
+	echo "\n|--> Calculating Fk(t) again..."
+	python $exeDIR/SelfIntermediateScatteringFunction.py  trajectory${labelaftergap}.gsd --dt=$dt --every_forMemory=1 -l${labelaftergap}
 
 else
-    echo "tau_of_t=1 not implemented"
-    exit
+	echo "tau_of_t=1 not implemented"
+	exit
 fi
 
 echo "+++++++++++++++++++++++++++++++++++++++"
