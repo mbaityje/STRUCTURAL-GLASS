@@ -363,13 +363,13 @@ plt.show()
 
 #Number of particles moving between initial and final state
 if args.temperature>0:
-	ek=1.5*args.temperature
+	ek=3*args.temperature
 	delta=0.05
 	nmovedEnergy=int(min((0.5/ek)*(2*energies[imax]-energies[0]-energies[-1]),Natoms))
 	print('')
 	print('')
 	print('------')
-	print('The thermal energy per particle is ek = (3/2)kT',ek)
+	print('The thermal energy per particle is ek = 3kT',ek)
 	print('Energy of the initial state:',energies[0])
 	print('Energy of the final state:',energies[-1])
 	print('Energy of the transition state:',energies[imax])
