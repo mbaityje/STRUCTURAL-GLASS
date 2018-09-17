@@ -21,14 +21,14 @@ function average {
                             print t[i],mean,err;}}' $input
 }
 
-for T in 10.0 2.0 0.6 0.49 0.466 0.44 0.43 0.42
+for T in 0.6 #10.0 2.0 0.6 0.49 0.466 0.44 0.43 0.42
 do
     for N in 65
     do
 	for tipo in ifr0 aftergap
 	do
-	    input=$outDIR/T$T/N$N/S[0-9]/Fkt_${tipo}.txt
-	    output=$outDIR/T$T/N$N/Fkt_${tipo}.txt
+	    input=$outDIR/T$T/N$N/S[0-9]/Fkt_${tipo}_xplor.txt
+	    output=$outDIR/T$T/N$N/Fkt_${tipo}_xplor.txt
 	    average $input > $output
 	done
     done
