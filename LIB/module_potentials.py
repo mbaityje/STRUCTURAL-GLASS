@@ -15,7 +15,7 @@ class LJ:
 	def __init__(self, NeighborsList, type="KAshort", mode="xplor"):
 		
 		if type=="KA":        self.setKA(NeighborsList)
-		elif type=="KAshort": self.setKA(NeighborsList, r_cutoff=1.4, r_buff=0.0)
+		elif type=="KAshort": self.setKA(NeighborsList, r_cutoff=1.8, r_buff=0.0)
 		elif type=="LJmono":  self.setLJmono(NeighborsList)
 		else:
 			print("type Non implementato")
