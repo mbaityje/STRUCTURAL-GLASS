@@ -180,7 +180,7 @@ class HeavyTraj:
 			self.nextit=i
 			self.nextt=self.timelist[self.nextit]
 			print('Next t for heavytraj: ',self.nextt)
-			print(timelist)
+			print(self.timelist)
 		return
 
 	def Show(self):
@@ -276,18 +276,19 @@ class Csim:
 
 		#How many steps need to be done, considering the ones already done, and the addsteps option (which tells you to forget about the past steps)
 		if self.params.addsteps==True:
-			self.params.runSteps = self.params.nSteps % (HOOMDMAXSTEPS-self.params.iniStep)
+			self.params.runSteps = min(self.params.nSteps, (HOOMDMAXSTEPS-self.params.iniStep) )
 		else:
 			totStepsRemaining = self.params.nSteps-(self.params.totOldCycleStep+self.params.iniStep)
-			self.params.runSteps = totStepsRemaining% HOOMDMAXSTEPS
+			self.params.runSteps = min(totStepsRemaining, HOOMDMAXSTEPS-self.params.iniStep)
 
 		print("#-----------------------------------------------------#")
-		print("# initial step      = ",self.params.iniStep)
-		print("# older steps       = ",self.params.totOldCycleStep)
-		print("# total steps simulated for this sample = ", self.params.totOldCycleStep + self.params.iniStep)
-		print("# total steps requested for this sample = ", self.params.nSteps)
+		print("# initial step (iniStep)                = ",self.params.iniStep)
+		print("# older steps  (totOldCycleStep)        = ",self.params.totOldCycleStep)
+		print("# total steps simulated for this sample (iniStep+totOldCycleStep)= ", self.params.totOldCycleStep + self.params.iniStep)
+		print("# total steps requested for this sample (nSteps) = ", self.params.nSteps)
+		print("# total steps remaining (totStepsRemaining) = ", totStepsRemaining)
 		print("# HOOMDMAXSTEPS = ", HOOMDMAXSTEPS)
-		print("# steps to do in this run =",self.params.runSteps)
+		print("# steps to do in this run (runSteps) =",self.params.runSteps)
 		print("#-----------------------------------------------------#")
 
 		return
