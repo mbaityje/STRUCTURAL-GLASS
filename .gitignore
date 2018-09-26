@@ -1,6 +1,5 @@
 #Heavy Directories and symlinks to directories
 PLOTS/*/
-PAPERS/
 PLAYGROUND/
 LOGS/
 OUTPUT/
