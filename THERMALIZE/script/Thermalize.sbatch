@@ -21,7 +21,7 @@ echo heavyTrajFreq: $heavyTrajFreq
 echo startfromzero: $startfromzero
 
 
-python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq --startfromzero=$startfromzero" 
+python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq startfromzero" 
 
 echo "-------------------------------------"
 echo Finished `basename "$0"`

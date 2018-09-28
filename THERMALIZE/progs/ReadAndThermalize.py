@@ -104,16 +104,16 @@ print("| startfromzero      = ",args.startfromzero)
 print("| addsteps           = ",args.addsteps)
 print("------------------------------")
 if args.nNVTsteps<0:
-	raise ValueError('Cannot set a negative number of steps (it is %d)'.format(args.nNVTsteps))
+	raise ValueError('Cannot set a negative number of steps (it is {})'.format(args.nNVTsteps))
 if args.dt<0:
-	raise ValueError('Cannot set a negative dt (it is %d)'.format(args.dt))
+	raise ValueError('Cannot set a negative dt (it is {}})'.format(args.dt))
 if args.dt>0.05:
-	raise ValueError('This dt is too large (it is %d) and the simulations would probably explode'.format(args.dt))
+	raise ValueError('This dt is too large (it is {}) and the simulations would probably explode'.format(args.dt))
 if not args.thermostat=='NVE':
 	if args.temperature<0:
-		raise ValueError('Cannot set a negative temperature (it is %d)'.format(args.temperature))
+		raise ValueError('Cannot set a negative temperature (it is {})'.format(args.temperature))
 	if args.tauT<0:
-		raise ValueError('Cannot set a negative tauT (it is %d)'.format(args.tauT))
+		raise ValueError('Cannot set a negative tauT (it is {})'.format(args.tauT))
 
 ################################################################
 #
@@ -125,7 +125,7 @@ system = hoomd.init.read_gsd(filename=args.filename, restart=backupname, frame=a
 print("| The read configuration has ",len(system.particles)," particles")
 Natoms=len(system.particles)
 if Natoms!=args.Natoms:
-	raise ValueError('The number of particles in the gsd file (Natoms=%d) does not match the one given in command line (args.Natoms=%d)'.format(Natoms,args.Natoms))
+	raise ValueError('The number of particles in the gsd file (Natoms={}) does not match the one given in command line (args.Natoms={})'.format(Natoms,args.Natoms))
 iniStep=hoomd.get_step()
 print("| iframe: ",args.iframe)
 print("| Initial step: ",iniStep)
