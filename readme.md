@@ -1,5 +1,5 @@
 # STRUCTURAL-GLASS  
-# Molecular Dynamics of Supercooled liquids
+# Molecular Dynamics of Supercooled Liquids
 
 A repository for MD simulations of supercooled liquids based on [HOOMD](http://glotzerlab.engin.umich.edu/hoomd-blue/).
 
@@ -92,22 +92,90 @@ Some code written by François Landes. Better versions are available in his gith
 
 ---
 
+---
+
 # Projects
 
+The code is written to be run either on my personal computer, or on a computing cluster (with the SLURM scheduler). This is determined through the `SYSTEM` flag in each script, which can be either `PennPuter` (no scheduler, run online) or `talapas` (with scheduler, run with SLURM-managed queues, option of using GPUs).
+
+Here, I will describe how to manage the main projects, referring to some parameter choices that I made.
+
+---
 ## Noise Correlations
 System size is *N* = 1080.
 
-Temperatures are *T* = **10.0**, **2.0**, (1.0), (0.8), **0.6**, (0.53), (0.49), (0.466), (0.45), (0.44), (0.43).
+Temperatures are *T* = 10.0, <s>5.0</s>, 2.0, 1.0, <s>0.8</s>, 0.6, <s>0.52, 0.49, 0.466, 0.45, 0.44, 0.43</s>.
 
-10 samples per temperature.
+<s>10</s> 5 samples per temperature.
 
 ### Generating Thermalized Configurations
+```
+# Access script directory
+cd ./THERMALIZE/script/
+# Edit script to change simulation parameters, such as temperature (TLIST) and number of samples (nsam)
+emacs ThermalizeN1080.sh
+# Launch thermalization script
+bash ThermalizeN1080.sh
+cd -
+```
+
+The script `ThermalizeN1080.sh` reads the file `./THERMALIZE/data/thermalizationtimes.txt`, which is a table of estimated thermalization times &tau;<sub>est</sub> (from previous runs and from literature arXiv:1203.3392 and arXiv:0805.3104), translates it into number of MD steps, and multiplies it by 10.
+Then, it invokes the program `ReadAndThermalize.py` which takes care of running the remaining amount of steps.
 
 ### Making sure the configurations are well-thermalized
+```
+# Access script directory
+cd ./THERMALIZE/script/
+# Edit script to change simulation parameters, such as temperature (TLIST), number of samples (nsam), system size (N), and more
+emacs CheckThermalizationAll.sh
+# Calculate trajectories and self-intermediate scattering functions for each sample
+bash CheckThermalizationAll.sh
+# Make sure that the script MediasFkt.sh has the right parameters
+emacs MediasFkt.sh
+# Calculate average self-intermediate scattering functions
+bash MediasFkt.sh
+cd -
+# Plot self-intermediate scattering functions
+cd ./PLOTS/
+emacs Fkt.gp # Make sure that the parameters are the correct ones
+gnuplot Fkt.gp
+```
+The script `CheckThermalizationAll.sh` simply loops across parameter choices.
+The script that checks the thermalization is `SelfIntermediateScatteringFunction.sh`, which 
 
-### Running new NVE trajectories for correlation functions
+- runs an NVE trajectory (labeled _ifr0) long &tau;<sub>est</sub>;
+
+- calculates the self intermediate scattering function on the _ifr0 trajectory;
+
+- runs 20 &tau;<sub>est</sub> time steps;
+
+- runs another NVE trajectory (labeled _aftergap) long &tau;<sub>est</sub>;
+
+- calculates the self intermediate scattering function on the _aftergap trajectory;
+
+After this, averages are calculated with `MediasFkt.sh`, which puts the averages just outside the samples' directory. The functions can be plotted with `Fkt.gp`, which in the current state does not save the figures (because I don't want them), so it should be used with the `gnuplot` interactive shell.
+
+
+### Running new NVE (or NVT) trajectories for correlation functions
+Now that we have some well-thermalized configurations, we want to create the trajectories on which to perform measurements. In this case, the parameters can be both hard-coded, or inserted through command line.
+The syntax is
+
+`bash CreateTrajectories.sh [#-of-trajectories-per-sample] ["list of temperatures separated 
+by spaces"] ["sizes separated by spaces"] ["samples separated by spaces"]`
+
+so, for example, if I want to create 15 trajectories at *T*=1.0,0.49 for *N*=1080, for samples 0 through 4, I need to do
+
+`bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"`
+
+The trajectories of each sample can be found in a subdirectory called `trajectories/`.
 
 ### Calculating Average Trivial Correlation Functions
+
+#### Calculate Diagonal Correlations
+
+#### Calculate force and momentum correlations
+
+#### Calculate Self-intermediate scattering function
 
 ### Calculating Noise Correlation Functions
 
