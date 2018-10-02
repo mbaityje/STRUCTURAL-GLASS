@@ -104,7 +104,7 @@ Here, I will describe how to manage the main projects, referring to some paramet
 ## Noise Correlations
 System size is *N* = 1080.
 
-Temperatures are *T* = 10.0, <s>5.0</s>, 2.0, 1.0, <s>0.8</s>, 0.6, <s>0.52, 0.49, 0.466, 0.45, 0.44, 0.43</s>.
+Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, <s>0.8</s>, 0.6, <s>0.52, 0.49, 0.466, 0.45, 0.44, 0.43</s>.
 
 <s>10</s> 5 samples per temperature.
 
@@ -119,7 +119,7 @@ bash ThermalizeN1080.sh
 cd -
 ```
 
-The script `ThermalizeN1080.sh` reads the file `./THERMALIZE/data/thermalizationtimes.txt`, which is a table of estimated thermalization times &tau;<sub>est</sub> (from previous runs and from literature arXiv:1203.3392 and arXiv:0805.3104), translates it into number of MD steps, and multiplies it by 10.
+The script `ThermalizeN1080.sh` reads the file `./THERMALIZE/data/thermalizationtimes.txt`, which is a table of estimated thermalization times &tau;<sub>est</sub> (from previous runs and from literature [arXiv:1203.3392](https://arxiv.org/pdf/1203.3392.pdf) and [arXiv:0805.3104](https://arxiv.org/pdf/0805.3104.pdf)), translates it into number of MD steps, and multiplies it by 10.
 Then, it invokes the program `ReadAndThermalize.py` which takes care of running the remaining amount of steps.
 
 ### Making sure the configurations are well-thermalized
@@ -139,6 +139,7 @@ cd -
 cd ./PLOTS/
 emacs Fkt.gp # Make sure that the parameters are the correct ones
 gnuplot Fkt.gp
+cd -
 ```
 The script `CheckThermalizationAll.sh` simply loops across parameter choices.
 The script that checks the thermalization is `SelfIntermediateScatteringFunction.sh`, which 
@@ -165,19 +166,62 @@ by spaces"] ["sizes separated by spaces"] ["samples separated by spaces"]`
 
 so, for example, if I want to create 15 trajectories at *T*=1.0,0.49 for *N*=1080, for samples 0 through 4, I need to do
 
-`bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"`
+```
+cd ./THERMALIZE/script/
+bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"
+# Default thermostat is NVT Nose-Hoover. To change thermostat use the following syntax.
+thermostat='NVE' bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"
+# Same for the potential mode (xplor is default, other options are shift, no_shift)
+pot_mode='xplor' bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"
+cd -
+```
 
 The trajectories of each sample can be found in a subdirectory called `trajectories/`.
 
 ### Calculating Average Trivial Correlation Functions
+From the previous trajectories, which output .npy files with positions, velocities and accelerations, we can calculate the following correlators:
 
-#### Calculate Diagonal Correlations
+- Calculate short-time correlations: force-force C<sup>FF</sup>(t), force-momentum C<sup>FP</sup>(t), momentum-momentum C<sup>PP</sup>(t). Note: I am actually measuring accelerations and velocities instead of forces and momenta, but in this case there is no difference because the mass is equal to one.
 
-#### Calculate force and momentum correlations
+- Calculate Diagonal Correlations C<sub>d</sub>(t): this is the diagonal part of the self correlation as defined in [arXiv:1705.00036](https://arxiv.org/abs/1705.00036).
 
-#### Calculate Self-intermediate scattering function
+- Calculate Self-intermediate scattering function: it is not critical to calculate it again, but it can be useful to make sure everything is in order.
+
+Of the ones just presented, only C<sup>FP</sup>(t) and C<sup>FF</sup>(t) are necessary to calculate the noise correlations.
+
+
+The same program calculates all of them, but to save calculation time one can restrict the calculation to only few of them ( C<sub>d</sub>(t) is slow to calculate).
+
+```
+cd ./THERMALIZE/script
+#arguments: <observables> <T-list> <N-list> <thermostat-list>
+# To calculate everything at T=5.0,1.0; N=1080
+bash CalculateCorrelations.sh "--msd --Fkt --CFF --CFP --CPP --Cd" "5.0"
+# Only Diagonal correlations, limiting the input data to only two trajectories; at T=5.0,1.0; N=1080
+limit_input=2 bash CalculateCorrelations.sh "--Cd" "5.0 1.0" "1080" "NVT"
+cd -
+```
+The output correlation functions are saved both in binary and text format, in the directory `./OUTPUT/T$T/N$N/`, with self-explanatory names.
 
 ### Calculating Noise Correlation Functions
+At this point, the final step is reading the previously calculated correlation functions, and use them as kernels for calculating the noise correlation function. 
+
+```
+cd ./THERMALIZE/script
+# arguments: <T-list> <N-list> <thermostat-list>
+bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
+# Some options can be given
+# maxtime: reduces the total integration time to maxtime
+# shiftCFP: if not set, nothing happens. If set to anything, shifts CFP so that it is zero at the origin.
+# softening: if not set, nothing happens. If set to anything, introduces a damping term in CFP and CFF so that they are smaller at high times where the signal-to-noise ratio is low.
+maxtime=0.9 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
+cd -
+```
+
+### Yet not implemented
+These are likely the next steps in the code development:
+
+- **Jack-Knife** computation of the errors on the noise correlation function. It could be computationally expensive, since the self-correlation function should be calculated for each Jack-Knife block, so I will leave it to the end.
 
 ---
 
