@@ -18,15 +18,15 @@ iframe=0
 if len(sys.argv)==3:
 	iframe = int(sys.argv[2]) #Which frame
 elif len(sys.argv)!=2:
-    print("ERROR: Launch as:")
-    print("python ",sys.argv[0]," configuration.gsd [ iframe=0]")
-    sys.exit()
+	print("ERROR: Launch as:")
+	print("python ",sys.argv[0]," configuration.gsd [ iframe=0]")
+	sys.exit()
 
 with open(filename, 'rb') as flow:
-    HoomdFlow = gsd.pygsd.GSDFile(flow)
-    hoomdTraj = gsd.hoomd.HOOMDTrajectory(HoomdFlow);
-    s0=hoomdTraj.read_frame(iframe) #This is a snapshot of the initial configuration (frame zero)
-    Natoms=s0.particles.N
-    Nframes = len(hoomdTraj)
+	HoomdFlow = gsd.pygsd.GSDFile(flow)
+	hoomdTraj = gsd.hoomd.HOOMDTrajectory(HoomdFlow);
+	s0=hoomdTraj.read_frame(iframe) #This is a snapshot of the initial configuration (frame zero)
+	Natoms=s0.particles.N
+	Nframes = len(hoomdTraj)
 
 print(s0.configuration.step)
