@@ -169,8 +169,10 @@ so, for example, if I want to create 15 trajectories at *T*=1.0,0.49 for *N*=108
 ```
 cd ./THERMALIZE/script/
 bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"
+
 # Default thermostat is NVT Nose-Hoover. To change thermostat use the following syntax.
 thermostat='NVE' bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"
+
 # Same for the potential mode (xplor is default, other options are shift, no_shift)
 pot_mode='xplor' bash CreateTrajectories.sh 15 "1.0 0.49" "1080" "0 1 2 3 4"
 cd -
@@ -195,8 +197,10 @@ The same program calculates all of them, but to save calculation time one can re
 ```
 cd ./THERMALIZE/script
 #arguments: <observables> <T-list> <N-list> <thermostat-list>
+
 # To calculate everything at T=5.0,1.0; N=1080
 bash CalculateCorrelations.sh "--msd --Fkt --CFF --CFP --CPP --Cd" "5.0"
+
 # Only Diagonal correlations, limiting the input data to only two trajectories; at T=5.0,1.0; N=1080
 limit_input=2 bash CalculateCorrelations.sh "--Cd" "5.0 1.0" "1080" "NVT"
 cd -
@@ -210,11 +214,17 @@ At this point, the final step is reading the previously calculated correlation f
 cd ./THERMALIZE/script
 # arguments: <T-list> <N-list> <thermostat-list>
 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
+
 # Some options can be given
+
 # maxtime: reduces the total integration time to maxtime
+
 # shiftCFP: if not set, nothing happens. If set to anything, shifts CFP so that it is zero at the origin.
+
 # softening: if not set, nothing happens. If set to anything, introduces a damping term in CFP and CFF so that they are smaller at high times where the signal-to-noise ratio is low.
+
 maxtime=0.9 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
+
 cd -
 ```
 
