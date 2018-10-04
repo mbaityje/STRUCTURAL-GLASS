@@ -126,15 +126,19 @@ Then, it invokes the program `ReadAndThermalize.py` which takes care of running 
 ```
 # Access script directory
 cd ./THERMALIZE/script/
+
 # Edit script to change simulation parameters, such as temperature (TLIST), number of samples (nsam), system size (N), and more
 emacs CheckThermalizationAll.sh
+
 # Calculate trajectories and self-intermediate scattering functions for each sample
 bash CheckThermalizationAll.sh
-# Make sure that the script MediasFkt.sh has the right parameters
-emacs MediasFkt.sh
+
 # Calculate average self-intermediate scattering functions
-bash MediasFkt.sh
+# Syntax: bash MediasFkt.sh "T1 T2 ... Tm" "N1 N2 ... Nn"
+# Can also set the potential type by setting the environment variable pot_mode=xplor(default),shift, no_shift
+pot_mode=xplor bash MediasFkt.sh "5.0 2.0 1.0" "1080"
 cd -
+
 # Plot self-intermediate scattering functions
 cd ./PLOTS/
 emacs Fkt.gp # Make sure that the parameters are the correct ones
@@ -214,19 +218,21 @@ At this point, the final step is reading the previously calculated correlation f
 cd ./THERMALIZE/script
 # arguments: <T-list> <N-list> <thermostat-list>
 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
-
-# Some options can be given
-
-# maxtime: reduces the total integration time to maxtime
-
-# shiftCFP: if not set, nothing happens. If set to anything, shifts CFP so that it is zero at the origin.
-
-# softening: if not set, nothing happens. If set to anything, introduces a damping term in CFP and CFF so that they are smaller at high times where the signal-to-noise ratio is low.
-
-maxtime=0.9 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
-
 cd -
 ```
+Some options can be given to the script:
+
+- `maxtime`: reduces the total integration time to maxtime
+
+- `shiftCFP`: if not set, nothing happens. If set to anything, sets to zero the first point of CFP, since C<sup>FP</sup>(t=0)=0
+
+- `softening`: if not set, nothing happens. If set to anything, introduces a damping term in CFP and CFF so that they are smaller at high times where the signal-to-noise ratio is low.
+
+- `tstar`: the non-selfconsistent integration is truncated at tstar (choose tstar so that it is the time after which the kernels are only noise)
+
+For example one can launch in the following way:
+
+`maxtime=0.9 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"`
 
 ### Yet not implemented
 These are likely the next steps in the code development:
