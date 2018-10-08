@@ -19,7 +19,7 @@ let nsamm1=$nsam-1
 dt=0.0025
 backupFreq=`echo 10/$dt|bc`
 hottestT=10.0
-TLIST="1.0" # 0.6"
+TLIST=${1:-"5.0 2.0 1.0 0.8 0.6"}
 
 #DIRECTORIES
 scriptDIR=$PWD
