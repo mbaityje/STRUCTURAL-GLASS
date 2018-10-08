@@ -14,7 +14,7 @@ readonly SYSTEM="PennPuter"
 queue=gpu
 
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
-nsam=10
+if [ -z $nsam ]; then nsam=10; fi
 let nsamm1=$nsam-1
 dt=0.0025
 backupFreq=`echo 10/$dt|bc`
