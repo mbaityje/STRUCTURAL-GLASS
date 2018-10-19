@@ -24,26 +24,19 @@ rootDIR=$PWD/../..
 thermDIR=$rootDIR/THERMALIZE
 exeDIR=$thermDIR/progs
 scriptDIR=$thermDIR/script
+dataDIR=$thermDIR/data
 workDIR=$rootDIR/OUTPUT
 utilDIR=$rootDIR/UTILITIES
 mkdir -p $workDIR
 cd $workDIR
+thermtimesFILE=$dataDIR/thermalizationtimes.txt
 
 echo "Adesso mi trovo in $PWD"
-
-
-#Each T requires a different nsteps
 readonly dt=0.0025
-#Of these nsteps, the following are fine tuned: T=10.0,2.0
-#Originally, they were chosen based on PRE 86, 031502 (2012), Fig.7, but for small N the autocorrelation time is larger
-#T=0.49 and higher are chosen based on my runs at N=65 (better), the others are bases on wild estimates
-#declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5/$dt |bc) ["0.6"]=$(echo 2*10^6/$dt |bc) ["0.49"]=$(echo 1*10^7/$dt |bc) ["0.466"]=$(echo 1*10^8/$dt |bc) ["0.44"]=$(echo 5*10^8/$dt |bc) ["0.43"]=$(echo 5*10^9/$dt |bc) ["0.42"]=$(echo 1*10^10/$dt |bc))
-declare -A NSTEPS_LIST=( ["10.0"]=$(echo 0.5/$dt |bc) ["2.0"]=$(echo 5/$dt |bc) ["0.6"]=$(echo 1000/$dt |bc) ["0.49"]=$(echo 10000/$dt |bc) ["0.466"]=$(echo 10000/$dt |bc) ["0.44"]=$(echo 100000/$dt |bc) ["0.43"]=$(echo 2000/$dt |bc) ["0.42"]=$(echo 4000/$dt |bc))
 
 
 
-
-for Tdir in T0.6 #`ls -d T*|sort -r`
+for Tdir in T5.0 T2.0 T1.0 T0.6 #`ls -d T*|sort -r`
 do
 	T=`echo $Tdir | sed 's/^T//'`
 	
@@ -53,12 +46,15 @@ do
 	echo "T=$T"
 	pwd
 	cd $Tdir
-	nsteps=${NSTEPS_LIST[$T]}
 	
-	for Ndir in N65 #`ls -d N*`
+	for Ndir in N1080 #`ls -d N*`
 	do
 	N=`echo $Ndir | sed 's/^N//'`
 	echo "N=$N"
+
+	tautherm=$(awk -vT=$T -vN=$N '($1==T && $2==N){print $3}' $thermtimesFILE)
+	nsteps=$(echo $tautherm/$dt|bc)
+
 	cd $Ndir
 	for SAMdir in `ls -d S?`
 	do
