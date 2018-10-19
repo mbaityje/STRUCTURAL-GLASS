@@ -1,4 +1,4 @@
-# STRUCTURAL-GLASS  
+    # STRUCTURAL-GLASS  
 # Molecular Dynamics of Supercooled Liquids
 
 A repository for MD simulations of supercooled liquids based on [HOOMD](http://glotzerlab.engin.umich.edu/hoomd-blue/).
@@ -35,7 +35,7 @@ No installation is required.
 The repository contains the following directories:
 
 #### ./TUTORIALS/
-I made a series of tutorials. They are self-consistent well-commented pieces of code that face several tasks that are implemented in the production code.
+I made a series of tutorials. They are self-consistent thoroughly commented pieces of code that face several tasks that are implemented in the production code.
 They rely on two directories:  
 -``./TUTORIALS/sample-states/``: contains some initial configurations.   
 -``./TUTORIALS/test-output/``: contains the output of the tutorials.  
@@ -112,10 +112,8 @@ Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, <s>0.8</s>, 0.6, <s>0.52, 0.49, 0.46
 ```
 # Access script directory
 cd ./THERMALIZE/script/
-# Edit script to change simulation parameters, such as temperature (TLIST) and number of samples (nsam)
-emacs ThermalizeN1080.sh
-# Launch thermalization script
-bash ThermalizeN1080.sh
+# Launch thermalization script for T=5.0,2.0 1.0, with 4 samples (default is 10 samples)
+nsam=10 bash ThermalizeN1080.sh "5.0 2.0 1.0"
 cd -
 ```
 
@@ -202,10 +200,10 @@ The same program calculates all of them, but to save calculation time one can re
 cd ./THERMALIZE/script
 #arguments: <observables> <T-list> <N-list> <thermostat-list>
 
-# To calculate everything at T=5.0,1.0; N=1080
-bash CalculateCorrelations.sh "--msd --Fkt --CFF --CFP --CPP --Cd" "5.0"
+# To calculate everything at T=5.0; N=1080 with NVE thermostat
+bash CalculateCorrelations.sh "--msd --Fkt --CFF --CFP --CPP --Cd" "5.0" "1080" "NVE"
 
-# Only Diagonal correlations, limiting the input data to only two trajectories; at T=5.0,1.0; N=1080
+# Only Diagonal correlations, limiting the input data to only two trajectories; at T=5.0,1.0; N=1080 with NVT thermostat
 limit_input=2 bash CalculateCorrelations.sh "--Cd" "5.0 1.0" "1080" "NVT"
 cd -
 ```
@@ -226,18 +224,26 @@ Some options can be given to the script:
 
 - `shiftCFP`: if not set, nothing happens. If set to anything, sets to zero the first point of CFP, since C<sup>FP</sup>(t=0)=0
 
-- `softening`: if not set, nothing happens. If set to anything, introduces a damping term in CFP and CFF so that they are smaller at high times where the signal-to-noise ratio is low.
+- `softening`: if not set, nothing happens. If set to anything, introduces a damping term in CFP and CFF so that they are smaller at high times where the signal-to-noise ratio is low. The implementation I did is sloppy because I don't need this option in the long term.
 
-- `tstar`: the non-selfconsistent integration is truncated at tstar (choose tstar so that it is the time after which the kernels are only noise)
+- `tstar`: the non-selfconsistent integration is truncated at tstar (choose tstar so that it is the time after which the kernels are only noise). The implementation I did is sloppy because I don't need this option in the long term.
+
+- `normalsc`: If set to anything, also calculates the noise correlation function *selfconsistently*.
+
+- `lin`: If set to anything, also calculates the noise correlation function using a *linear* grid.
+
+- `linsc`: If set to anything, also calculates the noise correlation function *selfconsistently* using a *linear* grid.
 
 For example one can launch in the following way:
 
-`maxtime=0.9 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"`
+`maxtime=0.9 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
 
 ### Yet not implemented
 These are likely the next steps in the code development:
 
-- **Jack-Knife** computation of the errors on the noise correlation function. It could be computationally expensive, since the self-correlation function should be calculated for each Jack-Knife block, so I will leave it to the end.
+- **Jack-Knife** computation of the errors on the noise correlation function.
+
+
 
 ---
 
@@ -245,7 +251,7 @@ These are likely the next steps in the code development:
 ## Metabasin Dynamics
 System size is *N* = 65.
 
-Temperatures are *T* = **10.0**, **2.0**, (1.0), (0.8), **0.6**, (0.53), (0.49), (0.466), (0.45), (0.44), (0.43).
+Temperatures are *T* = **10.0**, **2.0**, (1.0), (0.8), **0.6**, (0.52), (0.49), (0.466), (0.45), (0.44), (0.43).
 
 10 samples per temperature.
 
