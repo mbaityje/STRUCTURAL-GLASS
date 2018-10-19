@@ -9,14 +9,14 @@
 # -climbing image starts when a threshold on the error is reached
 # 
 # To display help:
-# python T27-NEBClilmbingImage.py --user="-h"
+# python T28-NEBClimbingImage.py --user="-h"
 #
 # To launch a simulation:
-# python T27-NEBClilmbingImage.py --user="conf1 conf2 --f1=frame1 --f2=frame2 -n=npoints --maxiter=maxiterNEB --alpha=initalpha -k=springConstant"
+# python T28-NEBClimbingImage.py --user="conf1 conf2 --f1=frame1 --f2=frame2 -n=npoints --maxiter=maxiterNEB --alpha=initalpha -k=springConstant"
 #
 # For example:
-# python T27-NEBClilmbingImage.py --user="./sample-states/rotenbergKA_T2.0_N1080.gsd ./sample-states/rotenbergKA_T2.0_N1080.gsd -n20"
-# python T27-NEBClilmbingImage.py --user="../OUTPUT/T0.6/N65/S3/restartChunk139.gsd ../OUTPUT/T0.6/N65/S3/restartChunk141.gsd -n10 --maxiter=200 -k1 --alpha=1e-5"
+# python T28-NEBClimbingImage.py --user="./sample-states/rotenbergKA_T2.0_N1080.gsd ./sample-states/rotenbergKA_T2.0_N1080.gsd -n20"
+# python T28-NEBClimbingImage.py --user="../OUTPUT/T0.6/N65/S3/restartChunk139.gsd ../OUTPUT/T0.6/N65/S3/restartChunk141.gsd -n10 --maxiter=200 -k1 --alpha=1e-5"
 ################################################################
 
 

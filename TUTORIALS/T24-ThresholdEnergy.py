@@ -3,7 +3,8 @@
 #
 #
 # DESCRIPTION
-# This example creates many high-temperature configurations and minimizes them. The idea is to see the distribution of the inherent-structure energies, to see if we can define a threshold energy.
+# This example creates many high-temperature configurations and minimizes them. 
+# The idea is to see the distribution of the inherent-structure energies, to see if we can define a threshold energy.
 #
 # To display help:
 # python T24-ThresholdEnergy.py --user="-h"
