@@ -61,6 +61,7 @@ parser.add_argument('--skiprows', type=int, required=False, default=0, help='how
 parser.add_argument('--doridge', action='store_true', help='If activated, calculate ridge between ISs.')
 parser.add_argument('--moreobs', action='store_true', help='If activated, calculate nmoved, msd and q.')
 parser.add_argument('--verbose', action='store_true', help='If activated, print extra information to stdout.')
+parser.add_argument('--trajIS' , action='store_true', help='If activated, saves trajectory of ISs.')
 args = parser.parse_args(more_arguments)
 
 
@@ -74,6 +75,7 @@ print("deltaE   = ",args.deltaE)
 print("doRidge  = ",args.doridge)
 print("moreobs  = ",args.moreobs)
 print("verbose  = ",args.verbose)
+print("trajIS  = ",args.trajIS)
 
 
 
@@ -123,6 +125,9 @@ if(args.ichunk>0):
 	if int(elist_old[len(elist_old)-1][0])!=t0-1: raise ValueError('Discrepacy with the previous chunk:\n elist_old[len(elist_old)-1][0])='+str(int(elist_old[len(elist_old)-1][0]))+', t0-1='+str(t0-1))
 	del elist_old
 
+if args.trajIS:
+	out_trajIS=open("trajIS"+str(args.ichunk)+args.label+".npy", "wb")
+
 ################################################################
 # 
 # Set potential and analyzer
@@ -161,6 +166,17 @@ def Minimize(snap):
 	integrator_fire.disable()
 	return eIS
 
+def MinimizeWithSnap(snap):
+	system.restore_snapshot(snap)
+	fire.cpp_integrator.reset()
+	if not integrator_fire.enabled: integrator_fire.enable()
+	while not(fire.has_converged()):
+		hoomd.run(100)
+	eIS=analyzer.query('potential_energy')
+	snapnew=system.take_snapshot()
+	integrator_fire.disable()
+	return eIS,snapnew
+
 
 def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 	assert(t2>t1)
@@ -168,7 +184,11 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 	# If e1 was given as an argument, no need to caclulate it again
 	if (e1==None):
 		e1=Minimize(snap1)
-	e2=Minimize(snap2)
+
+	if args.trajIS:
+		e2,snapis2=MinimizeWithSnap(snap2)
+	else:
+		e2=Minimize(snap2)
 	ediff=np.abs(e1-e2)
 	print("Le due eIS:",t1,e1," ,   ",t2,e2,"       diff=",e1-e2)
 
@@ -190,12 +210,16 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 					qlist['1r'][ridgetime] = med.OverlapPos(    snap1.particles.position, snapRidge.particles.position, L)
 					qlist['r2'][ridgetime] = med.OverlapPos(snapRidge.particles.position,     snap2.particles.position, L)
 		elist[t0+t2]=e2
+		if args.trajIS: 
+			np.save(out_trajIS, np.array([t0+t2, snapis2.particles.position], dtype=object))
 
 		return
 
 	#If they are the same I save and finish
 	if(ediff<args.deltaE):
 		elist[t0+t2]=e2
+		if args.trajIS: 
+			np.save(out_trajIS, np.array([t0+t2, snapis2.particles.position], dtype=object))
 		return
 	# If they are different, I find the intermediate time (that is necessarily
 	# different because I made sure a few lines above), and I bisect both the first
@@ -435,7 +459,12 @@ integrator_fire = md.integrate.nve(group=hoomd.group.all())
 hoomd.run(2)
 
 #List of energies
-elist={t0:Minimize(snap_ini)}
+
+eISini,snapISini=MinimizeWithSnap(snap_ini)
+elist={t0:eISini}
+if args.trajIS:
+	np.save(out_trajIS,np.array([t0, snapISini.particles.position],dtype=object))
+
 if args.doridge:
 	eRidgelist={} # List of ridge energies
 	if args.moreobs:
