@@ -65,9 +65,8 @@ echo "tau_of_t: $tau_of_t"
 #Some hardcoded parameters that I might decide to put as command-line input
 readonly thermostat='NVE'
 readonly tauT=0.1
-readonly Natoms=65
+readonly Natoms=$(python ~/STRUCTURAL-GLASS/UTILITIES/FindNatoms.py ~/STRUCTURAL-GLASS/OUTPUT/T1.0/N1080/S0/thermalized.gsd)
 maxFrames=1000 #The (first) trajectory we construct has at most 1000 frames
-ratio=`echo "$nsteps/$maxFrames" | bc`
 trajFreq=-1000 #A negative trajFreq means we sample -trajFreq logarithmically distributed bins
 
 #
