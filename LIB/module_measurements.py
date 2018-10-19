@@ -230,35 +230,34 @@ def PeriodicInterpPoints(vec_a, vec_b, L, alpha):
 #-------------------------#
 
 ######################################################################
-def OverlapConfs(conf1, conf2,box_size):
+def OverlapConfs(conf1, conf2, box_size, delta=None):
 	"""
 	Overlap with the snapshots as input
 	"""
 	posizioni1=np.array(conf1.particles.position, dtype=np.float64)
 	posizioni2=np.array(conf2.particles.position, dtype=np.float64)
-	return OverlapPos(posizioni1,posizioni2,box_size)
+	return OverlapPos(posizioni1,posizioni2,box_size, delta)
 
 ######################################################################
-def OverlapPos(posizioni1, posizioni2,box_size):
+def OverlapPos(posizioni1, posizioni2,box_size, delta=None):
 	"""
 	Overlap with the positions as input
 	"""
 	disp=PeriodicDisplacement(posizioni1,posizioni2,box_size).sum(axis=1)
-	return OverlapDisp(disp,box_size)
+	return OverlapDisp(disp,box_size, delta)
 
 ######################################################################
-def OverlapDisp(disp,box_size):
+def OverlapDisp(disp,box_size, delta=None):
 	"""
 	Overlap. With the distance between confs as input
 	"""
-	delta=0.1 #1/4 of the smallest particle radius
-	return np.where(disp<delta,1.,0.).sum()/len(disp)
+	if delta==None: delta=0.3 #same value of http://www.pnas.org/content/pnas/106/10/3675.full.pdf
+	return np.where(np.abs(disp)<delta,1.,0.).sum()/len(disp)
 
 ######################################################################
-def HowManyMovedPos(posizioni1, posizioni2,box_size, delta=0.1):
+def HowManyMovedPos(posizioni1, posizioni2,box_size, delta=0.3):
 	"""
 	How many particles moved between posizioni1 and posizioni2.
-	delta=0.1 is 1/4 of the smallest particle radius
 	"""
 	disp=PeriodicDisplacement(posizioni1,posizioni2,box_size).sum(axis=1)
 	return np.where(disp>delta,1.,0.).sum()
