@@ -58,7 +58,7 @@ do
 		do
 			cd $workDIR/T$T/N$N/
 			L="$(python $utilDIR/FindL.py ./S0/thermalized.gsd)"
-			echo "python $exeDIR/CalculateCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat"
+			echo "python $exeDIR/CalculateCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $observables $limit_input"
 			python $exeDIR/CalculateCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $observables $limit_input
 		done
 	done
