@@ -26,6 +26,7 @@ parser.add_argument('--CFF', action='store_true', help='calculate force-force co
 parser.add_argument('--CFP', action='store_true', help='calculate force-momentum correlation function')
 parser.add_argument('--CPP', action='store_true', help='calculate momentum-momentum correlation function')
 parser.add_argument('--Cd' , action='store_true', help='calculate diagonal correlation function')
+parser.add_argument('--ntCd', type=int, required=False, default=30, help='Number of times for the calculation of Cd')
 parser.add_argument('--limit_input' , type=int, required=False, default=None, help='for test runs, limits the amount of input to a small number')
 args = parser.parse_args()
 
@@ -171,8 +172,7 @@ def ReadAll():
 
 
 
-
-def CalculateCorrelations(pos,vel,acc):
+def CalculateCorrelations(times, pos, vel, acc):
 	'''
 	Calculate the desired self-correlation functions
 	'''
@@ -194,7 +194,7 @@ def CalculateCorrelations(pos,vel,acc):
 	if args.CPP: 
 		CPP = np.zeros((ntw, nt), dtype=np.float64)
 	if args.Cd: 
-		Cd = np.zeros((ntw, nt), dtype=np.float64)
+		Cd = np.zeros((ntw, args.ntCd), dtype=np.float64)
 		hoomd.context.initialize('');
 		hoomd.option.set_notice_level(0)
 		system = hoomd.init.read_gsd(filename='./S0/thermalized.gsd')
@@ -203,6 +203,22 @@ def CalculateCorrelations(pos,vel,acc):
 		pair=pot.LJ(md.nlist.cell(), type='KA' if args.Natoms>500 else 'KAshort')
 		snapA=system.take_snapshot()
 		snapB=system.take_snapshot()
+
+	def init_itimesCd(times, nt, ntCd):
+		if ntCd>10:
+			base=41
+			fixedindices=[0,1,2,5, 9,15,22,30,base, nt-1]
+			ntnew=nt-base
+		else:
+			fixedindices=[]
+			ntnew=nt
+			base=0
+		ntCdnew=ntCd-len(fixedindices)
+		offset=13
+		fact=float((ntnew-offset)/(ntCdnew))
+		otherindices=[base+offset+int(itCd*fact) for itCd in range(0,ntCdnew)]
+		print([times[i] for i in np.sort(fixedindices+otherindices)])
+		return np.sort(fixedindices+otherindices)
 
 	# Calculate the correlation functions
 	obs={}
@@ -221,10 +237,12 @@ def CalculateCorrelations(pos,vel,acc):
 			CPP[itw] = np.array([np.mean([np.inner(vel[itw][0][atom],vel[itw][it][atom]) for atom in range(args.Natoms)]) for it in range(nt)])/3.
 		if args.Cd :
 			snapA.particles.position[:] = initialPositions[:] #Deep copy not needed bc there arrays are not modified
-			for it in range(nt):
-				print('\rit:',it)
+			if itw==0: itimesCd=init_itimesCd(times, nt, args.ntCd)
+			for itCd in range(args.ntCd):
+				it=itimesCd[itCd]
+				print('\ritCd:',itCd,'it:',it, 't=',times[it])
 				snapB.particles.position[:] = pos[itw][it]
-				Cd [itw][it]=pair.Cd(snapA=snapA, snapB=snapB, beta=invT)
+				Cd[itw][itCd]=pair.Cd(snapA=snapA, snapB=snapB, beta=invT)
 
 	# Save correlation functions on an array
 	if args.msd: obs['msd']={'mean': np.mean(msd,axis=0), 'err': sem(msd, axis=0)}
@@ -232,7 +250,7 @@ def CalculateCorrelations(pos,vel,acc):
 	if args.CFF: obs['CFF']={'mean': np.mean(CFF,axis=0), 'err': sem(CFF, axis=0)}
 	if args.CFP: obs['CFP']={'mean': np.mean(CFP,axis=0), 'err': sem(CFP, axis=0)}
 	if args.CPP: obs['CPP']={'mean': np.mean(CPP,axis=0), 'err': sem(CPP, axis=0)}
-	if args.Cd : obs['Cd' ]={'mean': np.mean(Cd, axis=0), 'err': sem(Cd , axis=0)}
+	if args.Cd : obs['Cd' ]={'mean': np.mean(Cd, axis=0), 'err': sem(Cd , axis=0), 'times': np.array([times[i] for i in itimesCd]), 'itimes': itimesCd}
 
 	return obs
 
@@ -259,7 +277,7 @@ def WriteCorrelations(times):
 		np.savetxt('CPP_{}.txt'.format(args.thermostat), np.column_stack((times, obs['CPP']['mean'], obs['CPP']['err'])), fmt=['%.14g','%.14g','%.14g'], header='time CPP err')
 		np.save('CPP_{}.npy'.format(args.thermostat), obs['CPP'])
 	if args.Cd :
-		np.savetxt('Cd_{}.txt'.format(args.thermostat) , np.column_stack((times, obs['Cd' ]['mean'], obs['Cd' ]['err'])), fmt=['%.14g','%.14g','%.14g'], header='time Cd err')
+		np.savetxt('Cd_{}.txt'.format(args.thermostat) , np.column_stack((obs['Cd' ]['times'], obs['Cd' ]['mean'], obs['Cd' ]['err'])), fmt=['%.14g','%.14g','%.14g'], header='time Cd err')
 		np.save('Cd_{}.npy'.format(args.thermostat), obs['Cd'])
 	return
 
@@ -267,7 +285,7 @@ def WriteCorrelations(times):
 
 
 (ntw,times,pos,vel,acc)=ReadAll()
-obs=CalculateCorrelations(pos,vel,acc)
+obs=CalculateCorrelations(times,pos,vel,acc)
 WriteCorrelations(times)
 
 
