@@ -238,6 +238,20 @@ For example one can launch in the following way:
 
 `maxtime=0.9 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
 
+### Calculating Friction Coefficients
+
+The friction coefficient is the integral of the autocorrelation function. We can calculate it both on *C*<sub>d</sub>(*t*) and on *K*(*t*).
+
+
+```cd ./THERMALIZE/script
+emacs CalculateFriction.sh #Put the right temperatures
+bash CalculateFriction.sh
+cd -
+```
+
+The frictions as a function of temperature can then be found in `./THERMALIZE/data/frictions.txt` and plotted through `./PLOTS/NoiseCorr.gp`.
+
+
 ### Yet not implemented
 These are likely the next steps in the code development:
 

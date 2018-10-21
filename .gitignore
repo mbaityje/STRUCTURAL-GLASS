@@ -17,6 +17,7 @@ DRAFT
 *.eps
 *.gsd
 *.in
+fit.log
 
 #Temporary files
 MinimizeSegment.txt
