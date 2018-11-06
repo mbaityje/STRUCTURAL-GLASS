@@ -142,12 +142,12 @@ print("------------------------------")
 # SET UP POTENTIAL
 #
 ################################################################
-NeighborsListLJ = md.nlist.cell()
 print("| Setting Kob-Andersen Potential...")
-if Natoms<500:
-	myLjPair=pot.KApotentialShort(NeighborsListLJ, mode=args.pot_mode)
-else:
-	myLjPair=pot.KApotential(NeighborsListLJ, mode=args.pot_mode)
+NeighborsListLJ = md.nlist.cell()
+mypot="KAshort" if Natoms<500 else "KA"
+potential=pot.LJ(NeighborsListLJ, type=mypot)
+
+
 
 ################################################################
 # 

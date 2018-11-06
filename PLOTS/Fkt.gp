@@ -85,6 +85,20 @@ rep 0 lc -1
 p "../OUTPUT/T1.0/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl t "First measurement",\
 "../OUTPUT/T1.0/N1080/Fkt_aftergap_xplor.txt" u 1:2:3 w errorl t "after gap"
 
+#
+# T=0.8
+#
+set title "T=0.8"
+set xlabel "t"
+set ylabel "F_k(t)"
+set logs x
+p for [i=0:9] "../OUTPUT/T0.8/N1080/S".i."/Fkt_ifr0_xplor.txt" u 1:2 w lp t "S".i
+rep "../OUTPUT/T0.8/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl lw 4 lc 0 t "Average"
+rep 0 lc -1
+
+p "../OUTPUT/T0.8/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl t "First measurement",\
+"../OUTPUT/T0.8/N1080/Fkt_aftergap_xplor.txt" u 1:2:3 w errorl t "after gap"
+
 
 
 
@@ -103,6 +117,9 @@ rep 0 lc -1
 
 p "../OUTPUT/T0.6/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl t "First measurement",\
 "../OUTPUT/T0.6/N1080/Fkt_aftergap_xplor.txt" u 1:2:3 w errorl t "after gap"
+
+
+
 
 
 #
