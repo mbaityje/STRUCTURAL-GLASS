@@ -13,7 +13,7 @@
 echo We are at: $(pwd)
 
 
-if [ `hostname` == "PennPuter" ];
+if [ `hostname` == "PennPuter" ] || [ `hostname` == "banshee" ];
 then SYSTEM="PennPuter";
 elif [ `hostname` == "tango" ];
 then SYSTEM="PennPuter";
