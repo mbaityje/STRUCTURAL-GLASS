@@ -125,7 +125,7 @@ def CalculateRelativeDistances(positions, Natoms, L):
 	Takes a vector of n positions.
 	Returns a vector of n(n-1)/2 distances
 	'''
-	distances=np.zeros(Natoms*(Natoms-1)/2,dtype=np.double)
+	distances=np.zeros(int(Natoms*(Natoms-1)/2),dtype=np.double)
 	pos=0
 	for i in range(Natoms-1):
 		distances[pos:pos+Natoms-1-i]+=ParticleDistPBC(positions[i],positions[i+1:],np.array([L,L,L]))
