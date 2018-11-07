@@ -13,7 +13,7 @@ queue=gpu
 #Script Options
 readonly tau_of_t=0 #1: calculate Fkt on all the heavyTraj, 0: calculate Fkt on only the last configuration
 
-if [ `hostname` == "PennPuter" ];
+if [ `hostname` == "PennPuter" ] || [ `hostname` == "banshee" ];
 then SYSTEM="PennPuter";
 elif [ `hostname` == "tango" ];
 then SYSTEM="PennPuter";
@@ -36,7 +36,7 @@ readonly dt=0.0025
 
 
 
-for Tdir in T0.8 #T5.0 T2.0 T1.0 T0.6 #`ls -d T*|sort -r`
+for Tdir in T0.55 #T0.8 T5.0 T2.0 T1.0 T0.6 #`ls -d T*|sort -r`
 do
 	T=`echo $Tdir | sed 's/^T//'`
 	

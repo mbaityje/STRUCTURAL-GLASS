@@ -2,7 +2,7 @@
 
 
 #SYSTEM
-if [ `hostname` == "PennPuter" ];
+if [ `hostname` == "PennPuter" ] || [ `hostname` == "banshee" ];
 then SYSTEM="PennPuter";
 elif [ `hostname` == "tango" ];
 then SYSTEM="PennPuter";

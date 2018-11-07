@@ -2,9 +2,7 @@
 
 
 #SYSTEM
-if [ `hostname` == "PennPuter" ];
-then SYSTEM="PennPuter";
-elif [ `hostname` == "tango" ];
+if [ `hostname` == "PennPuter" ] || [ `hostname` == "banshee" ];
 then SYSTEM="PennPuter";
 else SYSTEM="talapas"; fi
 echo SYSTEM = $SYSTEM

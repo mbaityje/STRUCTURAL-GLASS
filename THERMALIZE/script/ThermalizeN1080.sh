@@ -101,7 +101,7 @@ do
 		if [ $SYSTEM == "PennPuter" ]; then
 		echo `whoami`$USERNAME@`uname -n` > thermalized.time
 		# BEWARE: there is a & at the end of the following command, which means that samples will be run in parallel
-		time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time #&
+		time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time &
 		elif [ $SYSTEM == "talapas" ]; 
 		then
 		nombre=N${Natoms}${PROC_TAG}T${T}i${isam}
