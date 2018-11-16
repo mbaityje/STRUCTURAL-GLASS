@@ -44,7 +44,7 @@ They rely on two directories:
 This directory is not in the repository for storage reasons. However, it is needed, as the data are assumed to be in there.
 
 #### ./THERMALIZE/  
-This is where currently all the code is stored. There are two subfolders
+This is where the main code is stored, and also some data that the code can use. There are three subfolders
 
 - `./THERMALIZE/progs/`:  
 All the programs.
@@ -52,6 +52,9 @@ All the programs.
 
 - `./THERMALIZE/script/`:  
 All the scripts.
+
+- `./THERMALIZE/data/`:  
+Some very summarized data.
 
 #### ./LIB/  
 In this directory I store the few modules that I made for the MD simulations:  
@@ -76,13 +79,13 @@ Currently, there is some code taken from [Ian Dun](https://github.com/iansdunn) 
 
 
 #### ./PLAYGROUND/  
-This directory is where I test new ideas of code. It is meant to be the disordered place where things are born.
+This directory is where I test new ideas of code. It is meant to be the disordered place where things are born. Apeiron.
 
 #### ./PLOTS/  
 Directory devoted to making plots. Not all the plot-making programs are here (in some cases I like to end the simulation with a graph.png), but if a program is purely devoted to plots, then it will be here.
 
 #### ./PAPERS/  
-A directory containing some research papers.
+A directory containing some random research papers.
 
 #### ./UTILITIES/
 Some scripts for doing useful straightforward things, such as extracting instant information from gsd files. Program names are self-explanatory.
@@ -104,7 +107,7 @@ Here, I will describe how to manage the main projects, referring to some paramet
 ## Noise Correlations
 System size is *N* = 1080.
 
-Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, <s>0.8</s>, 0.6, <s>0.52, 0.49, 0.466, 0.45, 0.44, 0.43</s>.
+Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, 0.8, 0.7 0.6, 0.55, <s>0.52, 0.49, 0.466, 0.45, 0.44, 0.43</s>.
 
 <s>10</s> 5 samples per temperature.
 
@@ -112,7 +115,7 @@ Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, <s>0.8</s>, 0.6, <s>0.52, 0.49, 0.46
 ```
 # Access script directory
 cd ./THERMALIZE/script/
-# Launch thermalization script for T=5.0,2.0 1.0, with 4 samples (default is 10 samples)
+# Launch thermalization script for T=5.0,2.0 1.0, with 10 samples (default is 10 samples)
 nsam=10 bash ThermalizeN1080.sh "5.0 2.0 1.0"
 cd -
 ```
@@ -237,6 +240,29 @@ Some options can be given to the script:
 For example one can launch in the following way:
 
 `maxtime=0.9 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
+
+### Consistency checks on Correlations
+
+The noise correlation is the memory kernel of the velocity correlation. Therefore, it must satisfy
+
+C&#x307;<sup>P</sup>(t) = - &int;<sub>0</sub><sup>t</sup> K(t-s) C<sup>P</sup>(s) ds  .
+
+Since 
+
+C&#x307;<sup>P</sup>(t) = -C<sup>FP</sup>(t) = C<sup>PF</sup>(t),
+
+the expression can be rewritten as
+
+C<sup>FP</sup>(t) = &int;<sub>0</sub><sup>t</sup> K(t-s) C<sup>P</sup>(s) ds .
+
+These last two relations can and should be verified numerically.
+
+```
+cd ./THERMALIZE/script
+# bash CorrelationConsistency.sh "temperatures" "sizes" "thermostats"
+bash CorrelationConsistency.sh "5.0 2.0" "1080" "NVE"
+cd -
+```
 
 ### Calculating Friction Coefficients
 
