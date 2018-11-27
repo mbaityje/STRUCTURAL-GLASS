@@ -41,7 +41,7 @@ They rely on two directories:
 -``./TUTORIALS/test-output/``: contains the output of the tutorials.  
 
 #### ./OUTPUT/  
-This directory is not in the repository for storage reasons. However, it is needed, as the data are assumed to be in there.
+This directory is not in the repository for storage reasons. However, it is needed, as the data are assumed to be in there. The directories are organized by temperature, system size, and potential type (e.g. `./OUTPUT/T2.0/N65/xplor/`).
 
 #### ./THERMALIZE/  
 This is where the main code is stored, and also some data that the code can use. There are three subfolders
@@ -108,6 +108,8 @@ Here, I will describe how to manage the main projects, referring to some paramet
 System size is *N* = 1080.
 
 Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, 0.8, 0.7 0.6, 0.55, <s>0.52, 0.49, 0.466, 0.45, 0.44, 0.43</s>.
+
+When doing a new temperature, remember to make the file params.in inside the appropriate output directory.
 
 <s>10</s> 5 samples per temperature.
 
@@ -291,17 +293,58 @@ These are likely the next steps in the code development:
 ## Metabasin Dynamics
 System size is *N* = 65.
 
-Temperatures are *T* = **10.0**, **2.0**, (1.0), (0.8), **0.6**, (0.52), (0.49), (0.466), (0.45), (0.44), (0.43).
+Temperatures are *T* = **10.0**, **5.0**, **2.0**, **1.0**, **0.8**, **0.6**, (0.52), (0.49), (0.466), (0.45), (0.44), (0.43).
 
-10 samples per temperature.
+10 samples per temperature. When doing a new temperature, remember to make the file params.in inside the appropriate output directory.
+
+The potential now is a `shift` Lennard-Jones. For this kind of runs, I chose shift because at some point I might have to calculate a bunch of Hessians.
 
 ### Generating Thermalized Configurations
 
+First of all, we need to thermalize the system.
+
+```
+cd ./THERMALIZE/script
+nsam=10 potential='shift' dt=0.0025 backupFreq=10000 bash ThermalizeForMetabasins.sh "5.0 2.0" "65"
+cd -
+```
+
 ### Making sure the configurations are well-thermalized
+
+Then, we make sure that the configurations are well-thermalized.
+
+```
+# Access script directory
+cd ./THERMALIZE/script/
+
+# Edit script to change simulation parameters, such as temperature (TLIST), number of samples (nsam), system size (N), and more
+emacs CheckThermalizationForMetabasins.sh
+
+# Calculate trajectories and self-intermediate scattering functions for each sample
+bash CheckThermalizationForMetabasins.sh
+
+# Calculate average self-intermediate scattering functions
+# Syntax: bash MediasFkt.sh "T1 T2 ... Tm" "N1 N2 ... Nn"
+# Can also set the potential type by setting the environment variable pot_mode=xplor,shift(default), no_shift
+pot_mode=shift bash MediasFkt.sh "5.0 2.0 1.0" "1080"
+cd -
+
+# Plot self-intermediate scattering functions
+cd ./PLOTS/
+emacs Fkt.gp # Make sure that the parameters are the correct ones
+gnuplot Fkt.gp
+cd -
+```
+
+
 
 ### Running new NVE trajectories with inherent-structure sampling, and calculating barriers with the Ridge Method
 
 ### Calculating barriers with the Nudged Elastic Band method
+
+### Abandoning a metabasin
+
+Starting from a single deep metabasin, I run several trajectories.
 
 
 ---
