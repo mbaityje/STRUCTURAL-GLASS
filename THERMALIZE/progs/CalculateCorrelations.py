@@ -186,8 +186,13 @@ def CalculateCorrelations(times, pos, vel, acc):
 	'''
 	Calculate the desired self-correlation functions
 	'''
-	ntw=len(pos)
-	nt=len(pos[0])
+	print(np.shape(times))
+	print(np.shape(pos))
+	print(np.shape(vel))
+	print(np.shape(acc))
+	print('CalculateCorrelations()')
+	ntw=max(len(pos), len(vel), len(acc)) # Need the max, because either pos,vel and acc are set to [] if when not needed
+	nt=len(times)
 
 	# Initialization
 	if args.msd: 
@@ -229,14 +234,14 @@ def CalculateCorrelations(times, pos, vel, acc):
 		return np.sort(fixedindices+otherindices)
 
 	# Calculate the correlation functions
+	print('Calculating Correlation Functions')
 	obs={}
 	for itw in range(ntw):
-		print('itw:',itw)
-		initialPositions=np.copy(pos[itw][0]) #deep copy actually not needed bc there arrays are not modified
+		print('\ritw:',itw, end='           ')
 		if args.msd:
-			msd[itw] = np.array([med.PeriodicSquareDistance(pos[itw][it], initialPositions, L) for it in range(nt)])/args.Natoms
+			msd[itw] = np.array([med.PeriodicSquareDistance(pos[itw][it], pos[itw][0], L) for it in range(nt)])/args.Natoms
 		if args.Fkt:
-			Fkt[itw] = np.array([med.ComputeFkt(n1, n2, n3, L, med.PeriodicDisplacement(pos[itw][it], initialPositions, L)) for it in range(nt)])
+			Fkt[itw] = np.array([med.ComputeFkt(n1, n2, n3, L, med.PeriodicDisplacement(pos[itw][it], pos[itw][0], L)) for it in range(nt)])
 		if args.CFF:
 			CFF[itw] = np.array([np.mean([np.inner(acc[itw][0][atom],acc[itw][it][atom]) for atom in range(args.Natoms)]) for it in range(nt)])/3.
 		if args.CFP:
@@ -244,13 +249,14 @@ def CalculateCorrelations(times, pos, vel, acc):
 		if args.CPP:
 			CPP[itw] = np.array([np.mean([np.inner(vel[itw][0][atom],vel[itw][it][atom]) for atom in range(args.Natoms)]) for it in range(nt)])/3.
 		if args.Cd :
-			snapA.particles.position[:] = initialPositions[:] #Deep copy not needed bc there arrays are not modified
+			snapA.particles.position[:] = pos[itw][0][:] #Deep copy not needed bc there arrays are not modified
 			if itw==0: itimesCd=init_itimesCd(times, nt, args.ntCd)
 			for itCd in range(args.ntCd):
 				it=itimesCd[itCd]
-				print('\ritCd:',itCd,'it:',it, 't=',times[it])
+				print('\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bitCd:',itCd,'it:',it, 't=',times[it])
 				snapB.particles.position[:] = pos[itw][it]
 				Cd[itw][itCd]=pair.Cd(snapA=snapA, snapB=snapB, beta=invT)
+	print('')
 
 	# Save correlation functions on an array
 	if args.msd: obs['msd']={'mean': np.mean(msd,axis=0), 'err': sem(msd, axis=0)}
