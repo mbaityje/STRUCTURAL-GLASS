@@ -239,9 +239,11 @@ Some options can be given to the script:
 
 - `linsc`: If set to anything, also calculates the noise correlation function *selfconsistently* using a *linear* grid.
 
+- `fits`: If set to anything, instead of making interpolations does fits.
+
 For example one can launch in the following way:
 
-`maxtime=0.9 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
+`maxtime=0.9 fits=1 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
 
 ### Consistency checks on Correlations
 
