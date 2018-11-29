@@ -5,8 +5,16 @@ import numpy as np
 import argparse
 from scipy.interpolate import interp1d
 import lib.module_measurements as med
-
 from matplotlib import pyplot as plt
+from lib.beylkin import Beylkin
+
+
+def FitFunction(x, y, ncoef=10):
+	'''Fit function as a sum of exponential functions'''
+	b = Beylkin(decaying=True)
+	b.driver_load(x, y, ncoef)
+	return b.prony_function
+
 
 # READ COMMAND-LINE ARGUMENTS
 parser = argparse.ArgumentParser(prog='python '+sys.argv[0]+' [--hoomd-flags] --user=" HERE YOU PUT THE FOLLOWING ARGUMENTS"', add_help=True)
@@ -23,6 +31,7 @@ parser.add_argument('--softening', action='store_true', help='if invoked, soften
 parser.add_argument('--lin', action='store_true', help='calculate noise correlation on linear grid')
 parser.add_argument('--linsc', action='store_true', help='calculate noise correlation self-consistently on linear grid')
 parser.add_argument('--normalsc', action='store_true', help='calculate noise correlation self-consistently (on generic grid)')
+parser.add_argument('--fits', action='store_true', help='do fits instead of interpolations')
 
 args = parser.parse_args()
 
@@ -80,7 +89,6 @@ if args.softening:
 	CFF.item()['mean'][isoft:]*=[np.exp(-i/100) for i in range(0,nt-isoft)]
 
 
-from scipy.interpolate import interp1d
 def NoiseCorrLinear(times, CFF, CFP, dt=0.0025):
 	'''
 	Calculate noise correlation function on a linear grid, with the non-selfconsistent method.
@@ -95,8 +103,9 @@ def NoiseCorrLinear(times, CFF, CFP, dt=0.0025):
 		return g[i]+dtinvT*temp
 
 	#Interpolate CFF and CFP
-	interpCFF=interp1d(times, CFF, kind='cubic')
-	interpCFP=interp1d(times, CFP, kind='cubic')
+	interpCFF=FitFunction(times, CFF, ncoef=10) if args.fits else interp1d(times, CFF, kind='cubic')
+	interpCFP=FitFunction(times, CFP, ncoef=10) if args.fits else interp1d(times, CFP, kind='cubic')
+
 
 	#Create linear grid and observables on it
 	lineargrid=np.arange(0, times[-1], dt)
@@ -172,7 +181,6 @@ def NoiseCorrSelfConsistentLinear(lineargrid, linearCFF, linearCFP, Kold=None, s
 	return Knew
 
 
-from scipy.interpolate import interp1d
 def NoiseCorr(times, CFF, CFP):
 	'''
 	Calculate noise correlation function on a GENERIC grid, with the non-selfconsistent method.
@@ -186,8 +194,9 @@ def NoiseCorr(times, CFF, CFP):
 		return interpCFP(times[i]-times[j])
 
 	#Interpolate CFF and CFP
-	# interpCFF=interp1d(times, CFF, kind='cubic')
-	interpCFP=interp1d(times, CFP, kind='cubic')
+	# interpCFF= FitFunction(times, CFF, ncoef=10) if args.fits else  interp1d(times, CFF, kind='cubic')
+	interpCFP= FitFunction(times, CFP, ncoef=20) if args.fits else  interp1d(times, CFP, kind='cubic')
+
 
 	#eventualmente mettere istar
 
@@ -214,11 +223,10 @@ from scipy.integrate import quad
 def NoiseCorrSelfConsistent(times, CFF, CFP, Kold=None, maxiter=1000, tstar=None):
 	'''
 	Calculate the noise correlation function through the self-consistent equation.
-	Input must be functions on a linear scale.
 	Kold: initial guess for the correlation function
 	'''
 
-	print('Checking with self-consistent formulation on linear grid')
+	print('Checking with self-consistent formulation on generic grid')
 
 	nt=len(times)
 	if Kold is None:
@@ -232,8 +240,8 @@ def NoiseCorrSelfConsistent(times, CFF, CFP, Kold=None, maxiter=1000, tstar=None
 		maxn=istar # redundant, but notation is important too :P
 	else: maxn=nt
 
-	interpCFP=interp1d(times, CFP, kind='cubic')
-	interpKold=interp1d(times, Kold, kind='cubic')
+	interpCFP  = FitFunction(times, CFP , ncoef=10) if args.fits else interp1d(times, CFP , kind='cubic')
+	interpKold = FitFunction(times, Kold, ncoef=10) if args.fits else interp1d(times, Kold, kind='cubic')
 
 	print('maxn = ',maxn)
 	print('nt = ',nt)
@@ -248,8 +256,9 @@ def NoiseCorrSelfConsistent(times, CFF, CFP, Kold=None, maxiter=1000, tstar=None
 		Kold=interpKold(times)
 		err=np.max(np.abs(Knew-Kold))
 		print("it:",it," err = ",err)
-		if err<1e-8: break
-		interpKold=interp1d(times, Knew, kind='cubic')
+		if err<1e-8: 
+			break
+		interpKold=FitFunction(times, Knew, ncoef=10) if args.fits else interp1d(times, Knew, kind='cubic')
 	return Knew
 
 
