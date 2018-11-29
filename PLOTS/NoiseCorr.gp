@@ -5,24 +5,44 @@
 ########################################
 reset
 
-set title "Normalized Noise Autocorrelations for various T"
+set title "Normalized Noise Autocorrelations for various T (NVT thermostat)"
 set logs x
 set xlabel "time [LJ units]"
 set ylabel "Autocorrelation"
 set key invert
 load '~/.gnuplotting/gnuplot-palettes-master/moreland.pal'
 load '~/.gnuplotting/gnuplot-palettes-master/rdbu.pal'
-plot   "../OUTPUT/T5.0/N1080/noisecorr_NVE.txt" using 1:3 w lp title "T = 5.0" ls 1
-replot "../OUTPUT/T2.0/N1080/noisecorr_NVE.txt" using 1:3 w lp title "T = 2.0" ls 2
-replot "../OUTPUT/T1.0/N1080/noisecorr_NVE.txt" using 1:3 w lp title "T = 1.0" ls 3
-replot "../OUTPUT/T0.6/N1080/noisecorr_NVE.txt" using 1:3 w lp title "T = 0.6" ls 4
+plot   "../OUTPUT/T5.0/N1080/noisecorr_NVT.txt"  using 1:3 w lp title "T = 5.0" ls 1
+replot "../OUTPUT/T2.0/N1080/noisecorr_NVT.txt"  using 1:3 w lp title "T = 2.0" ls 2
+replot "../OUTPUT/T1.0/N1080/noisecorr_NVT.txt"  using 1:3 w lp title "T = 1.0" ls 3
+replot "../OUTPUT/T0.8/N1080/noisecorr_NVT.txt"  using 1:3 w lp title "T = 0.8" ls 4
+replot "../OUTPUT/T0.7/N1080/noisecorr_NVT.txt"  using 1:3 w lp title "T = 0.7" ls 5
+replot "../OUTPUT/T0.6/N1080/noisecorr_NVT.txt"  using 1:3 w lp title "T = 0.6" ls 6
+replot "../OUTPUT/T0.55/N1080/noisecorr_NVT.txt" using 1:3 w lp title "T = 0.55" ls 7
 replot 0 ls 0 notitle
 
-set title "Unnormalized Noise Autocorrelations for various T (with factor 1/T)"
+set title "Normalized Noise Autocorrelations for various T (NVE thermostat)"
+set logs x
+set xlabel "time [LJ units]"
+set ylabel "Autocorrelation"
+set key invert
+load '~/.gnuplotting/gnuplot-palettes-master/moreland.pal'
+load '~/.gnuplotting/gnuplot-palettes-master/rdbu.pal'
+plot   "../OUTPUT/T5.0/N1080/noisecorr_NVE.txt"  using 1:3 w lp title "T = 5.0" ls 1
+replot "../OUTPUT/T2.0/N1080/noisecorr_NVE.txt"  using 1:3 w lp title "T = 2.0" ls 2
+replot "../OUTPUT/T1.0/N1080/noisecorr_NVE.txt"  using 1:3 w lp title "T = 1.0" ls 3
+replot "../OUTPUT/T0.8/N1080/noisecorr_NVE.txt"  using 1:3 w lp title "T = 0.8" ls 4
+replot "../OUTPUT/T0.7/N1080/noisecorr_NVE.txt"  using 1:3 w lp title "T = 0.7" ls 5
+replot "../OUTPUT/T0.6/N1080/noisecorr_NVE.txt"  using 1:3 w lp title "T = 0.6" ls 6
+replot "../OUTPUT/T0.55/N1080/noisecorr_NVE.txt" using 1:3 w lp title "T = 0.55" ls 7
+replot 0 ls 0 notitle
+
+set title "Unnormalized Noise Autocorrelations for various T (with factor 1/T, NVE thermostat)"
 plot   "../OUTPUT/T5.0/N1080/noisecorr_NVE.txt" using 1:($2/5.0) w lp title "T = 5.0" ls 1
 replot "../OUTPUT/T2.0/N1080/noisecorr_NVE.txt" using 1:($2/2.0) w lp title "T = 2.0" ls 2
 replot "../OUTPUT/T1.0/N1080/noisecorr_NVE.txt" using 1:($2/1.0) w lp title "T = 1.0" ls 3
-replot "../OUTPUT/T0.6/N1080/noisecorr_NVE.txt" using 1:($2/0.6) w lp title "T = 0.6" ls 4
+replot "../OUTPUT/T0.8/N1080/noisecorr_NVE.txt" using 1:($2/0.8) w lp title "T = 0.8" ls 4
+replot "../OUTPUT/T0.6/N1080/noisecorr_NVE.txt" using 1:($2/0.6) w lp title "T = 0.6" ls 5
 replot 0 ls 0 notitle
 
 

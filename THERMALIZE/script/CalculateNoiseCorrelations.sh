@@ -40,8 +40,9 @@ if [ $maxtime   ]; then   maxtime="--maxtime=$maxtime"; fi
 if [ $softening ]; then softening='--softening'       ; fi
 if [ $tstar     ]; then     tstar="--tstar=$tstar"    ; fi
 if [ $normalsc  ]; then  normalsc='--normalsc'        ; fi
-if [ $lin  ]     ; then       lin='--lin'             ; fi
-if [ $linsc  ]   ; then     linsc='--linlsc'          ; fi
+if [ $lin       ]; then       lin='--lin'             ; fi
+if [ $linsc     ]; then     linsc='--linlsc'          ; fi
+if [ $fits      ]; then      fits='--fits'            ; fi
 
 
 
@@ -52,9 +53,10 @@ do
 		for thermostat in $(echo $LISTATHERMOSTAT)
 		do
 			cd $workDIR/T$T/N$N/
-			L="$(python $utilDIR/FindL.py ./S0/thermalized.gsd)"
-			echo python $exeDIR/CalculateNoiseCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $shiftCFP $maxtime $softening $tstar
-			python $exeDIR/CalculateNoiseCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc
+			ls $PWD
+			L=$(python $utilDIR/FindL.py ./S0/thermalized.gsd)
+			echo python $exeDIR/CalculateNoiseCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $shiftCFP $maxtime $softening $tstar $fits
+			python $exeDIR/CalculateNoiseCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits
 		done
 	done
 done

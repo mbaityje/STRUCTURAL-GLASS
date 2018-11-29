@@ -29,6 +29,17 @@ def profile(func, fargs):
 	print("Time elapsed: ",end - start," s")
 	return output
 
+#-------------------------#
+###########################
+#         CHECKS          #
+###########################
+#-------------------------#
+def PosInBox(pos, L):
+	Lm=L*0.5
+	if np.all(np.abs(pos)<Lm): 
+		return True
+	else: 
+		return False
 
 
 #-------------------------#

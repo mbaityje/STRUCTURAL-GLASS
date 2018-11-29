@@ -5,6 +5,7 @@
 #
 # QUEUE PROPERTIES 
 #
+
 readonly PROC_TAG="rt"
 readonly USERNAME=`whoami`
 
@@ -90,29 +91,31 @@ do
 		
 		#It may happen that no initial configuration is available.
 		#In that case, give a warning and skip sample
-		if [ ! -f $initConf ]; then
-		echo "WARNING: $initconf does not exist"
-		cd ..; continue
+		if [ ! -f $initConf ]; 
+		then
+			echo "WARNING: $initconf does not exist"
+			cd ..; continue
 		fi
 		
 		#
 		# Run Python script
 		#
-		if [ $SYSTEM == "PennPuter" ]; then
-		echo `whoami`$USERNAME@`uname -n` > thermalized.time
-		# BEWARE: there is a & at the end of the following command, which means that samples will be run in parallel
-		time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time &
+		if [ $SYSTEM == "PennPuter" ]; 
+		then
+			echo `whoami`$USERNAME@`uname -n` > thermalized.time
+			# BEWARE: there is a & at the end of the following command, which means that samples will be run in parallel
+			time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time &
 		elif [ $SYSTEM == "talapas" ]; 
 		then
-		nombre=N${Natoms}${PROC_TAG}T${T}i${isam}
-		if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
-		then
-			echo "sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch"
-			sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch
-		fi
+			nombre=N${Natoms}${PROC_TAG}T${T}i${isam}
+			if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
+			then
+				echo "sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch"
+				sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch
+			fi
 		else
-		echo "SYSTEM=$SYSTEM not recognized"
-		exit
+			echo "SYSTEM=$SYSTEM not recognized"
+			exit
 		fi
 		echo ""
 		cd ..

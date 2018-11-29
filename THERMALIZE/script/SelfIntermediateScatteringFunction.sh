@@ -26,11 +26,15 @@ elif [ `hostname` == "tango" ];
 then SYSTEM="PennPuter";
 else SYSTEM="talapas"; fi
 
+if [ -z $pot_mode  ]; then readonly pot_mode='shift'; fi #In these runs shift is the default mode
+if [ -z $pot_type  ]; then readonly pot_type='KA'; fi #In these runs Kob-Andersen is the default potential
+
+
 #DIRECTORIES
 if [ $SYSTEM == "talapas" ];
 then rootDIR=/home/mbaity/STRUCTURAL-GLASS/
 else 
-	rootDIR=$PWD/../../../..
+	if [ -z $rootDIR ]; then rootDIR=$PWD/../../../..; fi
 	echo "Setting rootDIR: $rootDIR"
 fi
 thermDIR=$rootDIR/THERMALIZE
@@ -63,9 +67,12 @@ echo "dt = $dt"
 echo "tau_of_t: $tau_of_t"
 
 #Some hardcoded parameters that I might decide to put as command-line input
-readonly thermostat='NVE'
+if [ -z $thermostat ]; then thermostat='NVE'; fi
 readonly tauT=0.1
-readonly Natoms=$(python ~/STRUCTURAL-GLASS/UTILITIES/FindNatoms.py ~/STRUCTURAL-GLASS/OUTPUT/T1.0/N1080/S0/thermalized.gsd)
+readonly Natoms=$(python ~/STRUCTURAL-GLASS/UTILITIES/FindNatoms.py ./thermalized.gsd)
+echo Natoms = $Natoms
+
+
 maxFrames=1000 #The (first) trajectory we construct has at most 1000 frames
 trajFreq=-1000 #A negative trajFreq means we sample -trajFreq logarithmically distributed bins
 
@@ -115,11 +122,11 @@ fi
 #Now we run a simulation of the chosen length, in which the configuration is dumped often
 #
 echo "|--> Creating first trajectory..."
-pot_mode='xplor'
+if [ -z $pot_mode ]; then pot_mode='xplor'; fi
 label="_ifr${iframe}_${pot_mode}"
 rm -f trajectory${label}.gsd
-echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps --startfromzero --pot_mode=$pot_mode\"
-python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps -l$label --startfromzero --pot_mode=$pot_mode"
+echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps --startfromzero --pot_mode=$pot_mode\"
+python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps -l$label --startfromzero --pot_mode=$pot_mode"
 
 #
 # Calculate Fk(t), MSD and tau for the first time
@@ -138,7 +145,7 @@ then
 	filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
 	nstepsgap=`echo 20*${nsteps} | bc`
 	labelgap="_gap_${pot_mode}"
-	python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps -l$labelgap --startfromzero --pot_mode=$pot_mode"
+	python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps -l$labelgap --startfromzero --pot_mode=$pot_mode"
 
 	#
 	# Run 3tau saving the trajectory
@@ -149,7 +156,7 @@ then
 	nstepsaftergap=$nsteps
 	
 	rm -f trajectory${labelaftergap}.gsd
-	python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps -l$labelaftergap --pot_mode=$pot_mode"
+	python $exeDIR/ReadAndThermalize.py --user="$filenameaftergap -N$Natoms -s0 -T$T -t$nstepsaftergap --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps -l$labelaftergap --pot_mode=$pot_mode"
 	
 	
 	#

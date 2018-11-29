@@ -19,7 +19,7 @@ utilDIR=$rootDIR/UTILITIES
 frictionFILE=$dataDIR/friction.txt
 echo "T N friction_noise friction_diag" > $frictionFILE
 
-for T in 5.0 2.0 1.0 0.6
+for T in 5.0 2.0 1.0 0.8 0.7 0.6 0.55
 do
 	for N in 1080
 	do
