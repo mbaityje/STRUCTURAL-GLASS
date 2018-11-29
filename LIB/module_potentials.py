@@ -12,17 +12,18 @@ class LJ:
 	""" A class that contains all the information on the potential
 	type: KA, KAshort
 	"""
-	def __init__(self, NeighborsList, type="KAshort", mode="xplor"):
+	def __init__(self, NeighborsList, type="KAshort", mode="xplor", Lm=None, r_buff=None):
 		
-		if type=="KA":        self.setKA(NeighborsList)
-		elif type=="KAshort": self.setKA(NeighborsList, r_cutoff=1.8, r_buff=0.0)
-		elif type=="LJmono":  self.setLJmono(NeighborsList)
-		else:
-			print("type Non implementato")
-			raise SystemExit
+		self.Lm=Lm
+		self.type=type
+		if type=="KA":       	self.setKA(NeighborsList, r_cutoff=Lm,  r_buff=r_buff, mode=mode)
+		elif type=="KAshort":	self.setKA(NeighborsList, r_cutoff=1.8, r_buff=0.0,    mode=mode)
+		elif type=="LJmono":	self.setLJmono(NeighborsList)
+		else:					raise ValueError("Non implemented potential type %s\n"%type)
  
 	def setKA(self,NeighborsList, r_on_cutoff=1.2, r_cutoff=2.5, r_buff=None, mode="xplor"):
-		assert(mode=="xplor")
+		''' Set Kob-Andersen potential'''
+		self.r_cutoff=2.5 if r_cutoff==None else r_cutoff
 		self.mode=mode
 		self.eps_AA=1
 		self.eps_AB=1.5
@@ -30,22 +31,39 @@ class LJ:
 		self.sig_AA=1
 		self.sig_AB=0.8
 		self.sig_BB=0.88
-		self.r_on_cutoff=r_on_cutoff
-		self.r_cutoff=r_cutoff
-		self.ron_AA=self.r_on_cutoff*self.sig_AA
-		self.ron_AB=self.r_on_cutoff*self.sig_AB
-		self.ron_BB=self.r_on_cutoff*self.sig_BB
 		self.rcut_AA=self.r_cutoff*self.sig_AA
 		self.rcut_AB=self.r_cutoff*self.sig_AB
 		self.rcut_BB=self.r_cutoff*self.sig_BB
+		self.r_buff=r_buff
 		if r_buff!=None:
-			self.r_buff=r_buff
 			NeighborsList.set_params(r_buff=self.r_buff)
-		self.myLjPair = md.pair.lj(r_cut=self.r_cutoff, nlist=NeighborsList)
-		self.myLjPair.pair_coeff.set('A', 'A', epsilon=self.eps_AA, sigma=self.sig_AA, r_cut=self.rcut_AA, r_on=self.ron_AA)
-		self.myLjPair.pair_coeff.set('A', 'B', epsilon=self.eps_AB, sigma=self.sig_AB, r_cut=self.rcut_AB, r_on=self.ron_AB)
-		self.myLjPair.pair_coeff.set('B', 'B', epsilon=self.eps_BB, sigma=self.sig_BB, r_cut=self.rcut_BB, r_on=self.ron_BB)
+		
+		if mode=="xplor":
+			self.r_on_cutoff=r_on_cutoff
+			self.ron_AA=self.r_on_cutoff*self.sig_AA
+			self.ron_AB=self.r_on_cutoff*self.sig_AB
+			self.ron_BB=self.r_on_cutoff*self.sig_BB
+			self.myLjPair = md.pair.lj(r_cut=self.r_cutoff, nlist=NeighborsList)
+			self.myLjPair.pair_coeff.set('A', 'A', epsilon=self.eps_AA, sigma=self.sig_AA, r_cut=self.rcut_AA, r_on=self.ron_AA)
+			self.myLjPair.pair_coeff.set('A', 'B', epsilon=self.eps_AB, sigma=self.sig_AB, r_cut=self.rcut_AB, r_on=self.ron_AB)
+			self.myLjPair.pair_coeff.set('B', 'B', epsilon=self.eps_BB, sigma=self.sig_BB, r_cut=self.rcut_BB, r_on=self.ron_BB)
+		elif mode=="shift" or mode=="no_shift":
+			self.myLjPair = md.pair.lj(r_cut=self.r_cutoff, nlist=NeighborsList)
+			self.myLjPair.pair_coeff.set('A', 'A', epsilon=self.eps_AA, sigma=self.sig_AA, r_cut=self.rcut_AA)
+			self.myLjPair.pair_coeff.set('A', 'B', epsilon=self.eps_AB, sigma=self.sig_AB, r_cut=self.rcut_AB)
+			self.myLjPair.pair_coeff.set('B', 'B', epsilon=self.eps_BB, sigma=self.sig_BB, r_cut=self.rcut_BB)
+		else: 
+			raise ValueError("Non implemented potential type %s\n"%type)
 		self.myLjPair.set_params(mode=self.mode)
+
+		#Calculate potential at rcut to speed up computation -  THIS NEEDS TO BE IMPLEMENTED
+		self.Vpair_of_rcut_AA=self.Vpair(self.rcut_AA, self.eps_AA, self.sig_AA, self.rcut_AA)
+		self.Vpair_of_rcut_AB=self.Vpair(self.rcut_AB, self.eps_AB, self.sig_AB, self.rcut_AB)
+		self.Vpair_of_rcut_BB=self.Vpair(self.rcut_BB, self.eps_BB, self.sig_BB, self.rcut_BB)
+
+	def Vpair_of_rcut(self):
+		raise NotImplementedError('Vpair_of_rcut not implemented. It requires reformulating the class a little: the function calls should only specifies the types (so the parameters should be in dictionaries).')
+		return
 
 	def setLJmono(self, NeighborsList):
 		self.eps=1
@@ -57,17 +75,19 @@ class LJ:
 	def GetLJpair(self):
 		return self.myLjPair
 
-	#XPLOR smoothing function
 	def S(self, r, r_on, r_cut):
-		assert(r>0)
+		'''XPLOR smoothing function'''
+		if r<=0:
+			raise ValueError('potential - S() - r=%g not admitted. Must be greater than 0.'%r)
 		if r<r_on:
 			return 1
 		elif r>r_cut:
 			return 0
 		else:
 			return self.Stilde(r, r_on, r_cut)
-	#Stilde is the non-trivial part of S
+	
 	def Stilde(self, r, r_on, r_cut):
+		'''Stilde is the non-trivial part of S'''
 		assert(r>r_on)
 		assert(r<r_cut)
 		rc2=r_cut*r_cut
@@ -78,8 +98,9 @@ class LJ:
 		term3=rc2 - ro2
 		return (term1*term1*term2)/(term3*term3*term3)
 
-	#For the derivative of S, I only consider the non-trivial part
+	
 	def StildePrime(self, r, r_on, r_cut):
+		'''For the derivative of S, I only consider the non-trivial part, since the rest has zero derivative'''
 		assert(r>r_on)
 		assert(r<r_cut)
 		rc2=r_cut*r_cut
@@ -89,8 +110,9 @@ class LJ:
 		term2=ro2 - r2
 		term3=rc2 - ro2
 		return 12*r*term1*term2/(term3*term3*term3)
-	#LJ pair pure potential
+
 	def Vpair(self, r, eps, sigma, r_cut):
+		'''LJ pair pure potential'''
 		assert(r>0)
 		if r>=r_cut:
 			return 0
@@ -99,8 +121,9 @@ class LJ:
 			temp=sigma_on_r*sigma_on_r
 			sigma_on_r6=temp*temp*temp
 			return 4*eps*(sigma_on_r6*sigma_on_r6 - sigma_on_r6)
-	#Derivative of the LJ pair pure potential
+
 	def VpairPrime(self, r, eps, sigma, r_cut):
+		'''Derivative of the LJ pair pure potential'''
 		if r>=r_cut:
 			return 0
 		invr=1./r
@@ -113,23 +136,34 @@ class LJ:
 		return 48*eps*s6*invr8*(0.5 - s6*invr6)
 
 
-	#LJ potential with the XPLOR smoothing
 	def Vij(self, r, eps, sigma, r_on, r_cut):
+		'''LJ potential with the XPLOR smoothing'''
 		if r>=r_cut:
 			return 0
-		if(r_on<r_cut):
-			return self.S(r,r_on,r_cut)*self.Vpair(r,eps, sigma,r_cut)
-		elif(r_on>=r_cut):
+		if self.mode=='xplor':
+			if(r_on<r_cut):
+				return self.S(r,r_on,r_cut)*self.Vpair(r,eps, sigma,r_cut)
+			elif(r_on>=r_cut):
+				return self.Vpair(r,eps,sigma,r_cut)-self.Vpair(r_cut,eps,sigma,r_cut)
+		elif self.mode=='shift':
 			return self.Vpair(r,eps,sigma,r_cut)-self.Vpair(r_cut,eps,sigma,r_cut)
+		elif self.mode=='no_shift':
+			return self.Vpair(r,eps, sigma,r_cut)
+		else:
+			raise NotImplementedError('KA potential mode %s is not implemented'%self.mode)
 
-	#Derivative of the potential with XPLOR smoothing
+
 	def Vprime(self, r, eps, sigma, r_on, r_cut):
+		'''Derivative of the potential with XPLOR smoothing'''
 		if r>=r_cut:
 			return 0
-		elif r<=r_on:
+		if self.mode=='xplor':
+			if r<=r_on:
+				return self.VpairPrime(r, eps, sigma, r_cut)
+			else:
+				return self.VpairPrime(r, eps, sigma, r_cut)*self.Stilde(r,r_on,r_cut)+(self.Vpair(r, eps, sigma, r_cut)*self.StildePrime(r, r_on, r_cut))/r
+		elif self.mode=='shift' or self.mode=='no_shift':
 			return self.VpairPrime(r, eps, sigma, r_cut)
-		else:
-			return self.VpairPrime(r, eps, sigma, r_cut)*self.Stilde(r,r_on,r_cut)+(self.Vpair(r, eps, sigma, r_cut)*self.StildePrime(r, r_on, r_cut))/r
 
 	def Cd(self,snapA, snapB, beta):
 		"""
