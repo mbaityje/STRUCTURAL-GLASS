@@ -81,7 +81,8 @@ parser.add_argument('--backupFreq',type=int, required=False, default=0, help='in
 parser.add_argument('--trajFreq', type=int, required=False, default=0, help='save trajectory every trajFreq steps (default:0, means no trajectory). If negative, use a logarithmic succession of times, where -trajFreq is the number of configurations in the trajectory (or slightly less, since some times two logarithmic times correspond to the same integer time step).')
 parser.add_argument('--iframe', type=int, required=False, default=0, help='Specify from which frame of the gsd file we want the starting configuration (default:0, the first frame)')
 parser.add_argument('-l','--label', required=False, default='thermalized', help='basename for the output files')
-parser.add_argument('--pot_mode', required=False, default='xplor', help='mode for potential (xplor, shift, no_shift)')
+parser.add_argument('--pot_mode', required=False, default='xplor', choices=['no_shift','shift','xplor'], help='mode for potential')
+parser.add_argument('--pot_type', required=False, default='KA', choices=['KA','KAshort','LJmono'], help='type of potential')
 parser.add_argument('--addsteps', action='store_true', help='If activated, nNVTsteps are done from the input configuration. If False, we substract ini_step. [Default: False]')
 parser.add_argument('--startfromzero', action='store_true', help='If activated, the time step is set to zero once the configuration is read. [Default: False]')
 parser.add_argument('--dumpacc', action='store_true', help='If activated, dumps positions, velocities and accelerations in separate .npy files at trajfreq frequency. [Default: False]')
@@ -142,12 +143,9 @@ print("------------------------------")
 # SET UP POTENTIAL
 #
 ################################################################
-print("| Setting Kob-Andersen Potential...")
+print("| Setting potential. type=%s , mode=%s"%(args.pot_type,args.pot_mode))
 NeighborsListLJ = md.nlist.cell()
-mypot="KAshort" if Natoms<500 else "KA"
-potential=pot.LJ(NeighborsListLJ, type=mypot)
-
-
+potential=pot.LJ(NeighborsListLJ, type=args.pot_type, mode=args.pot_mode, r_buff=0, Lm=system.box.Lx*0.5-1e-10)
 
 ################################################################
 # 
