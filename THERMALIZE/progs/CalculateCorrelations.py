@@ -40,6 +40,9 @@ L=args.box_size
 trajDIR='trajectories/'
 MAXTIME=100000 # Maximum trajectory length is usually 1000, so 1e5 far more than enough
 
+readPos = True if (args.msd or args.Fkt or args.Cd) else False
+readVel = True if (args.CPP or args.CFP)            else False
+readAcc = True if (args.CFF or args.CFP)            else False
 
 if not args.Natoms>0: raise ValueError('L ({}) must be positive'.format(args.Natoms))
 if not args.box_size>0: raise ValueError('L ({}) must be positive'.format(args.box_size))
@@ -131,41 +134,48 @@ def ReadAll():
 				entriesOld=entries
 		return obs, ntraj,entriesOld, bad_indices
 
+	def checks(xxx, ntraj, trajlen, name):
+		''' xxx=pos,vel,acc'''
+		print('shape({}): {}'.format(name, np.shape(xxx)))
+		if 3!=np.shape(xxx)[3]: raise ValueError('This should be 3D data, so make sure that the {name} are 3D vectors, instead of {np.shape(xxx)[3]}D')
+		if args.Natoms!=np.shape(xxx)[2]: raise ValueError('Command-line Natoms ('+str(args.Natoms)+') does not match the one read in the {name} binary file ({str(np.shape(xxx)[2])})')
+		if trajlen!=np.shape(xxx)[1]: raise ValueError('trajlen ('+str(trajlen)+') does not match the one read in the {name} binary file ('+str(np.shape(xxx)[1])+')')
+		if ntraj!=np.shape(xxx)[0]: raise ValueError('ntraj ('+str(ntraj)+') does not match the one read in the {name} binary file ('+str(np.shape(xxx)[0])+')')
+		if len(times)  !=trajlen: raise ValueError('len(times) ('+str(len(times))+') is different from trajlen{name} ('+str(trajlen)+')')
+		if ntrajTimes!=ntraj: raise ValueError('ntrajTimes ('+str(ntrajTimes)+') is different from ntraj{name} ('+str(ntraj)+')')
+
+
 	ntrajTimes,times,badTimes=ReadTimes()
 
-	pos, ntrajPos, trajlenPos, badPos=ReadObs('pos')
-	vel, ntrajVel, trajlenVel, badVel=ReadObs('vel')
-	acc, ntrajAcc, trajlenAcc, badAcc=ReadObs('acc')
+	pos, vel, acc=[],[],[]
+	badPos,badVel,badAcc=[],[],[]
+	if readPos:
+		print('ReadPos')
+		pos, ntrajPos, trajlenPos, badPos=ReadObs('pos')
+	if readVel:
+		print('ReadVel')
+		vel, ntrajVel, trajlenVel, badVel=ReadObs('vel')
+	if readAcc:
+		print('ReadAcc')
+		acc, ntrajAcc, trajlenAcc, badAcc=ReadObs('acc')
 	bad_indices=set(badPos+badVel+badAcc+badTimes)
 	print('incomplete indices:',bad_indices)
 	for i in bad_indices:
-		if i<len(pos[i]): del pos[i] # The if is because sometimes there is nothing to remove, since bad indices come from independent lists
-		if i<len(vel[i]): del vel[i]
-		if i<len(acc[i]): del acc[i]
-	ntrajPos -= len(bad_indices)
-	ntrajVel -= len(bad_indices)
-	ntrajAcc -= len(bad_indices)
-	print('shape(pos):',np.shape(pos))
-	if 3!=np.shape(pos)[3]: raise ValueError('This should be 3D data, so make sure that the positions are 3D vectors, instead of '+str(np.shape(pos)[3])+'D')
-	if 3!=np.shape(vel)[3]: raise ValueError('This should be 3D data, so make sure that the velocities are 3D vectors, instead of '+str(np.shape(vel)[3])+'D')
-	if 3!=np.shape(acc)[3]: raise ValueError('This should be 3D data, so make sure that the accelarations are 3D vectors, instead of '+str(np.shape(acc)[3])+'D')
-	if args.Natoms!=np.shape(pos)[2]: raise ValueError('Command-line Natoms ('+str(args.Natoms)+') does not match the one read in the Pos binary file ('+str(np.shape(pos)[2])+')')
-	if args.Natoms!=np.shape(vel)[2]: raise ValueError('Command-line Natoms ('+str(args.Natoms)+') does not match the one read in the Vel binary file ('+str(np.shape(vel)[2])+')')
-	if args.Natoms!=np.shape(acc)[2]: raise ValueError('Command-line Natoms ('+str(args.Natoms)+') does not match the one read in the Acc binary file ('+str(np.shape(acc)[2])+')')
-	if trajlenPos!=np.shape(pos)[1]: raise ValueError('trajlenPos ('+str(trajlenPos)+') does not match the one read in the Pos binary file ('+str(np.shape(pos)[1])+')')
-	if trajlenVel!=np.shape(vel)[1]: raise ValueError('trajlenVel ('+str(trajlenVel)+') does not match the one read in the Vel binary file ('+str(np.shape(vel)[1])+')')
-	if trajlenAcc!=np.shape(acc)[1]: raise ValueError('trajlenAcc ('+str(trajlenAcc)+') does not match the one read in the Acc binary file ('+str(np.shape(acc)[1])+')')
-	if ntrajPos!=np.shape(pos)[0]: raise ValueError('ntrajPos ('+str(ntrajPos)+') does not match the one read in the Pos binary file ('+str(np.shape(pos)[0])+')')
-	if ntrajVel!=np.shape(vel)[0]: raise ValueError('ntrajVel ('+str(ntrajVel)+') does not match the one read in the Vel binary file ('+str(np.shape(vel)[0])+')')
-	if ntrajAcc!=np.shape(acc)[0]: raise ValueError('ntrajAcc ('+str(ntrajAcc)+') does not match the one read in the Acc binary file ('+str(np.shape(acc)[0])+')')
-	if trajlenVel  !=trajlenPos: raise ValueError('trajlenVel ('+str(trajlenVel)+') is different from trajlenPos ('+str(trajlenPos)+')')
-	if trajlenVel  !=trajlenAcc: raise ValueError('trajlenVel ('+str(trajlenVel)+') is different from trajlenAcc ('+str(trajlenAcc)+')')
-	if len(times)!=trajlenAcc: raise ValueError('len(times) ('+str(len(times))+') is different from trajlenAcc ('+str(trajlenAcc)+')')
-	if ntrajVel  !=ntrajPos: raise ValueError('ntrajVel   ('+str(ntrajVel)  +') is different from ntrajPos ('+str(ntrajPos)+')')
-	if ntrajVel  !=ntrajAcc: raise ValueError('ntrajVel   ('+str(ntrajVel)  +') is different from ntrajAcc ('+str(ntrajAcc)+')')
-	if ntrajTimes!=ntrajAcc: raise ValueError('ntrajTimes ('+str(ntrajTimes)+') is different from ntrajAcc ('+str(ntrajAcc)+')')
+		if readPos and i<len(pos[i]): del pos[i] # The if i<len() is because sometimes there is nothing to remove, since bad indices come from independent lists
+		if readVel and i<len(vel[i]): del vel[i]
+		if readAcc and i<len(acc[i]): del acc[i]
 
-	return (ntrajPos, times, pos, vel, acc)
+	if readPos:	
+		ntrajPos -= len(bad_indices)
+		checks(pos, ntrajPos, trajlenPos, 'pos')
+	if readVel:	
+		ntrajVel -= len(bad_indices)
+		checks(vel, ntrajVel, trajlenVel, 'vel')
+	if readAcc:	
+		ntrajAcc -= len(bad_indices)
+		checks(acc, ntrajAcc, trajlenAcc, 'acc')
+
+	return (ntrajTimes, times, pos, vel, acc)
 
 
 
@@ -178,8 +188,6 @@ def CalculateCorrelations(times, pos, vel, acc):
 	'''
 	ntw=len(pos)
 	nt=len(pos[0])
-	if not (ntw==len(vel   ) and ntw==len(acc   )): raise ValueError('In CalculateCorrelations, pos, vel, and acc have different ntw')
-	if not (nt ==len(vel[0]) and nt ==len(acc[0])): raise ValueError('In CalculateCorrelations, pos, vel, and acc have different nt ')
 
 	# Initialization
 	if args.msd: 
