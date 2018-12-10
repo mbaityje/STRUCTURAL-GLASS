@@ -29,6 +29,9 @@ LISTAT=${1:-"5.0"}
 LISTAN=${2:-"1080"}
 LISTATHERMOSTAT=${3:-"NVT"}
 
+if [ $showplots ]; then showplots='--showplots'; fi
+
+
 echo "lista T         : $LISTAT"
 echo "lista N         : $LISTAN"
 echo "lista thermostat: $LISTATHERMOSTAT"
@@ -43,7 +46,7 @@ do
 			ls $PWD
 			for filename in `ls noisecorrJK_${thermostat}_M?.npy`
 			do
-				python $exeDIR/CorrelationConsistencyJK.py $filename --thermostat=$thermostat --showplots
+				python $exeDIR/CorrelationConsistencyJK.py $filename --thermostat=$thermostat $showplots
 			done
 		done
 	done

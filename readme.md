@@ -255,6 +255,13 @@ For example one can launch in the following way:
 
 `maxtime=0.9 fits=1 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
 
+
+If the JackKnife blocks of the trivial correlations were `CalculateCorrelationsJK.sh` produced, then the noise correlations can also be calculated with JK. Use the following script, with analogous syntax of its non-JK counterpart:
+```
+bash CalculateNoiseCorrelationsJK.sh "5.0 2.0" "1080" "NVT"
+```
+
+
 ### Consistency checks on Correlations
 
 The noise correlation is the memory kernel of the velocity correlation. Therefore, it must satisfy
@@ -278,6 +285,13 @@ bash CorrelationConsistency.sh "5.0 2.0" "1080" "NVT"
 cd -
 ```
 
+Consistenct checks can also be done with JackKnife:
+```
+bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
+#If you want to visualize the plots while checking:
+showplots=1 bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
+```
+
 ### Calculating Friction Coefficients
 
 The friction coefficient is the integral of the autocorrelation function. We can calculate it both on *C*<sub>d</sub>(*t*) and on *K*(*t*).
@@ -295,9 +309,9 @@ The frictions as a function of temperature can then be found in `./THERMALIZE/da
 ### Yet not implemented
 These are likely the next steps in the code development:
 
-- **Jack-Knife** computation of the errors on the noise correlation function.
+- Calculate friction with JackKnife.
 
-
+- Plot friction VS temperature.
 
 ---
 
