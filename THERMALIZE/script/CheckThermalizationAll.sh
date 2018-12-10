@@ -62,36 +62,22 @@ do
 			echo "ISAM=$ISAM"
 			cd $SAMdir
 
-			if [ 1 -eq $tau_of_t ] #I never tried this case
+			thermalizeFile=thermalized.gsd
+			if ! [ -f $thermalizeFile ]; then
+				echo "$PWD/$thermalizeFile does not exist"
+				cd ..
+				continue
+			fi
+
+			if [ $SYSTEM == "PennPuter" ]
 			then
-				echo "This option needs to be verified before we use it"
-				exit
-				heavyTrajFile=heavyTraj.gsd
-				Nframes=`python $utilDIR/FindNFrames.py $heavyTrajFile`
-				let Nframesm1=$Nframes-1
-				for iframe in $(seq 0 $Nframesm1)
-				do
-				bash $scriptDIR/SelfIntermediateScatteringFunction.sh $heavyTrajFile $iframe $nsteps $T $dt $tau_of_t
-				done
-
-			else
-				thermalizeFile=thermalized.gsd
-				if ! [ -f $thermalizeFile ]; then
-					echo "$PWD/$thermalizeFile does not exist"
-					cd ..
-					continue
-				fi
-
-				if [ $SYSTEM == "PennPuter" ]
+				pot_mode='xplor' bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
+			elif [ $SYSTEM == "talapas" ]
+			then
+				nombre=N$N${PROC_TAG}T${T}i${ISAM}
+				if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 				then
-					bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
-				elif [ $SYSTEM == "talapas" ]
-				then
-					nombre=N$N${PROC_TAG}T${T}i${ISAM}
-					if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
-					then
-						sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
-					fi
+					sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
 				fi
 			fi
 			cd ..
