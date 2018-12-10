@@ -36,7 +36,7 @@ readonly dt=0.0025
 
 
 
-for Tdir in T0.7 #T0.55 #T0.8 T5.0 T2.0 T1.0 T0.6 #`ls -d T*|sort -r`
+for Tdir in T0.52 #T0.7 #T0.55 #T0.8 T5.0 T2.0 T1.0 T0.6 #`ls -d T*|sort -r`
 do
 	T=`echo $Tdir | sed 's/^T//'`
 	

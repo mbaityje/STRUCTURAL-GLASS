@@ -24,7 +24,7 @@ def NoiseCorr(times, CFF, CFP):
 
 	#Interpolate CFF and CFP
 	# interpCFF= FitFunction(times, CFF, ncoef=10) if args.fits else  interp1d(times, CFF, kind='cubic')
-	interpCFP= FitFunction(times, CFP, ncoef=20) #if args.fits else  interp1d(times, CFP, kind='cubic')
+	interpCFP= FitFunction(times, CFP, ncoef=20) if args.fits else  interp1d(times, CFP, kind='cubic', assume_sorted=True)
 
 	#eventualmente mettere istar
 
@@ -66,8 +66,8 @@ def NoiseCorrSelfConsistent(times, CFF, CFP, Kold=None, maxiter=1000, tstar=None
 		maxn=istar # redundant, but notation is important too :P
 	else: maxn=nt
 
-	interpCFP  = FitFunction(times, CFP , ncoef=10) if args.fits else interp1d(times, CFP , kind='cubic')
-	interpKold = FitFunction(times, Kold, ncoef=10) if args.fits else interp1d(times, Kold, kind='cubic')
+	interpCFP  = FitFunction(times, CFP , ncoef=10) if args.fits else interp1d(times, CFP , kind='cubic', assume_sorted=True)
+	interpKold = FitFunction(times, Kold, ncoef=10) if args.fits else interp1d(times, Kold, kind='cubic', assume_sorted=True)
 
 	print('maxn = ',maxn)
 	print('nt = ',nt)
@@ -86,7 +86,7 @@ def NoiseCorrSelfConsistent(times, CFF, CFP, Kold=None, maxiter=1000, tstar=None
 		plt.show()
 		if err<1e-8: 
 			break
-		interpKold=FitFunction(times, Knew, ncoef=10) if args.fits else interp1d(times, Knew, kind='cubic')
+		interpKold=FitFunction(times, Knew, ncoef=10) if args.fits else interp1d(times, Knew, kind='cubic', assume_sorted=True)
 	return Knew
 
 # READ COMMAND-LINE ARGUMENTS
@@ -103,7 +103,9 @@ parser.add_argument('--tstar', type=float, required=False, default=None, help='n
 parser.add_argument('--shiftCFP', action='store_true', help='if invoked, imposes CFP[0]=0')
 parser.add_argument('--softening', action='store_true', help='if invoked, soften kernels in order to have less signal where signal is crap')
 parser.add_argument('--fits', action='store_true', help='do fits instead of interpolations')
-parser.add_argument('--kind', required=False, choices=['interp','interp_lin','fit'], default='interp', help='thermostat')
+parser.add_argument('--kind', required=False, choices=['interp','interp_lin','fit','combined'], default='interp', help='thermostat')
+parser.add_argument('--ncoef', type=int, required=False, default=10, help='number of coefficients for fits')
+
 
 args = parser.parse_args()
 
@@ -132,6 +134,10 @@ CFF=np.load('CFF_'+str(args.thermostat)+'.npy') # access as CFP.item()['mean']
 CFP=np.load('CFP_'+str(args.thermostat)+'.npy')
 CPP=np.load('CPP_'+str(args.thermostat)+'.npy')
 times=np.load('times_'+str(args.thermostat)+'.npy')
+
+# I want to know the position of t=1 LJ unit
+it_one = np.where(times>=1)[0][0]
+
 nt=len(times)
 if not (len(CFP.item()['mean'])==nt and len(CFF.item()['mean'])==nt and len(CPP.item()['mean'])==nt):
 	raise IndexError('The number of correlations ('+str(len(CFP.item()['mean']))+' or '+str(len(CFF.item()['mean']))+') is inconsistent with the number of times('+str(nt)+')')
@@ -171,16 +177,6 @@ def FitFunction(x, y, ncoef=10):
 	b.driver_load(x, y, ncoef)
 	return b.prony_function
 
-def FuncFromArray(x, y, kind='interp', ncoef=10):
-	if kind == 'interp':
-		return interp1d(x, y, kind='cubic')
-	elif kind == 'interp_lin':
-		return interp1d(x, y, kind='slinear')
-	elif kind == 'fit':
-		return FitFunction(x,y, ncoef=ncoef)
-	else:
-		raise NotImplementedError('FuncFromArray: not implemented option')
-
 def LaplaceSlow(f, p, tmax=np.inf):
 	return quad(lambda t: f(t)*np.exp(-t*p), 0, tmax)[0]
 
@@ -212,25 +208,22 @@ def TransformAntitransform(x, y, ncoef=10, showplots=False, kind='interp', M=3):
 	This tells us if we are in the right parameter range.
 	'''
 
-	#A fine array to check fits
-	delta=x[1]-x[0]
-	xfine=np.arange(x[0], x[-1], delta/10)
 	#The array of laplace space impulses
 	pmin=np.log(2)/x[-1]
-	pmax=2*M*np.log(2)/delta
+	pmax=2*M*np.log(2)/(x[1]-x[0])
 	deltap=2*M*np.log(2)/(x[-1]-x[-2])
 	print('pmin:',pmin,'pmax:',pmax, 'deltap:',deltap)
 	p=np.arange(pmin, pmax+deltap, deltap)
 	p=ListaLogaritmica(pmin, pmax+1e-3, 500)
 
 	# func=FuncFromArray(x, y, kind=kind, ncoef=ncoef)
-	func=FuncFromArray(times, CPP.item()['mean'], kind=kind, ncoef=ncoef)
+	func=FuncFromArray(x, y, kind=kind, ncoef=ncoef)
 
 
 	if showplots:
 		plt.title('Pure function')
 		plt.semilogx(x,y, label='data')
-		plt.semilogx(xfine,func(xfine), label='fit')
+		plt.semilogx(x,func(x), label=kind+' interpolation')
 		plt.legend()
 		plt.show()
 
@@ -239,12 +232,13 @@ def TransformAntitransform(x, y, ncoef=10, showplots=False, kind='interp', M=3):
 	transform=np.ndarray(len(p))
 	for ip in range(len(p)):
 		pp=p[ip]
-		val=LaplaceSlow(func, pp, tmax=x[-1])
-		print('\rpp=%g,  Lf=%g'%(pp,val), end='')
+		tmax=x[-1] if (kind=='interp' or kind=='interp_lin') else np.inf
+		val=LaplaceSlow(func, pp, tmax=tmax)
+		print('\rpp={},  Lf={}'.format(pp, val), end='')
 		transform[ip]=val
 	print('')
 
-	func_transform=FuncFromArray(p, transform, kind=kind, ncoef=ncoef)
+	func_transform=FuncFromArray(p, transform, kind='interp', ncoef=ncoef)
 
 	if showplots:
 		plt.title('Transform')
@@ -266,12 +260,46 @@ def TransformAntitransform(x, y, ncoef=10, showplots=False, kind='interp', M=3):
 	if showplots:
 		plt.title('Pure function')
 		plt.semilogx(x,y, label='data')
-		plt.semilogx(xfine,func(xfine), label='fit')
+		plt.semilogx(x,func(x), label='fit')
 		plt.semilogx(x,antitransform, label='antitransform')
 		plt.legend()
 		plt.show()
 
 	return p,transform, antitransform
+
+def FuncFromArray(x, y, kind='interp', ncoef=10):
+	if kind == 'interp':
+		return interp1d(x, y, kind='cubic', assume_sorted=True)
+	elif kind == 'interp_lin':
+		return interp1d(x, y, kind='slinear', assume_sorted=True)
+	elif kind == 'fit':
+		return FitFunction(x,y, ncoef=ncoef)
+	elif kind == 'combined':
+		tempfunc=interp1d(x, y, kind='cubic', assume_sorted=True)
+		mydelta=(x[it_one]-x[0])/1000
+		xlinear=np.arange(x[0], x[it_one]+mydelta, mydelta)
+		return FitFunction(xlinear,tempfunc(xlinear), ncoef=ncoef)
+	else:
+		raise NotImplementedError('FuncFromArray: not implemented option')
+
+
+
+
+# ELIMINARE (prova per vedere se i fit vengono bene)
+
+# sys.exit('Fine Prova')
+# # b = Beylkin(decaying=True)
+# datapoints=CPP.item()['mean']
+# # b.driver_load(times, datafunc, 10)
+# datafunc=FuncFromArray(times, datapoints, kind='fit', ncoef=10)
+# plt.semilogx(times, datapoints, label='data')
+# t=np.arange(0,times[-1],0.001)
+# plt.semilogx(times,datafunc(times), label='fit')
+# plt.legend()
+# plt.show()
+
+
+
 
 
 
@@ -281,25 +309,22 @@ def TransformAntitransform(x, y, ncoef=10, showplots=False, kind='interp', M=3):
 # HERE STARTS THE PROGRAM #
 #                         #
 
-itmin=80
-cpp=np.copy(CPP.item()['mean'][itmin:])
-tlist=np.copy(times[itmin:])
-
-
-# Calculate noise correlation function on the measurement grid
-# f_volterra = NoiseCorr(times=times, CFF=CFF.item()['mean'], CFP=CFP.item()['mean'])
-
+cpp=np.copy(CPP.item()['mean'])
+tlist=np.copy(times)
 
 # pcff,Lcff,LLcff=TransformAntitransform(times, CFF.item()['mean'], ncoef=10, showplots=True, kind=args.kind)
 # pcfp,Lcfp,LLcfp=TransformAntitransform(times, CFP.item()['mean'], ncoef=10, showplots=True, kind=args.kind)
-pcpp,Lcpp,LLcpp=TransformAntitransform(tlist, cpp, ncoef=9, showplots=True, kind=args.kind)
+pcpp,Lcpp,LLcpp=TransformAntitransform(times, cpp, ncoef=20, showplots=True, kind=args.kind, M=args.M)
+
+
+
 
 LK = np.ndarray(len(Lcpp))
 for ip in range(len(Lcpp)):
 	LK[ip] = ( args.temperature - pcpp[ip]*Lcpp[ip] ) / Lcpp[ip]
 
 LLK=np.ndarray(len(tlist))
-func_LK=FuncFromArray(pcpp, LK, kind=args.kind)
+func_LK=FuncFromArray(pcpp, LK, kind='interp')
 
 for it in range(len(tlist)):
 	tp=tlist[it]
@@ -312,14 +337,27 @@ print('')
 Kvolterra = NoiseCorr(times=times, CFF=CFF.item()['mean'], CFP=CFP.item()['mean'])/args.temperature
 
 plt.title('Noise Correlation')
-plt.semilogx(tlist, LLK, label='$\\frac{kT-sC^P(s)}{C^P(s)}$')
+plt.xlabel('$t$')
+plt.ylabel('$\mathcal{K}(t)$')
+plt.semilogx(times, LLK, label='$\\frac{kT-sC^P(s)}{C^P(s)}$')
 plt.semilogx(times, Kvolterra, label='K(t) [Volterra]')
 plt.legend()
 plt.show()
 
 # Combine Kvolterra with LLK
+tmin=0.0025
+if args.temperature==5.0:
+	tmin=0.027
+if args.temperature==2.0:
+	tmin=0.018
+elif args.temperature==1.0:
+	tmin=0.035
+elif args.temperature==0.8:
+	tmin=0.04
+itmin=np.where(times>=tmin)[0][0]
+
 Kcombine=np.copy(Kvolterra)
-Kcombine[itmin:]=LLK
+Kcombine[itmin:]=LLK[itmin:]
 
 plt.title('Noise Correlation')
 plt.semilogx(times, Kcombine, label='K(t) [Volterra]')
@@ -333,4 +371,4 @@ np.savetxt('noisecorr_{}_combine.txt'.format(args.thermostat),
 			header='time K K/K[0]')
 
 
-fsc=NoiseCorrSelfConsistent(times=times, CFF=CFF.item()['mean'], CFP=CFP.item()['mean'], Kold=Kcombine, tstar=12)
+# fsc=NoiseCorrSelfConsistent(times=times, CFF=CFF.item()['mean'], CFP=CFP.item()['mean'], Kold=Kcombine, tstar=12)

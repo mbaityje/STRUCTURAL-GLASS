@@ -81,9 +81,13 @@ replot "../OUTPUT/T1.0/N1080/noisecorr_NVE.txt" using 1:($3) w lp title "K(t) - 
 norm1=system("awk  '(NR==2){print $2}'  ../OUTPUT/T1.0/N1080/Cd_NVE.txt")
 replot "../OUTPUT/T1.0/N1080/Cd_NVE.txt" using ($1*0.0025):($2/norm1):($3/norm1) w errorl title "C_d(t) - T = 1.0" ls 6
 
-replot "../OUTPUT/T0.6/N1080/noisecorr_NVE.txt" using 1:($3) w lp title "K(t) - T = 0.6" ls 7
+replot "../OUTPUT/T0.8/N1080/noisecorr_NVE.txt" using 1:($3) w lp title "K(t) - T = 0.8" ls 7
+norm08=system("awk  '(NR==2){print $2}'  ../OUTPUT/T0.8/N1080/Cd_NVE.txt")
+replot "../OUTPUT/T0.8/N1080/Cd_NVE.txt" using ($1*0.0025):($2/norm08):($3/norm08) w errorl title "C_d(t) - T = 0.8" ls 8
+
+replot "../OUTPUT/T0.6/N1080/noisecorr_NVE.txt" using 1:($3) w lp title "K(t) - T = 0.6" ls 9
 norm06=system("awk  '(NR==2){print $2}'  ../OUTPUT/T0.6/N1080/Cd_NVE.txt")
-replot "../OUTPUT/T0.6/N1080/Cd_NVE.txt" using ($1*0.0025):($2/norm06):($3/norm5) w errorl title "C_d(t) - T = 0.6" ls 8
+replot "../OUTPUT/T0.6/N1080/Cd_NVE.txt" using ($1*0.0025):($2/norm06):($3/norm06) w errorl title "C_d(t) - T = 0.6" ls 10
 
 
 

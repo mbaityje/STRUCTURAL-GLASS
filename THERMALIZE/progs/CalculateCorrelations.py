@@ -165,6 +165,7 @@ def ReadAll():
 		if readVel and i<len(vel[i]): del vel[i]
 		if readAcc and i<len(acc[i]): del acc[i]
 
+	ntrajTimes -= len(bad_indices)
 	if readPos:	
 		ntrajPos -= len(bad_indices)
 		checks(pos, ntrajPos, trajlenPos, 'pos')

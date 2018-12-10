@@ -242,7 +242,7 @@ class CorrelationConsistency:
 		ax.set_title('$T = $%g'%(self.args.temperature))
 		ax.set_ylabel('$C(t)$')
 		ax.set_xlabel('$t$')
-		ax.set_ylim((-1,1))
+		ax.set_ylim((-1,self.CPP.item()['mean'].max()))
 		ax.legend()
 		plt.show()
 
@@ -272,94 +272,11 @@ class CorrelationConsistency:
 		self.CFPcheckregularized=tempCFP
 
 
-	def CalculateCPPs(self):
-		''' Calculate the laplace transform of CPP'''
-
-		def LaplaceTransform(t, C, s):
-			if len(C)!=len(t): raise ValueError('LaplaceTransform: t and C must have same length')
-			integrand=np.exp(-s*t)*C
-			return integrate.trapz(integrand, x=t)
-
-		self.CPPs=np.ndarray(self.nt)
-		self.Ks=np.ndarray(self.nt)
-		self.Kscheck=self.Ks.copy()
-		for i in range(self.nt):
-			s=self.times[i]
-			print('\ri:',i, end='')
-			valueCPPs=LaplaceTransform(self.times, self.CPP.item()['mean'], s)
-			self.CPPs[i]=valueCPPs
-			self.Ks  [i]=LaplaceTransform(self.times, self.K, s)
-			self.Kscheck[i] = (self.args.temperature-s*valueCPPs)/valueCPPs
-		print('')
-
-		return
-
-	def PlotLaplaceTransforms(self):
-		fig, (ax1,ax2) = plt.subplots(2,1)
-		# ax1.set_ylim(auto=True)
-		ax1.set_ylim(bottom=-0.025, top=0.02)
-		ax1.plot(self.times, self.CPPs, label='$C^{P}(s)$')
-		ax1.set_xscale('log')
-		ax1.set_ylabel('$C^{P}(s)$')
-		ax1.grid()
-
-		# ax2.set_ylim(bottom=0, top=self.Ks.max()+1)
-		ax2.set_xscale('log')
-		ax2.plot(self.times, self.Ks, label='$\mathcal{K}(s)$')
-		ax2.plot(self.times, self.Kscheck, label='$\frac{k_BT-sC^{P}(s)}{C^{P}(s)}$')
-		ax2.set_xlabel('$s$')
-		ax2.set_ylabel('$\mathcal{K}(s)$')
-		ax2.grid()
-		plt.show()
-
-	# def InvertLaplace(self):
-	# 	from mpmath import invertlaplace
-	# 	self.interpCPPs=interp1d(self.times, self.CPPs,kind='cubic')
-	# 	# temp=invertlaplace(interpCPPs, self.times[10], method='talbot')
-	# 	# print(temp)
-
-	# 	# self.fp = lambda p: 1/(p+1)**2
-	# 	self.fp = lambda p: self.interpCPPs(p).item() if (np.imag(p)==0)else 0
-	# 	print(invertlaplace(self.fp,self.times[10],method='talbot'))
-
-	def InvertLaplaceGaverStehfest(self):
-
-		def calc_ak(k,n):
-			binom=scipy.special.binom 
-			suma=0
-			for j in range(int(k+1/2), min(k,n)+1):
-				suma+=binom(n,j)*binom(2*j,j)*binom(j,k-j)*j**(n+1)
-			sign = -1 if (n+k)%2 else 1
-			return suma*sign/np.math.factorial(n)
-
-		self.interpCPPs=interp1d(self.times, self.CPPs,kind='cubic')
-		self.CPPstehfest=np.zeros(self.nt)
-
-		for ix in range(3,self.nt):
-			x=self.times[ix]
-			# print('x:',x)
-			l2onx=np.log(2)/x
-			n=3
-			suma=0
-			for k in range(1, 2*n+1):
-				ak=calc_ak(k,n)
-				# print('ak=',ak, 'k*l2onx=',k*l2onx)
-				suma += ak*self.interpCPPs(k*l2onx)
-			fx=suma*l2onx
-			self.CPPstehfest[ix]=fx
-
-		fig,ax=plt.subplots(1,1)
-		ax.set_xscale('log')
-		ax.plot(self.times,self.CPPstehfest, label='Stehfest')
-		ax.plot(self.times,self.CPP.item()['mean'], label='measured')
-		plt.show()
-
-
 
 if __name__ == "__main__":
 	checks=CorrelationConsistency()
 	checks.ReadArgs()
-	# checks.PrintArgs()
+	checks.PrintArgs()
 	checks.ReadCorrelations()
 	checks.PlotCorrelations()
 	checks.CalculateCPPdot()
@@ -369,9 +286,6 @@ if __name__ == "__main__":
 	checks.PlotCPPcheck()
 	checks.CalculateCFPregularized()
 	checks.PlotCFPcheck()
-	# checks.CalculateCPPs()
-	# checks.PlotLaplaceTransforms()
-	# checks.InvertLaplaceGaverStehfest()
 
 
 

@@ -214,6 +214,16 @@ cd -
 ```
 The output correlation functions are saved both in binary and text format, in the directory `./OUTPUT/T$T/N$N/`, with self-explanatory names.
 
+Alternatively, one can use `CalculateCorrelationsJK.py`. This other program is very similar. It has the advantage of computing the jackknife blocks (to allow statistical analysis) and
+of constructing blocks while reading, which allows for minimal memory usage. The down side is that it is less elastic, and all the input data (the trajectories) have to be very consistent, otherwise it will throw an error. The syntax is the same (there is the extra argument `lblo` for the length of the blocks), though the calculation of C<sub>d</sub>(t) is not implemented because not necessary.
+The script to launch it is `CalculateCorrelationsJK.sh`, which has the same exact syntax as `CalculateCorrelations.sh`, and by default makes 10 JK blocks, which is not a lot, but it saves a lot of memory and computation time.
+
+```
+cd ./THERMALIZE/script
+bash CalculateCorrelationsJK.sh "--CFF --CFP --CPP" "5.0" "1080" "NVT"
+cd -
+```
+
 ### Calculating Noise Correlation Functions
 At this point, the final step is reading the previously calculated correlation functions, and use them as kernels for calculating the noise correlation function. 
 
@@ -264,7 +274,7 @@ These last two relations can and should be verified numerically.
 ```
 cd ./THERMALIZE/script
 # bash CorrelationConsistency.sh "temperatures" "sizes" "thermostats"
-bash CorrelationConsistency.sh "5.0 2.0" "1080" "NVE"
+bash CorrelationConsistency.sh "5.0 2.0" "1080" "NVT"
 cd -
 ```
 
