@@ -125,6 +125,12 @@ cd -
 The script `ThermalizeN1080.sh` reads the file `./THERMALIZE/data/thermalizationtimes.txt`, which is a table of estimated thermalization times &tau;<sub>est</sub> (from previous runs and from literature [arXiv:1203.3392](https://arxiv.org/pdf/1203.3392.pdf) and [arXiv:0805.3104](https://arxiv.org/pdf/0805.3104.pdf)), translates it into number of MD steps, and multiplies it by 10.
 Then, it invokes the program `ReadAndThermalize.py` which takes care of running the remaining amount of steps.
 
+When launching from the cluster (**talapas**), it can be useful to set the queue and the total time for the simulation (backups are done regularly, so it is not a problem if the runtime is shorter than the thermalization time):
+```
+queue=longgpu simTime="1-23:00:00" nsam=10 bash ThermalizeN1080.sh "0.48"
+```
+Default is queue=gpu, simTime="0-02:00:00". The format is days-hours:minutes:seconds.
+
 ### Making sure the configurations are well-thermalized
 ```
 # Access script directory

@@ -10,6 +10,7 @@
 
 #Relevant directories
 #
+PROC_TAG=crtr
 echo We are at: $(pwd)
 
 
@@ -22,7 +23,10 @@ echo SYSTEM = $SYSTEM
 
 #DIRECTORIES
 if [ $SYSTEM == "talapas" ];
-then rootDIR=/home/mbaity/STRUCTURAL-GLASS/
+then 
+	rootDIR=/home/mbaity/STRUCTURAL-GLASS/
+	if [ -z $simTime ]; then simTime="0-06:00:00"; fi
+	if [ -z $queue   ]; then   queue=gpu; fi
 else 
 	rootDIR=$PWD/../..
 	echo "Setting rootDIR: $rootDIR"
@@ -88,7 +92,25 @@ do
 				echo filename: $filename
 				let iframe=$(python $utilDIR/FindNFrames.py $filename)-1
 
-				python $exeDIR/ReadAndThermalize.py --user="$filename -N$N -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=$trajFreq --iframe=$iframe --addsteps -l$labelnew --startfromzero --pot_mode=$pot_mode --dumpacc"
+				if [ $SYSTEM == "PennPuter" ]; 
+				then
+					python $exeDIR/ReadAndThermalize.py --user="$filename -N$N -s0 -T$T -t$nsteps --tau=$tauT --pot_mode=$pot_mode --dt=$dt --thermostat=$thermostat --backupFreq=10000 --heavyTrajFreq=0 --trajFreq=$trajFreq --iframe=$iframe --addsteps -l$labelnew --startfromzero --dumpacc"
+
+
+				elif [ $SYSTEM == "talapas" ]; 
+				then
+					nombre=N${N}${PROC_TAG}T${T}i${isam}
+					if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
+					then
+						sbatch --time=$simTime -p$queue --job-name=$nombre --export=exeDIR=$exeDIR,filename=$filename,N=$N,seed=0,T=$T,nsteps=$nsteps,tauT=$tauT,pot_mode=$pot_mode,dt=$dt,thermostat=$thermostat,backupFreq=10000,heavyTrajFreq=0,startfromzero=$startfromzero,iframe=$iframe,addsteps=$addsteps,labelnew=$labelnew,dumpacc=$dumpacc $scriptDIR/Thermalize.sbatch
+					fi
+				else
+					echo "SYSTEM=$SYSTEM not recognized"
+					exit
+				fi
+
+
+
 			done
 		done
 	done
