@@ -217,27 +217,30 @@ rep 0 lc -1
 p "../OUTPUT/T0.55/N65/shift/Fkt_ifr0_shift.txt" u 1:2:3 w errorl t "First measurement",\
 "../OUTPUT/T0.55/N65/shift/Fkt_aftergap_shift.txt" u 1:2:3 w errorl t "after gap"
 
-
-
-
 #
-# T=0.49
+# T=0.52
 #
-set title "T=0.49"
+set title "T=0.52"
 set xlabel "t"
 set ylabel "F_k(t)"
-set key bottom left
 set logs x
-set xtics format "10^{%T}"
-#Before gap
-p [][0:1] for [i=0:9]"../OUTPUT/T0.49/N65/S".i."/Fkt_ifr0.txt" u 1:2 w lp t "S".i
-rep "../OUTPUT/T0.49/N65/Fkt_ifr0.txt" u 1:2:3 w errorl lw 4 lc 0 t "Average"
-#After gap
-p [][0:1] for [i=0:9]"../OUTPUT/T0.49/N65/S".i."/Fkt_aftergap.txt" u 1:2 w lp t "S".i
-rep "../OUTPUT/T0.49/N65/Fkt_aftergap.txt" u 1:2:3 w errorl lw 4 lc 0 t "Average"
-#Compare averages
-p [][0:1]"../OUTPUT/T0.49/N65/Fkt_ifr0.txt" u 1:2:3 w errorl t "First measurement",\
-"../OUTPUT/T0.49/N65/Fkt_aftergap.txt" u 1:2:3 w errorl t "after gap"
+p for [i=0:9] "../OUTPUT/T0.52/N1080/S".i."/Fkt_ifr0_xplor.txt" u 1:2 w lp t "S".i
+rep "../OUTPUT/T0.52/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl lw 4 lc 0 t "Average"
+rep 0 lc -1
+p "../OUTPUT/T0.52/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl t "First measurement",\
+"../OUTPUT/T0.52/N1080/Fkt_aftergap_xplor.txt" u 1:2:3 w errorl t "after gap"
+set title "T=0.52, N=65"
+set xlabel "t"
+set ylabel "F_k(t)"
+set logs x
+p for [i=0:9] "../OUTPUT/T0.52/N65/shift/S".i."/Fkt_ifr0_shift.txt" u 1:2 w lp t "S".i
+rep "../OUTPUT/T0.52/N65/shift/Fkt_ifr0_shift.txt" u 1:2:3 w errorl lw 4 lc 0 t "Average"
+rep 0 lc -1
+p "../OUTPUT/T0.52/N65/shift/Fkt_ifr0_shift.txt" u 1:2:3 w errorl t "First measurement",\
+"../OUTPUT/T0.52/N65/shift/Fkt_aftergap_shift.txt" u 1:2:3 w errorl t "after gap"
+
+
+
 
 
 
