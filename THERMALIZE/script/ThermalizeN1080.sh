@@ -9,10 +9,10 @@
 readonly PROC_TAG="rt"
 readonly USERNAME=`whoami`
 
-readonly SYSTEM="PennPuter"
-#readonly SYSTEM="talapas"
-
-queue=gpu
+#readonly SYSTEM="PennPuter"
+readonly SYSTEM="talapas"
+if [ -z $simTime ]; then simTime="0-06:00:00"; fi
+if [ -z $queue   ]; then   queue=gpu; fi
 
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
 if [ -z $nsam ]; then nsam=10; fi
@@ -21,6 +21,7 @@ dt=0.0025
 backupFreq=`echo 10/$dt|bc`
 hottestT=10.0
 TLIST=${1:-"5.0 2.0 1.0 0.8 0.6"}
+readonly pot_mode='xplor'
 
 #DIRECTORIES
 scriptDIR=$PWD
@@ -104,14 +105,14 @@ do
 		then
 			echo `whoami`$USERNAME@`uname -n` > thermalized.time
 			# BEWARE: there is a & at the end of the following command, which means that samples will be run in parallel
-			time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time &
+			time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT pot_mode=$pot_mode --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time &
 		elif [ $SYSTEM == "talapas" ]; 
 		then
 			nombre=N${Natoms}${PROC_TAG}T${T}i${isam}
 			if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 			then
 				echo "sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch"
-				sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch
+				sbatch --time=$simTime -p$queue --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,pot_mode=$pot_mode,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch
 			fi
 		else
 			echo "SYSTEM=$SYSTEM not recognized"

@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH -p longgpu # partition (queue) 
 #SBATCH --gres=gpu:1 
-#SBATCH --time=0-06:00:00
+#SBATCH --time=0-02:00:00
 
 
 echo exeDIR: $exeDIR
@@ -12,7 +12,7 @@ echo initConf: $initConf
 echo Natoms: $Natoms
 echo seed: $seed
 echo T: $T
-echo potential: $potential
+echo pot_mode: $pot_mode
 echo totMDsteps: $totMDsteps
 echo tauT: $tauT
 echo dt: $dt
@@ -22,7 +22,7 @@ echo heavyTrajFreq: $heavyTrajFreq
 echo startfromzero: $startfromzero
 
 
-python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --pot_mode=$potential --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq startfromzero" 
+python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --pot_mode=$pot_mode --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero" 
 
 echo "-------------------------------------"
 echo Finished `basename "$0"`
