@@ -1,16 +1,16 @@
 #!/bin/bash
-#SBATCH --ntasks=1
-#SBATCH -p longgpu # partition (queue)
-#SBATCH --gres=gpu:1
 #
 # Takes as input some configurations which are assumed to be well-thermalized.
 # For each of them, runs and saves a series of trajectories.
 # 
 #
 
+module switch anaconda3 anaconda3/4.4.0 #The version of cudatoolkit in future builds is incompatible with hoomd
+
 #Relevant directories
 #
-PROC_TAG=crtr
+readonly PROC_TAG=crtr
+readonly USERNAME=$(whoami)
 echo We are at: $(pwd)
 
 
@@ -24,14 +24,22 @@ echo SYSTEM = $SYSTEM
 #DIRECTORIES
 if [ $SYSTEM == "talapas" ];
 then 
-	rootDIR=/home/mbaity/STRUCTURAL-GLASS/
-	if [ -z $simTime ]; then simTime="0-06:00:00"; fi
-	if [ -z $queue   ]; then   queue=gpu; fi
+    rootDIR=/home/mbaity/STRUCTURAL-GLASS/
+    if [ -z $simTime ]; then simTime="0-06:00:00"; fi
+    if [ -z $queue   ]; then   queue=gpu; fi
+    if [[ $queue == *"gpu"* ]];
+    then
+	gres="--gres=gpu:1";
+	echo "Reserving a GPU";
+    else
+	echo "Reserving only CPU (no GPU)"
+    fi
 else 
-	rootDIR=$PWD/../..
-	echo "Setting rootDIR: $rootDIR"
+    rootDIR=$PWD/../..
+    echo "Setting rootDIR: $rootDIR"
 fi
 thermDIR=$rootDIR/THERMALIZE
+scriptDIR=$thermDIR/script
 exeDIR=$thermDIR/progs
 dataDIR=$thermDIR/data
 workDIR=$rootDIR/OUTPUT
@@ -102,7 +110,7 @@ do
 					nombre=N${N}${PROC_TAG}T${T}i${isam}
 					if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 					then
-						sbatch --time=$simTime -p$queue --job-name=$nombre --export=exeDIR=$exeDIR,filename=$filename,N=$N,seed=0,T=$T,nsteps=$nsteps,tauT=$tauT,pot_mode=$pot_mode,dt=$dt,thermostat=$thermostat,backupFreq=10000,heavyTrajFreq=0,startfromzero=$startfromzero,iframe=$iframe,addsteps=$addsteps,labelnew=$labelnew,dumpacc=$dumpacc $scriptDIR/Thermalize.sbatch
+						sbatch $gres --time=$simTime -p$queue --job-name=$nombre --export=all,exeDIR=$exeDIR,filename=$filename,Natoms=$N,seed=0,T=$T,nsteps=$nsteps,tauT=$tauT,pot_mode=$pot_mode,dt=$dt,thermostat=$thermostat,backupFreq=10000,heavyTrajFreq=0,trajFreq=$trajFreq,iframe=$iframe,addsteps=$addsteps,labelnew=$labelnew,dumpacc=$dumpacc $scriptDIR/CreateTrajectories.sbatch
 					fi
 				else
 					echo "SYSTEM=$SYSTEM not recognized"

@@ -1,10 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=therm
 #SBATCH --ntasks=1
-#SBATCH -p longgpu # partition (queue) 
-#SBATCH --gres=gpu:1 
-#SBATCH --time=0-02:00:00
-
 
 echo exeDIR: $exeDIR
 echo sample: $isam

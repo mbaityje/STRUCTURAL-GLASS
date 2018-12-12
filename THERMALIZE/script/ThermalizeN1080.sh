@@ -2,17 +2,37 @@
 #
 #A partire dalle configurazioni calde ne creo di piu` fredde
 
+module switch anaconda3 anaconda3/4.4.0 #The version of cudatoolkit in future builds is incompatible with hoomd
+
 #
 # QUEUE PROPERTIES 
 #
 
+
 readonly PROC_TAG="rt"
 readonly USERNAME=`whoami`
 
-#readonly SYSTEM="PennPuter"
-readonly SYSTEM="talapas"
-if [ -z $simTime ]; then simTime="0-06:00:00"; fi
-if [ -z $queue   ]; then   queue=gpu; fi
+if [ `hostname` == "PennPuter" ] || [ `hostname` == "banshee" ] || [ `hostname` == "tango" ];
+then SYSTEM="PennPuter";
+else 
+    SYSTEM="talapas"; 
+    if [ -z $simTime ]; then simTime="0-06:00:00"; fi
+    if [ -z $queue   ]; 
+    then   
+	queue=gpu; 
+    fi
+    if [[ $queue == *"gpu"* ]];
+    then 
+	gres="--gres=gpu:1"; 
+	echo "Reserving a GPU";
+    else
+	echo "Reserving only CPU (no GPU)"
+    fi
+fi
+echo SYSTEM = $SYSTEM
+
+
+
 
 #PARAMETERS THAT SHOULD BE AT THE BEGINNING
 if [ -z $nsam ]; then nsam=10; fi
@@ -72,7 +92,7 @@ do
 		else
 			tautherm=$(awk -vT=$T -vN=$Natoms '($1==T && $2==N){print $3}' $thermtimesFILE)
 			tauthermsteps=$(echo $tautherm/$dt|bc)
-			totMDsteps=$(echo 10*$tauthermsteps|bc)
+			totMDsteps=$(echo 12*$tauthermsteps|bc)
 			thermostat=NVT
 			heavyTrajFreq=$tauthermsteps
 			tauT=0.1
@@ -112,7 +132,7 @@ do
 			if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 			then
 				echo "sbatch --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch"
-				sbatch --time=$simTime -p$queue --job-name=$nombre --export=exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,pot_mode=$pot_mode,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch
+				sbatch $gres --time=$simTime -p$queue --job-name=$nombre --export=all,exeDIR=$exeDIR,initConf=$initConf,Natoms=$Natoms,seed="${seed}",T=$T,totMDsteps=$totMDsteps,tauT=$tauT,pot_mode=$pot_mode,dt=$dt,thermostat=$thermostat,backupFreq=$backupFreq,heavyTrajFreq=$heavyTrajFreq,startfromzero=$startfromzero $scriptDIR/Thermalize.sbatch
 			fi
 		else
 			echo "SYSTEM=$SYSTEM not recognized"
