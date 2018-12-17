@@ -1,6 +1,7 @@
 #Heavy Directories and symlinks to directories
 PLOTS/*/
 PLAYGROUND/
+EXPERIMENTS/
 LOGS/
 OUTPUT/
 OUTPUT
@@ -17,6 +18,8 @@ DRAFT
 *.eps
 *.gsd
 *.in
+*.temp
+*.save
 fit.log
 
 #Temporary files
