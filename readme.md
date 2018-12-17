@@ -90,6 +90,9 @@ A directory containing some random research papers.
 #### ./UTILITIES/
 Some scripts for doing useful straightforward things, such as extracting instant information from gsd files. Program names are self-explanatory.
 
+#### ./EXPERIMENTS/  
+Some runs I did to check something specific.
+
 #### ./FRANCOIS/  
 Some code written by François Landes. Better versions are available in his github repository [his git nickname and repository].
 
@@ -344,6 +347,12 @@ cd -
 ### Making sure the configurations are well-thermalized
 
 Then, we make sure that the configurations are well-thermalized.
+```
+cd ./THERMALIZE/script
+emacs CheckThermalizationForMetabasins.sh
+nsam=10 pot_mode='shift' thermostat='NVT' bash CheckThermalizationForMetabasins.sh "5.0 2.0" "65"
+cd -
+```
 
 ```
 # Access script directory

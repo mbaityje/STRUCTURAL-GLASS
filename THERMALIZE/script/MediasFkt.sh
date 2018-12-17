@@ -23,7 +23,9 @@ function average {
 							print t[i],mean,err;}}' $input
 }
 
-
+label='_NVT'
+#label='_NVE'
+#label=''
 for T in $(echo $TLIST)
 do
     for N in $(echo $NLIST)
@@ -38,8 +40,8 @@ do
 	    elif [ $N == 65 ]
 	    then
 		 if [ -z $pot_mode ]; then pot_mode=shift; fi
-		 input=$outDIR/T$T/N$N/$pot_mode/S[0-9]/Fkt_${tipo}_${pot_mode}.txt
-		 output=$outDIR/T$T/N$N/$pot_mode/Fkt_${tipo}_${pot_mode}.txt
+		 input=$outDIR/T$T/N$N/$pot_mode/S[0-9]/Fkt_${tipo}_${pot_mode}$label.txt
+		 output=$outDIR/T$T/N$N/$pot_mode/Fkt_${tipo}_${pot_mode}$label.txt
 	    fi
 	    average $input > $output
 	done

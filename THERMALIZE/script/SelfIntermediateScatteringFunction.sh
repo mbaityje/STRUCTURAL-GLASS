@@ -123,7 +123,7 @@ fi
 #
 echo "|--> Creating first trajectory..."
 if [ -z $pot_mode ]; then pot_mode='xplor'; fi
-label="_ifr${iframe}_${pot_mode}"
+label="_ifr${iframe}_${pot_mode}_${thermostat}"
 rm -f trajectory${label}.gsd
 echo python $exeDIR/ReadAndThermalize.py --user=\"$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps --startfromzero --pot_mode=$pot_mode\"
 python $exeDIR/ReadAndThermalize.py --user="$filename -N$Natoms -s0 -T$T -t$nsteps --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --iframe=$iframe --trajFreq=$trajFreq --addsteps -l$label --startfromzero --pot_mode=$pot_mode"
@@ -144,7 +144,7 @@ then
 	echo "\n|--> Running gap of 20 tau..."
 	filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
 	nstepsgap=`echo 20*${nsteps} | bc`
-	labelgap="_gap_${pot_mode}"
+	labelgap="_gap_${pot_mode}_${thermostat}"
 	python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps -l$labelgap --startfromzero --pot_mode=$pot_mode"
 
 	#
@@ -152,7 +152,7 @@ then
 	#
 	echo "\n|--> Running new trajectory for a new measurement of Fk(t)..."
 	filenameaftergap=$labelgap.gsd #We read from the output of the previous simulation, which is $labelgap.gsd
-	labelaftergap="_aftergap_${pot_mode}"
+	labelaftergap="_aftergap_${pot_mode}_${thermostat}"
 	nstepsaftergap=$nsteps
 	
 	rm -f trajectory${labelaftergap}.gsd

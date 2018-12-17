@@ -36,12 +36,12 @@ thermtimesFILE=$dataDIR/thermalizationtimes.txt
 
 echo "Adesso mi trovo in $PWD"
 readonly dt=0.0025
-pot_mode='shift'
 pot_type='KA'
+pot_mode=${pot_mode:=shift}
+thermostat=${thermostat:=NVT}
 
 
-
-for Tdir in T0.52 #T0.49 T0.48 T0.47 # T10.0 T0.52 T0.5 T5.0 T2.0 T1.0 T0.8 T0.7 T0.6 T0.55 #`ls -d T*|sort -r`
+for Tdir in T0.6 #T0.49 T0.48 T0.47 # T10.0 T0.52 T0.5 T5.0 T2.0 T1.0 T0.8 T0.7 T0.6 T0.55 #`ls -d T*|sort -r`
 do
 	T=`echo $Tdir | sed 's/^T//'`
 	
@@ -77,13 +77,13 @@ do
 
 			if [ $SCHEDULER == "NONE" ]
 			then
-				thermostat='NVT' pot_mode=$pot_mode pot_type=$pot_type rootDIR=$rootDIR bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
+				thermostat=$thermostat pot_mode=$pot_mode pot_type=$pot_type rootDIR=$rootDIR bash $scriptDIR/SelfIntermediateScatteringFunction.sh $thermalizeFile 0 $nsteps $T $dt $tau_of_t
 			elif [ $SCHEDULER == "SLURM" ]
 			then
 				nombre=N$N${PROC_TAG}T${T}i${ISAM}
 				if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 				then
-					thermostat='NVT' pot_mode=$pot_mode pot_type=$pot_type sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
+					thermostat=$thermostat pot_mode=$pot_mode pot_type=$pot_type sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
 				fi
 			fi
 			cd ..
