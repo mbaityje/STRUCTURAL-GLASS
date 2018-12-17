@@ -43,7 +43,6 @@ do
 		for thermostat in $(echo $LISTATHERMOSTAT)
 		do
 			cd $workDIR/T$T/N$N/
-			ls $PWD
 			for filename in `ls noisecorrJK_${thermostat}_M?.npy`
 			do
 				python $exeDIR/CorrelationConsistencyJK.py $filename --thermostat=$thermostat $showplots
