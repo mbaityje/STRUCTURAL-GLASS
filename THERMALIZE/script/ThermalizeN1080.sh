@@ -89,6 +89,7 @@ do
 			heavyTrajFreq=0
 			tauT=1.0
 			initConf=$inistateDIR/initIS.gsd
+			startfromzero='--startfromzero'
 		else
 			tautherm=$(awk -vT=$T -vN=$Natoms '($1==T && $2==N){print $3}' $thermtimesFILE)
 			tauthermsteps=$(echo $tautherm/$dt|bc)
@@ -97,6 +98,7 @@ do
 			heavyTrajFreq=$tauthermsteps
 			tauT=0.1
 			initConf=$hottestTDIR/S$isam/$thermConfName
+			startfromzero=''
 		fi
 
 		#If (partially) thermalized configuration already exists, then continue from there (to be able to make longer thermalization runs)
@@ -104,10 +106,8 @@ do
 		if [ -e $thermConfName ] ;then
 			initConf=$thermConfName
 			echo "Continuing run from $initConf"
-			startfromzero=''
 		else
 			echo "Starting run from $initConf"
-			startfromzero='--startfromzero'
 		fi
 		
 		#It may happen that no initial configuration is available.
@@ -125,7 +125,7 @@ do
 		then
 			echo `whoami`$USERNAME@`uname -n` > thermalized.time
 			# BEWARE: there is a & at the end of the following command, which means that samples will be run in parallel
-			time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT pot_mode=$pot_mode --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time &
+			time (python $exeDIR/ReadAndThermalize.py --user="$initConf -N$Natoms -s$seed -T$T -t$totMDsteps --tauT=$tauT --pot_mode=$pot_mode --dt=$dt --thermostat=$thermostat --backupFreq=$backupFreq --heavyTrajFreq=$heavyTrajFreq $startfromzero"  2>&1) 2>>thermalized.time &
 		elif [ $SYSTEM == "talapas" ]; 
 		then
 			nombre=N${Natoms}${PROC_TAG}T${T}i${isam}
