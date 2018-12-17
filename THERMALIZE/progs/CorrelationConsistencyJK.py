@@ -224,7 +224,9 @@ class CorrelationConsistency:
 
 
 	def WriteCPPcheck(self):
-		np.savetxt('CPPcheck_{}_M{}.txt'.format(args.thermostat,args.M), 
+		import re
+		M=re.match(r'(.*)M(.*).npy', self.args.filenameK).group(2)
+		np.savetxt('CPPcheck_{}_M{}.txt'.format(self.args.thermostat,M), 
 			np.column_stack((
 				self.times, 
 				self.CPPcheck['mean'  ], self.CPPcheck['errJK'  ],

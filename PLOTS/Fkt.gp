@@ -173,6 +173,7 @@ p "../OUTPUT/T0.7/N65/shift/Fkt_ifr0_shift.txt" u 1:2:3 w errorl t "First measur
 #
 # T=0.6
 #
+## N=1080 ##
 set title "T=0.6"
 set xlabel "t"
 set ylabel "F_k(t)"
@@ -184,6 +185,7 @@ rep "../OUTPUT/T0.6/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl lw 4 lc 0 t "Aver
 rep 0 lc -1
 p "../OUTPUT/T0.6/N1080/Fkt_ifr0_xplor.txt" u 1:2:3 w errorl t "First measurement",\
 "../OUTPUT/T0.6/N1080/Fkt_aftergap_xplor.txt" u 1:2:3 w errorl t "after gap"
+## N=  65 ##
 set title "T=0.6, N=65"
 set xlabel "t"
 set ylabel "F_k(t)"
@@ -193,6 +195,21 @@ rep "../OUTPUT/T0.6/N65/shift/Fkt_ifr0_shift.txt" u 1:2:3 w errorl lw 4 lc 0 t "
 rep 0 lc -1
 p "../OUTPUT/T0.6/N65/shift/Fkt_ifr0_shift.txt" u 1:2:3 w errorl t "First measurement",\
 "../OUTPUT/T0.6/N65/shift/Fkt_aftergap_shift.txt" u 1:2:3 w errorl t "after gap"
+# Compare NVE and NVT xplor
+set logs x
+p [][0:1]"../OUTPUT/T0.6/N65/xplor/Fkt_ifr0_xplor_NVT.txt" u 1:2:3 w errorl t "NVT First measurement",\
+"../OUTPUT/T0.6/N65/xplor/Fkt_aftergap_xplor_NVT.txt" u 1:2:3 w errorl t "NVT after gap",\
+"../OUTPUT/T0.6/N65/xplor/Fkt_ifr0_xplor_NVE.txt" u 1:2:3 w errorl t "NVE First measurement",\
+"../OUTPUT/T0.6/N65/xplor/Fkt_aftergap_xplor_NVE.txt" u 1:2:3 w errorl t "NVE after gap"
+# Compare NVE and NVT shift
+set logs x
+p [][0:1]"../OUTPUT/T0.6/N65/shift/Fkt_ifr0_shift_NVT.txt" u 1:2:3 w errorl t "NVT First measurement",\
+"../OUTPUT/T0.6/N65/shift/Fkt_aftergap_shift_NVT.txt" u 1:2:3 w errorl t "NVT after gap",\
+"../OUTPUT/T0.6/N65/shift/Fkt_ifr0_shift_NVE.txt" u 1:2:3 w errorl t "NVE First measurement",\
+"../OUTPUT/T0.6/N65/shift/Fkt_aftergap_shift_NVE.txt" u 1:2:3 w errorl t "NVE after gap"
+
+
+
 
 
 #

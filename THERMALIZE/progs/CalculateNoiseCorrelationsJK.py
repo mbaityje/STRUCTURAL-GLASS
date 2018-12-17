@@ -292,7 +292,7 @@ def NoiseCorrCombine(times, Kvolterra, Klaplace):
 	if args.temperature==5.0:
 		tmin=0.027
 	if args.temperature==2.0:
-		tmin=0.018
+		tmin=0.04
 	elif args.temperature==1.0:
 		tmin=0.035
 	elif args.temperature==0.8:
@@ -327,7 +327,7 @@ for iblo in range(nblo):
 	print('iblo = ',iblo)
 	K['Volterra']['blocksJK'][iblo]=NoiseCorr(times, CFF.item()['blocksJK'][iblo], CFP.item()['blocksJK'][iblo], ncoef=ncoef)/args.temperature
 K['Volterra']['mean']=K['Volterra']['blocksJK'].mean(axis=0)
-K['Volterra']['errJK'] = np.sqrt(nblom1*(np.square(K['Volterra']['blocksJK']).mean(axis=0) - np.square(K['Volterra']['mean']))) #Togliere np.abs
+K['Volterra']['errJK'] = np.sqrt(nblom1*(np.square(K['Volterra']['blocksJK']).mean(axis=0) - np.square(K['Volterra']['mean'])))
 
 
 #
