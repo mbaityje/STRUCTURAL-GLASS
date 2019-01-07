@@ -33,6 +33,7 @@ def NoiseCorr(times, CFF, CFP):
 		temp=kernel(i,i-1)*f[i-1]*(times[i]-times[i-1])
 		for j in range(1, i-1):
 			temp+=(kernel(i,j)*f[j]+kernel(i,j-1)*f[j-1])*(times[j]-times[j-1])
+		# print('temp=',temp)
 		return g[i]+0.5*invT*temp
 
 	#Calculate the Volterra solution
@@ -40,8 +41,8 @@ def NoiseCorr(times, CFF, CFP):
 	for i in range(1, nt):
 		print('\rtrapeze iteration',i, end='')
 		f[i]=trapeze(i)
-		if f[i]>f[0]:
-			raise ValueError('NoiseCorr is giving unphysical values (it is growing)')
+		# if f[i]>f[0]:
+			# raise ValueError('NoiseCorr is giving unphysical values (it is growing)')
 	print('')
 	return f
 
@@ -105,6 +106,7 @@ parser.add_argument('--softening', action='store_true', help='if invoked, soften
 parser.add_argument('--fits', action='store_true', help='do fits instead of interpolations')
 parser.add_argument('--kind', required=False, choices=['interp','interp_lin','fit','combined'], default='interp', help='thermostat')
 parser.add_argument('--ncoef', type=int, required=False, default=10, help='number of coefficients for fits')
+parser.add_argument('--showplots', action='store_true', help='if invoked, shows plots during the calculation (this stops the calculation until the user closes the figure)')
 
 
 args = parser.parse_args()
@@ -180,7 +182,7 @@ def FitFunction(x, y, ncoef=10):
 def LaplaceSlow(f, p, tmax=np.inf):
 	return quad(lambda t: f(t)*np.exp(-t*p), 0, tmax)[0]
 
-def GaverStehfest(ftilde, t, M=3):
+def GaverStehfest(ftilde, t, M):
 	if t==0:
 		print('time t=%g is too small'%t)
 		return np.nan
@@ -202,14 +204,14 @@ def GaverStehfest(ftilde, t, M=3):
 
 
 
-def TransformAntitransform(x, y, ncoef=10, showplots=False, kind='interp', M=3):
+def TransformAntitransform(x, y, M, ncoef=10, showplots=False, kind='interp'):
 	'''
 	Takes an array y(x), Laplace transforms it and antitransforms it.
 	This tells us if we are in the right parameter range.
 	'''
 
 	#The array of laplace space impulses
-	pmin=np.log(2)/x[-1]
+	pmin=np.log(2)/x[-1]-1e-8
 	pmax=2*M*np.log(2)/(x[1]-x[0])
 	deltap=2*M*np.log(2)/(x[-1]-x[-2])
 	print('pmin:',pmin,'pmax:',pmax, 'deltap:',deltap)
@@ -314,7 +316,7 @@ tlist=np.copy(times)
 
 # pcff,Lcff,LLcff=TransformAntitransform(times, CFF.item()['mean'], ncoef=10, showplots=True, kind=args.kind)
 # pcfp,Lcfp,LLcfp=TransformAntitransform(times, CFP.item()['mean'], ncoef=10, showplots=True, kind=args.kind)
-pcpp,Lcpp,LLcpp=TransformAntitransform(times, cpp, ncoef=20, showplots=True, kind=args.kind, M=args.M)
+pcpp,Lcpp,LLcpp=TransformAntitransform(times, cpp, M=args.M, ncoef=args.ncoef, showplots=args.showplots, kind=args.kind)
 
 
 
@@ -336,36 +338,45 @@ print('')
 
 Kvolterra = NoiseCorr(times=times, CFF=CFF.item()['mean'], CFP=CFP.item()['mean'])/args.temperature
 
-plt.title('Noise Correlation')
-plt.xlabel('$t$')
-plt.ylabel('$\mathcal{K}(t)$')
-plt.semilogx(times, LLK, label='$\\frac{kT-sC^P(s)}{C^P(s)}$')
-plt.semilogx(times, Kvolterra, label='K(t) [Volterra]')
-plt.legend()
-plt.show()
+if args.showplots:
+        plt.title('Noise Correlation')
+        plt.xlabel('$t$')
+        plt.ylabel('$\mathcal{K}(t)$')
+        plt.semilogx(times, LLK, label='$\\frac{kT-sC^P(s)}{C^P(s)}$')
+        plt.semilogx(times, Kvolterra, label='K(t) [Volterra]')
+        plt.legend()
+        plt.show()
 
 # Combine Kvolterra with LLK
-tmin=0.0025
+tmin=0.05
 if args.temperature==5.0:
 	tmin=0.027
 if args.temperature==2.0:
-	tmin=0.018
+	tmin=0.042
 elif args.temperature==1.0:
-	tmin=0.035
+	tmin=0.043
 elif args.temperature==0.8:
 	tmin=0.04
+elif args.temperature==0.7:
+	tmin=0.05
+elif args.temperature==0.6:
+	tmin=0.05
+elif args.temperature==0.55:
+	tmin=0.05
 itmin=np.where(times>=tmin)[0][0]
 
 Kcombine=np.copy(Kvolterra)
 Kcombine[itmin:]=LLK[itmin:]
 
-plt.title('Noise Correlation')
-plt.semilogx(times, Kcombine, label='K(t) [Volterra]')
-plt.legend()
-plt.show()
+
+if args.showplots:
+        plt.title('Noise Correlation')
+        plt.semilogx(times, Kcombine, label='K(t) [Combine]')
+        plt.legend()
+        plt.show()
 
 #Same Kcombine
-np.savetxt('noisecorr_{}_combine.txt'.format(args.thermostat), 
+np.savetxt('noisecorr_{}_combine_M{}.txt'.format(args.thermostat,args.M), 
 			np.column_stack((times, Kcombine*args.temperature, Kcombine/Kcombine[0])), 
 			fmt=['%.14g','%.14g','%.14g'], 
 			header='time K K/K[0]')

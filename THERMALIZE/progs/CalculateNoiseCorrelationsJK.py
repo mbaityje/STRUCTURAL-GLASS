@@ -21,6 +21,7 @@ parser.add_argument('-T','--temperature', type=float, required=True, help='Tempe
 parser.add_argument('--thermostat', required=False, default='*', help='thermostat')
 parser.add_argument('--maxtime', type=float, required=False, default='-1.0', help='truncate the time axis at maxtime')
 parser.add_argument('-M','--M', type=int, required=False, default=3, help='2M = #of Gaver-Stehfest coefficients')
+parser.add_argument('--showplots', action='store_true', help='If activated, shows a plot of computed correlations.')
 
 args = parser.parse_args()
 
@@ -314,7 +315,7 @@ K={'Volterra': {'blocksJK': np.ndarray((nblo,nt),dtype=np.float64)}, 'Laplace': 
 print('K(t) with the Laplace method')
 for iblo in range(nblo):
 	print('iblo = ',iblo)
-	K['Laplace']['blocksJK'][iblo]=NoiseCorrLaplace(times, CPP.item()['blocksJK'][iblo], args.M, showplots=False, kind='combined')
+	K['Laplace']['blocksJK'][iblo]=NoiseCorrLaplace(times, CPP.item()['blocksJK'][iblo], args.M, showplots=args.showplots, kind='combined')
 K['Laplace']['mean']=K['Laplace']['blocksJK'].mean(axis=0)
 K['Laplace']['errJK'] = np.sqrt(nblom1*(np.square(K['Laplace']['blocksJK']).mean(axis=0) - np.square(K['Laplace']['mean']) ) )
 
