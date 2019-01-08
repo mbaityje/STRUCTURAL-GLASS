@@ -326,7 +326,7 @@ for ip in range(len(Lcpp)):
 	LK[ip] = ( args.temperature - pcpp[ip]*Lcpp[ip] ) / Lcpp[ip]
 
 LLK=np.ndarray(len(tlist))
-func_LK=FuncFromArray(pcpp, LK, kind='interp')
+func_LK=FuncFromArray(pcpp, LK, kind='interp', ncoef=args.ncoef)
 
 for it in range(len(tlist)):
 	tp=tlist[it]
