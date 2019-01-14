@@ -137,7 +137,7 @@ def ReadAll():
 	def checks(xxx, ntraj, trajlen, name):
 		''' xxx=pos,vel,acc'''
 		print('shape({}): {}'.format(name, np.shape(xxx)))
-		if 3!=np.shape(xxx)[3]: raise ValueError('This should be 3D data, so make sure that the {name} are 3D vectors, instead of {np.shape(xxx)[3]}D')
+		if 3!=np.shape(np.array(xxx))[3]: raise ValueError('This should be 3D data, so make sure that the {name} are 3D vectors, instead of {np.shape(xxx)[3]}D')
 		if args.Natoms!=np.shape(xxx)[2]: raise ValueError('Command-line Natoms ('+str(args.Natoms)+') does not match the one read in the {name} binary file ({str(np.shape(xxx)[2])})')
 		if trajlen!=np.shape(xxx)[1]: raise ValueError('trajlen ('+str(trajlen)+') does not match the one read in the {name} binary file ('+str(np.shape(xxx)[1])+')')
 		if ntraj!=np.shape(xxx)[0]: raise ValueError('ntraj ('+str(ntraj)+') does not match the one read in the {name} binary file ('+str(np.shape(xxx)[0])+')')
@@ -146,7 +146,7 @@ def ReadAll():
 
 
 	ntrajTimes,times,badTimes=ReadTimes()
-
+        
 	pos, vel, acc=[],[],[]
 	badPos,badVel,badAcc=[],[],[]
 	if readPos:

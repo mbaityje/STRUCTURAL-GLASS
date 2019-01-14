@@ -104,7 +104,7 @@ parser.add_argument('--tstar', type=float, required=False, default=None, help='n
 parser.add_argument('--shiftCFP', action='store_true', help='if invoked, imposes CFP[0]=0')
 parser.add_argument('--softening', action='store_true', help='if invoked, soften kernels in order to have less signal where signal is crap')
 parser.add_argument('--fits', action='store_true', help='do fits instead of interpolations')
-parser.add_argument('--kind', required=False, choices=['interp','interp_lin','fit','combined'], default='interp', help='thermostat')
+parser.add_argument('--kind', required=False, choices=['interp','interp_lin','fit','combined'], default='combined', help='thermostat')
 parser.add_argument('--ncoef', type=int, required=False, default=10, help='number of coefficients for fits')
 parser.add_argument('--showplots', action='store_true', help='if invoked, shows plots during the calculation (this stops the calculation until the user closes the figure)')
 
@@ -117,6 +117,10 @@ print('L:',args.box_size)
 print('T:',args.temperature)
 print('dt:',args.dt)
 print('thermostat:',args.thermostat)
+print('kind:',args.kind)
+print('M:',args.M)
+print('fits:',args.fits)
+print('ncoef:',args.ncoef)
 L=args.box_size
 
 if not args.Natoms>0: raise ValueError('L ({}) must be positive'.format(args.Natoms))
@@ -204,7 +208,7 @@ def GaverStehfest(ftilde, t, M):
 
 
 
-def TransformAntitransform(x, y, M, ncoef=10, showplots=False, kind='interp'):
+def TransformAntitransform(x, y, M, kind, ncoef=10, showplots=False):
 	'''
 	Takes an array y(x), Laplace transforms it and antitransforms it.
 	This tells us if we are in the right parameter range.
@@ -314,9 +318,10 @@ def FuncFromArray(x, y, kind='interp', ncoef=10):
 cpp=np.copy(CPP.item()['mean'])
 tlist=np.copy(times)
 
-# pcff,Lcff,LLcff=TransformAntitransform(times, CFF.item()['mean'], ncoef=10, showplots=True, kind=args.kind)
-# pcfp,Lcfp,LLcfp=TransformAntitransform(times, CFP.item()['mean'], ncoef=10, showplots=True, kind=args.kind)
-pcpp,Lcpp,LLcpp=TransformAntitransform(times, cpp, M=args.M, ncoef=args.ncoef, showplots=args.showplots, kind=args.kind)
+print('args.kind = ',args.kind)
+# pcff,Lcff,LLcff=TransformAntitransform(times, CFF.item()['mean'], kind=args.M, kind=args.kind, ncoef=10, showplots=True)
+# pcfp,Lcfp,LLcfp=TransformAntitransform(times, CFP.item()['mean'], kind=args.M, kind=args.kind, ncoef=10, showplots=True)
+pcpp,Lcpp,LLcpp=TransformAntitransform(times, cpp, M=args.M, kind=args.kind, ncoef=args.ncoef, showplots=args.showplots)
 
 
 

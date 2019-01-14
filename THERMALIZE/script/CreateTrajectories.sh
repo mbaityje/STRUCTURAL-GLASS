@@ -5,7 +5,6 @@
 # 
 #
 
-module switch anaconda3 anaconda3/4.4.0 #The version of cudatoolkit in future builds is incompatible with hoomd
 
 #Relevant directories
 #
@@ -18,7 +17,10 @@ if [ `hostname` == "PennPuter" ] || [ `hostname` == "banshee" ];
 then SYSTEM="PennPuter";
 elif [ `hostname` == "tango" ];
 then SYSTEM="PennPuter";
-else SYSTEM="talapas"; fi
+else
+    SYSTEM="talapas";
+    module switch anaconda3 anaconda3/4.4.0 #The version of cudatoolkit in future builds is incompatible with hoomd
+fi
 echo SYSTEM = $SYSTEM
 
 #DIRECTORIES
