@@ -34,6 +34,7 @@ echo "lista thermostat: $LISTATHERMOSTAT"
 
 shiftCFP="--shiftCFP"
 showplots=""
+showplots="--showplots"
 kind='combined'
 if [ -z $pot_mode ]; then pot_mode='xplor'; fi
 if [ -z $dt       ]; then       dt=0.0025 ; fi
@@ -51,14 +52,23 @@ do
 	for N in $(echo $LISTAN)
 	do
 		M=3
+		if [ $T == 0.7 ];
+		then
+		    ncoef=12
+		elif [ $T == 0.49 ];
+		then
+		     ncoef=9
+		else
+		    ncoef=10
+		fi
 		for thermostat in $(echo $LISTATHERMOSTAT)
 		do
 			cd $workDIR/T$T/N$N/
 			echo "We are in $PWD"
 			L=$(python $utilDIR/FindL.py ./S0/thermalized.gsd)
 			# python $exeDIR/CalculateNoiseCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits
-			echo "python $exeDIR/CalculateNoiseCorrelationsLaplace.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --kind=fit --M=$M --showplots=$showplots $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits"
-			python $exeDIR/CalculateNoiseCorrelationsLaplace.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --kind=$kind --M=$M $showplots $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits
+			echo "python $exeDIR/CalculateNoiseCorrelationsLaplace.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --kind=$kind --M=$M --showplots=$showplots $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits"
+			python $exeDIR/CalculateNoiseCorrelationsLaplace.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --kind=$kind --ncoef=$ncoef --M=$M $showplots $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits
 			echo ""
 		done
 	done
