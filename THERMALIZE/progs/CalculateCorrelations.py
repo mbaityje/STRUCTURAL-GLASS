@@ -240,7 +240,11 @@ def CalculateCorrelations(times, pos, vel, acc):
 	for itw in range(ntw):
 		print('\ritw:',itw, end='           ')
 		if args.msd:
+<<<<<<< HEAD
+			msd[itw] = np.array([med.CalculateMeanSquareDisplacements(pos[itw][:it], L) for it in range(nt)])
+=======
 			msd[itw] = CalculateMeanSquareDisplacements(pos[itw][:], box_size)
+>>>>>>> 47fff7bf669e0340f9c2b7ca355843f7cbdc404f
 			# msd[itw] = np.array([med.PeriodicSquareDistance(pos[itw][it], pos[itw][0], L) for it in range(nt)])/args.Natoms
 		if args.Fkt:
 			Fkt[itw] = np.array([med.ComputeFkt(n1, n2, n3, L, med.PeriodicDisplacement(pos[itw][it], pos[itw][0], L)) for it in range(nt)])
