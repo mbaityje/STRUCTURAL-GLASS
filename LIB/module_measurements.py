@@ -351,50 +351,31 @@ def CalculatePairCorrelationFunction(distances, Natoms, dr=0.1,rMax=2, number_de
 #-------------------------------------#
  
 ######################################################################
-# def CalculateMeanSquareDisplacements(old_pos, new_pos, box_size):
- 	'''
- 	Calculate Mean Square Displacement WITHOUT taking into account that the MSD will be bounded by the size of the box
- 	'''
- 	assert(len(old_pos==65))
- 	assert(len(old_pos==new_pos))
- 	return PeriodicSquareDistance(old_pos, new_pos, box_size)/len(old_pos) #sum of the squared displacements divided by Natoms
+def CalculateMeanSquareDisplacements(old_pos, new_pos, box_size):
+	'''
+	Calculate Mean Square Displacement WITHOUT taking into account that the MSD will be bounded by the size of the box
+	'''
+	assert(len(old_pos==65))
+	assert(len(old_pos==new_pos))
+	return PeriodicSquareDistance(old_pos, new_pos, box_size)/len(old_pos) #sum of the squared displacements divided by Natoms
 
 def CalculateMeanSquareDisplacementsUnwrapSlow(trajectory, box_size):
 	'''
 	Calculate Mean Square Displacement taking into account that the MSD will be bounded by the size of the box.
 	This is done by unwrapping the trajectory step by step.
 	'''
-
-
-	print('np.shape(trajectory):',np.shape(trajectory)) #3: time, particle, component
 	ncol=len(np.shape(trajectory))
-	if ncol==1:
-		assert(np.shape(trajectory)[0]==0)
-		return 0
-	elif 3!=ncol:
+	if 3!=ncol:
 		print('ncol = ',ncol)
 		raise LookupError('CalculateMeanSquareDisplacements(): trajectory should have three components: time, particle, spatial direction')
 	DIM=len(trajectory[0][0])
 	N=len(trajectory[0])
+	nt=len(trajectory)
+	if nt==1:
+		return 0
+	unwrap=np.array([PeriodicDisplacement(trajectory[it+1], trajectory[it], box_size) for it in range(nt-1)]).sum(axis=0)
+	return np.square(unwrap).sum(axis=1).sum()/N
 
-	#print('np.shape(trajectory)',np.shape(trajectory))
-        
-	msd=0.
-	for i in range(N):
-
-		#print('i:',i)
-		unwrap=np.zeros((N,DIM),dtype=np.float64)
-		#print('np.shape(unwrap):',np.shape(unwrap))
-		for it in range(len(trajectory)-1):
-			#print('it:',it)
-			temp=PeriodicDisplacement(trajectory[it+1], trajectory[it], box_size)
-			#print('np.shape(temp):',np.shape(temp))
-			unwrap+=temp
-			unwrap=np.square(unwrap)
-
-	msd/=N
-
-	return msd
 
 ######################################################################
 # Self-intermediate scattering function
