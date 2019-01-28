@@ -306,7 +306,8 @@ showplots=1 bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
 The friction coefficient is the integral of the autocorrelation function. We can calculate it both on *C*<sub>d</sub>(*t*) and on *K*(*t*).
 
 
-```cd ./THERMALIZE/script
+```
+cd ./THERMALIZE/script
 emacs CalculateFriction.sh #Put the right temperatures
 bash CalculateFriction.sh
 cd -
@@ -315,14 +316,37 @@ cd -
 The frictions as a function of temperature can then be found in `./THERMALIZE/data/frictions.txt` and plotted through `./PLOTS/NoiseCorr.gp`.
 
 
-### Yet not implemented
-These are likely the next steps in the code development:
 
-- Calculate friction with JackKnife.
+### Long and short-time behavior of the correlation functions
 
-- Plot friction VS temperature.
+```
+gnuplot short-times.gp
+gnuplot long-times.gp
+```
 
----
+
+### Calculate Diffusion constants
+
+The diffusion constants are calculated in four ways 
+
+- from the long-time behavior of the mean square displacement, *msd/(6t)*=*D*+*k*/*t*, where *k*/*t* are subleading corrections.
+
+- by integrating the velocity correlations (this should give the same result as the previous point)
+
+- by integrating *C*<sub>d</sub>(*t*): D = T/(integral)
+
+- by integrating *K*(*t*): D = T/(integral)
+
+```
+cd ./PLOTS/
+gnuplot msd.gp
+gnuplot friction.gp
+cd -
+```
+
+The first generates figures (`D.eps`) in `./PLOTS/FIGURES` and data on the diffusion constants in `./THERMALIZE/data/D.txt`.
+
+
 
 
 ## Metabasin Dynamics
