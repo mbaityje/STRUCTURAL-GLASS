@@ -1,6 +1,8 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 
+module switch anaconda3 anaconda3/4.4.0
+
 echo exeDIR: $exeDIR
 echo filename: $filename
 echo Natoms: $Natoms
