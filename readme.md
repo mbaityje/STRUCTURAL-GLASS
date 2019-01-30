@@ -303,17 +303,21 @@ showplots=1 bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
 
 ### Calculating Friction Coefficients
 
-The friction coefficient is the integral of the autocorrelation function. We can calculate it both on *C*<sub>d</sub>(*t*) and on *K*(*t*).
+The friction coefficient is the integral of the autocorrelation function, divided by the temperature. We can calculate it both on *C*<sub>d</sub>(*t*) and on *K*(*t*).
+
+The following script calculates the friction coefficient on the noise and diagonal correlation functions.
+Further, the short-time behavior is fitted through a form *f*<sub>short</sub>(*x*)=*a*<sub>1</sub>/ cosh(*a*<sub>2</sub> *x*).
+The friction coefficient is calculated also on the short-time fitted function, and on the long-time one (i.e. total minus short).
 
 
 ```
 cd ./THERMALIZE/script
-emacs CalculateFriction.sh #Put the right temperatures
-bash CalculateFriction.sh
+bash CalculateFriction.sh "5.0 2.0 1.0 0.8 0.7 0.6 0.55 0.52 0.49 0.47 0.46" "1080" "NVT"
 cd -
 ```
 
-The frictions as a function of temperature can then be found in `./THERMALIZE/data/frictions.txt` and plotted through `./PLOTS/NoiseCorr.gp`.
+
+(In the old version, which I am changing right now, the frictions as a function of temperature can then be found in `./THERMALIZE/data/frictions.txt` and plotted through `./PLOTS/NoiseCorr.gp`.)
 
 
 
@@ -347,7 +351,17 @@ cd -
 The first generates figures (`D.eps`) in `./PLOTS/FIGURES` and data on the diffusion constants in `./THERMALIZE/data/D.txt`.
 
 
+### Yet to do
 
+- Calculate internal friction by removing the short-time behavior (to fit it, use Eq.3 in https://www.sciencedirect.com/science/article/pii/S0022309302014576)
+
+- Calculate long and short-time behavior (tau, plateau, curvature) for the diagonal correlation function.
+
+
+
+--- 
+
+--- 
 
 ## Metabasin Dynamics
 System size is *N* = 65.
