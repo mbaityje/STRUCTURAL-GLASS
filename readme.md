@@ -316,16 +316,29 @@ bash CalculateFriction.sh "5.0 2.0 1.0 0.8 0.7 0.6 0.55 0.52 0.49 0.47 0.46" "10
 cd -
 ```
 
+To plot the 2x3=6 friction coefficients and their fits, do
+```
+cd ./PLOTS
+gnuplot friction.gp
+```
 
-(In the old version, which I am changing right now, the frictions as a function of temperature can then be found in `./THERMALIZE/data/frictions.txt` and plotted through `./PLOTS/NoiseCorr.gp`.)
+
+(In the old version the frictions as a function of temperature could be found in `./THERMALIZE/data/frictions.txt` and plotted through `./PLOTS/NoiseCorr.gp`.)
 
 
 
 ### Long and short-time behavior of the correlation functions
 
+To plot the curvatures of the short-time behavior of both correlation functions, just do:
 ```
+cd ./PLOTS
 gnuplot short-times.gp
+```
+
+For the long-time behavior use the following gnuplot script.
+```
 gnuplot long-times.gp
+cd -
 ```
 
 
@@ -344,7 +357,7 @@ The diffusion constants are calculated in four ways
 ```
 cd ./PLOTS/
 gnuplot msd.gp
-gnuplot friction.gp
+gnuplot D.gp
 cd -
 ```
 

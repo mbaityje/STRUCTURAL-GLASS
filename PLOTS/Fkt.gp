@@ -258,17 +258,3 @@ p "../OUTPUT/T0.52/N65/shift/Fkt_ifr0_shift.txt" u 1:2:3 w errorl t "First measu
 
 
 
-
-
-
-#
-# T=0.43
-#
-set title "T=0.43"
-set xlabel "t"
-set ylabel "F_k(t)"
-p for [i=0:9] "../OUTPUT/T0.43/N65/S".i."/Fkt_ifr0.txt" u 1:2 w lp t "S".i
-rep "../OUTPUT/T0.43/N65/Fkt_ifr0.txt" u 1:2:3 w errorl lw 4 lc 0 t "Average"
-
-p [][0:1]"../OUTPUT/T0.43/N65/Fkt_ifr0.txt" u 1:2:3 w errorl t "First measurement",\
-"../OUTPUT/T0.43/N65/Fkt_aftergap.txt" u 1:2:3 w errorl t "after gap"
