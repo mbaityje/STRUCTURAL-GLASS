@@ -55,9 +55,18 @@ do
 		if [ $T == 0.7 ];
 		then
 		    ncoef=12
+		elif [ $T == 0.55 ];
+		then
+		     ncoef=12
 		elif [ $T == 0.49 ];
 		then
 		     ncoef=9
+		elif [ $T == 0.47 ];
+		then
+		     ncoef=7
+		elif [ $T == 0.46 ];
+		then
+		     ncoef=8
 		else
 		    ncoef=10
 		fi
