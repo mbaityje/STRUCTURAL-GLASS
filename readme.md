@@ -264,6 +264,13 @@ For example one can launch in the following way:
 
 `maxtime=0.9 fits=1 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
 
+To plot the noise correlations, you can use the following gnuplot script:
+```
+cd ./PLOTS
+gnuplot NoiseCorr.gp
+cd -
+```
+
 
 If the JackKnife blocks of the trivial correlations were `CalculateCorrelationsJK.sh` produced, then the noise correlations can also be calculated with JK. Use the following script, with analogous syntax of its non-JK counterpart:
 ```
@@ -293,6 +300,9 @@ cd ./THERMALIZE/script
 bash CorrelationConsistency.sh "5.0 2.0" "1080" "NVT"
 cd -
 ```
+The program spits a figure (in the directory of the data) of the velocity autocorrelation calculated directly from the simulation, and through integration of the memory kernel. 
+
+
 
 Consistenct checks can also be done with JackKnife:
 ```

@@ -244,6 +244,7 @@ class CorrelationConsistency:
 		ax.set_xlabel('$t$')
 		ax.set_ylim((-1,self.CPP.item()['mean'].max()))
 		ax.legend()
+		plt.savefig('CPPcheckT'+str(self.args.temperature)+'_'+self.args.thermostat+'.png')
 		plt.show()
 
 
