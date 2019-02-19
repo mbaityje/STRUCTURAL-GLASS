@@ -19,6 +19,7 @@ utilDIR=$rootDIR/UTILITIES
 LISTAT=${1:-"5.0"}
 LISTAN=${2:-"1080"}
 LISTATHERMOSTAT=${3:-"NVT"}
+if [ $showplots ]; then showplots="--showplots"; fi
 
 frictionFILE=$dataDIR/friction.txt
 echo "T N friction_noise friction_diag" > $frictionFILE
@@ -35,9 +36,13 @@ do
 	for N in $(echo $LISTAN)
 	do
 		for thermostat in $(echo $LISTATHERMOSTAT)
-		do
+		do	
+			echo "Only mean values"
 			python $exeDIR/CalculateFrictionNoise.py $workDIR/T${T}/N${N}/noisecorr_NVT_combine_M$M.txt --temperature=$T --thermostat=$thermostat
 			python $exeDIR/CalculateFrictionDiag.py  $workDIR/T${T}/N${N}/Cd_NVT.txt --temperature=$T --thermostat=$thermostat
+
+			echo "Proper jackknife"
+			python $exeDIR/CalculateFrictionNoiseJK.py $workDIR/T${T}/N${N}/noisecorrJK_NVT_M$M.txt $workDIR/T${T}/N${N}/noisecorrJK_NVT_M$M.npy --temperature=$T --thermostat=$thermostat $showplots
 
 		# fr_diag=$(python $exeDIR/CalculateFriction.py $workDIR/T${T}/N${N}/Cd_NVT.txt --temperature=$T)
 		# fr_noise=$(python $exeDIR/CalculateFriction.py $workDIR/T${T}/N${N}/noisecorr_NVT_combine_M$M.txt --temperature=$T)
