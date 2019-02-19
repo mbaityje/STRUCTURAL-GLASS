@@ -223,6 +223,17 @@ cd -
 ```
 The output correlation functions are saved both in binary and text format, in the directory `./OUTPUT/T$T/N$N/`, with self-explanatory names.
 
+To plot some of these correlations, do 
+```
+cd ./PLOTS
+gnuplot tricial-correlations.gp
+okular FIGURES/Fkt.eps
+okular FIGURES/CFF.eps
+okular FIGURES/CFP.eps
+okular FIGURES/CPP.eps
+cd -
+```
+
 Alternatively, one can use `CalculateCorrelationsJK.py`. This other program is very similar. It has the advantage of computing the jackknife blocks (to allow statistical analysis) and
 of constructing blocks while reading, which allows for minimal memory usage. The down side is that it is less elastic, and all the input data (the trajectories) have to be very consistent, otherwise it will throw an error. The syntax is the same (there is the extra argument `lblo` for the length of the blocks), though the calculation of C<sub>d</sub>(t) is not implemented because not necessary.
 The script to launch it is `CalculateCorrelationsJK.sh`, which has the same exact syntax as `CalculateCorrelations.sh`, and by default makes 10 JK blocks, which is not a lot, but it saves a lot of memory and computation time.
@@ -311,13 +322,36 @@ bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
 showplots=1 bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
 ```
 
+
+### Calculate Diffusion constants
+
+The diffusion constants are calculated in four ways 
+
+- from the long-time behavior of the mean square displacement, *msd/(6t)*=*D*+*k*/*t*, where *k*/*t* are subleading corrections.
+
+- by integrating the velocity correlations (this should give the same result as the previous point)
+
+- by integrating *C*<sub>d</sub>(*t*): D = T/(integral)
+
+- by integrating *K*(*t*): D = T/(integral)
+
+```
+cd ./PLOTS/
+gnuplot msd.gp
+cd -
+```
+
+The first generates figures (`Dmsd.eps`) in `./PLOTS/FIGURES` and data on the diffusion constants in `./THERMALIZE/data/D.txt`.
+
+
 ### Calculating Friction Coefficients
 
 The friction coefficient is the integral of the autocorrelation function, divided by the temperature. We can calculate it both on *C*<sub>d</sub>(*t*) and on *K*(*t*).
 
 The following script calculates the friction coefficient on the noise and diagonal correlation functions.
-Further, the short-time behavior is fitted through a form *f*<sub>short</sub>(*x*)=*a*<sub>1</sub>/ cosh(*a*<sub>2</sub> *x*).
+Further, the short-time behavior is fitted through a form *f*<sub>short</sub>(*x*)=*a*<sub>1</sub>/ cosh(*a*<sub>2</sub> *x*), as described e.g. in Eq.(3) of [arXiv:cond-mat/0109285](https://arxiv.org/abs/cond-mat/0109285).
 The friction coefficient is calculated also on the short-time fitted function, and on the long-time one (i.e. total minus short).
+All the quantities are output in the same directory of the correlation function.
 
 
 ```
@@ -352,35 +386,12 @@ cd -
 ```
 
 
-### Calculate Diffusion constants
-
-The diffusion constants are calculated in four ways 
-
-- from the long-time behavior of the mean square displacement, *msd/(6t)*=*D*+*k*/*t*, where *k*/*t* are subleading corrections.
-
-- by integrating the velocity correlations (this should give the same result as the previous point)
-
-- by integrating *C*<sub>d</sub>(*t*): D = T/(integral)
-
-- by integrating *K*(*t*): D = T/(integral)
-
-```
-cd ./PLOTS/
-gnuplot msd.gp
-gnuplot D.gp
-cd -
-```
-
-The first generates figures (`D.eps`) in `./PLOTS/FIGURES` and data on the diffusion constants in `./THERMALIZE/data/D.txt`.
-
 
 ### Yet to do
 
-- Calculate internal friction by removing the short-time behavior (to fit it, use Eq.3 in https://www.sciencedirect.com/science/article/pii/S0022309302014576)
+- Jackknife on friction
 
-- Calculate long and short-time behavior (tau, plateau, curvature) for the diagonal correlation function.
-
-
+- Make a separate module for calculation of friction correlations and make sure that both JK and noJK program have the same input parameters.
 
 --- 
 
