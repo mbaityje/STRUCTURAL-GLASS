@@ -12,7 +12,7 @@ set xlabel "{/Times-Italic t}" offset 0,0
 set logs x
 set xtics format "10^{%T}" font ",24"
 set ytics 0,0.2 font ",24"
-set key font ",24" samplen 1 invert at 0.0007,0.38
+set key font ",24" samplen 1 invert top right
 load '~/.gnuplotting/gnuplot-palettes-master/rdbu.pal'
 p "../OUTPUT/T5.0/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 5.0  " ls 1,\
 "../OUTPUT/T2.0/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 2.0  " ls 2,\
@@ -25,7 +25,8 @@ p "../OUTPUT/T5.0/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic
 "../OUTPUT/T0.52/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 0.52" ls 9,\
 "../OUTPUT/T0.49/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 0.49" ls 10,\
 "../OUTPUT/T0.47/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 0.47" ls 11,\
-"../OUTPUT/T0.46/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 0.46" ls 12
+"../OUTPUT/T0.46/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 0.46" ls 12,\
+"../OUTPUT/T0.45/N1080/Fkt_NVT.txt"  using 1:2:3 w errorl title "{/Times-Italic T} = 0.45" ls 13
 reset
 
 

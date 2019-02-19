@@ -16,7 +16,8 @@ p "../OUTPUT/T5.0/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 5.0",\
 "../OUTPUT/T0.55/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.55",\
 "../OUTPUT/T0.52/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.52",\
 "../OUTPUT/T0.49/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.49",\
-"../OUTPUT/T0.47/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.47"
+"../OUTPUT/T0.47/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.47",\
+"../OUTPUT/T0.46/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.46"
 set out
 
 #Find the diffusion coefficients through msd=D/6t at large t
@@ -35,7 +36,8 @@ plot "../OUTPUT/T5.0/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "
 "../OUTPUT/T0.55/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.55",\
 "../OUTPUT/T0.52/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.52",\
 "../OUTPUT/T0.49/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.49",\
-"../OUTPUT/T0.47/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.47"
+"../OUTPUT/T0.47/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.47",\
+"../OUTPUT/T0.46/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.46"
 
 f50(x)=D50+a50/x
 f20(x)=D20+a20/x
@@ -47,6 +49,7 @@ f055(x)=D055+a055/x
 f052(x)=D052+a052/x
 f049(x)=D049+a049/x
 f047(x)=D047+a047/x
+f046(x)=D046+a046/x
 D50=0.6;     a50=1
 D20=0.3;     a20=1
 D10=0.07;    a10=1
@@ -57,6 +60,7 @@ D055=0.004;  a55=1
 D052=0.002;  a52=1
 D049=0.001;  a49=1
 D047=0.0005; a47=1
+D046=0.0002; a46=1
 
 set fit errorvariables
 unset logs
@@ -92,6 +96,9 @@ plot [1000:][:]"../OUTPUT/T0.49/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w
 fit [7000:] f047(x) "../OUTPUT/T0.47/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) via D047,a047
 plot [1000:][:]"../OUTPUT/T0.47/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.47",f047(x)
 
+fit [10000:] f046(x) "../OUTPUT/T0.46/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) via D046,a046
+plot [10000:][:]"../OUTPUT/T0.46/N1080/msd_NVT.txt" u 1:($2/(6*$1)):($3/(6*$1)) w errorl t "T = 0.46",f046(x)
+
 
 Dfile="../THERMALIZE/data/D.txt"
 system(sprintf("rm %s",Dfile))
@@ -107,10 +114,11 @@ print 0.55,D055,D055_err
 print 0.52,D052,D052_err
 print 0.49,D049,D049_err
 print 0.47,D047,D047_err
-
+print 0.46,D046,D046_err
+set print
 
 reset
-set out "./FIGURES/D.eps"
+set out "./FIGURES/Dmsd.eps"
 unset logs
 set logs y
 set ylabel "{/Times-Italic D}"
@@ -118,7 +126,7 @@ set xlabel "{/Times-Italic T}"
 set ytics format "10^{%T}"
 p Dfile u 1:2:3 w errorl not
 
-set out "./FIGURES/D_Tc.eps"
+set out "./FIGURES/Dmsd_Tc.eps"
 reset
 set logs
 set key top left
