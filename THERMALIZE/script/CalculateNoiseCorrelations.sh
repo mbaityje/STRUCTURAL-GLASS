@@ -54,13 +54,16 @@ do
 		M=3
 		if [ $T == 0.7 ];
 		then
-		    ncoef=10
+		    ncoef=8
 		elif [ $T == 0.6 ];
 		then
 		     ncoef=9
 		elif [ $T == 0.55 ];
 		then
-		     ncoef=12
+		     ncoef=10
+		elif [ $T == 0.52 ];
+		then
+		     ncoef=7
 		elif [ $T == 0.49 ];
 		then
 		     ncoef=9
