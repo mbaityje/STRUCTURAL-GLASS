@@ -274,6 +274,22 @@ def TransformAntitransform(x, y, M, kind, ncoef=10, showplots=False):
 	return p,transform, antitransform
 
 def FuncFromArray(x, y, kind='interp', ncoef=10):
+	'''
+	Several ways of obtaining a smooth function (needed e.g. to calculate the laplace transforms
+	and antitransforms) from an array (i.e. the functions that we have as input).
+
+	interp: cubic spline interpolation.
+	
+	interp_lin: linear spline interpolation.
+	
+	fit: a fit with the Prony scheme. Since Prony is implemented only on a linear grid, be 
+	careful of applying it only when the grid of times is linear.
+
+	combined: this is my dummy way to deal with a non-linear grid (my data is on 
+	non-linear grids). I first do a cubic spline on the non-linear grid, use the spline to
+	make it linear, and then use Prony on the resulting linear grid. It is not too
+	slow and the fits are really good.
+	'''
 	if kind == 'interp':
 		return interp1d(x, y, kind='cubic', assume_sorted=True)
 	elif kind == 'interp_lin':

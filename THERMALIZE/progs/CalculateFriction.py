@@ -4,8 +4,8 @@ import sys
 import numpy as np
 import argparse
 from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
 import lib.module_measurements as med
-
 
 # READ COMMAND-LINE ARGUMENTS
 parser = argparse.ArgumentParser(prog='python '+sys.argv[0]+' [--hoomd-flags] --user=" HERE YOU PUT THE FOLLOWING ARGUMENTS"', add_help=True)
@@ -31,11 +31,26 @@ friction = np.trapz(C[:istar], x=times[:istar]) * args.density/args.temperature
 print(friction)
 
 
-# DRAW THE CORRELATION
+# # DRAW THE CORRELATION
 # from matplotlib import pyplot as plt
 # plt.subplot(111, xscale="log", yscale="linear")
-# # plt.errorbar(times, C, yerr=errC)
+# # # plt.errorbar(times, C, yerr=errC)
 # plt.plot(times, C)
 # plt.grid()
 # plt.show()
+
+# def f(x, a1, a2):
+# 	return a1/np.cosh(a2*x)
+
+
+# ishort=np.where(times>0.05)[0][0]
+
+# params=[C[0],1]
+# params,dummy=curve_fit(f, times[:ishort], C[:ishort], p0=params)
+# plt.subplot(111, xscale="log", yscale="linear", ylim=(0,1+C[0]))
+# plt.plot(times, C)
+# plt.plot(times, f(times,params[0],params[1]))
+# plt.grid()
+# plt.show()
+
 

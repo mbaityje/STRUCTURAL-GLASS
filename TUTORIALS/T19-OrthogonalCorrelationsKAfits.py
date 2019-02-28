@@ -112,7 +112,7 @@ md.update.zero_momentum(phase=0, period=int(1./args.dt))
 if args.extraThermalizing:
 	print('Thermalizing with NVT')
 	integratorNVT = md.integrate.nvt(group=hoomd.group.all(), kT=args.temperature, tau=args.tauT)
-	hoomd.run(int(10./args.dt), quiet=False)
+	hoomd.run(int(50./args.dt), quiet=False)
 	hoomd.dump.gsd(filename='./sample-states/rotenbergKA_T'+str(args.temperature)+'_N'+str(Natoms)+'.gsd', overwrite=True, truncate=True, period=None, time_step=0, group=hoomd.group.all())
 	integratorNVT.disable()
 
@@ -298,4 +298,8 @@ plt.title('Using fits - $\\rho = $%.1f,  $T = $%g,  $n = $%d,  $dt = $%g'%(rho,a
 plt.savefig('./test-output/corrNoise-selfconsistent'+args.label+"_KAfits.png")
 plt.show()
 
+plt.plot(xdata, Knew,label='$\mathcal{K}_t$')
+plt.plot(xdata, CFFfit,label='$\mathcal{C}^{F}_t$')
 
+
+np.savetxt('./test-output/corrNoise-selfconsistent'+args.label+"_KAfits.txt", np.c_[xdata,Knew], fmt="%g %.10g")

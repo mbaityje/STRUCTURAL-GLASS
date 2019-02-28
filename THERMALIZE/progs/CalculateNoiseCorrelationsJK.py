@@ -22,6 +22,7 @@ parser.add_argument('--thermostat', required=False, default='*', help='thermosta
 parser.add_argument('--maxtime', type=float, required=False, default='-1.0', help='truncate the time axis at maxtime')
 parser.add_argument('-M','--M', type=int, required=False, default=3, help='2M = #of Gaver-Stehfest coefficients')
 parser.add_argument('--showplots', action='store_true', help='If activated, shows a plot of computed correlations.')
+parser.add_argument('--selfcon', action='store_true', help='If activated, calculates K also with the self-consistent method.')
 
 args = parser.parse_args()
 
@@ -129,7 +130,7 @@ def NoiseCorr(times, CFF, CFP, ncoef=12, kind='interp'):
 		print('\rtrapeze iteration',i, end='')
 		f[i]=trapeze(i)
 		if f[i]>f[0]:
-			raise ValueError('NoiseCorr is giving unphysical values (it is growing)')
+			print('NoiseCorr is giving unphysical values (it is growing)')
 	print('')
 	return f
 
@@ -271,7 +272,7 @@ def TransformAntitransform(x, y, M, ncoef=10, showplots=False, kind='interp'):
 
 
 def NoiseCorrLaplace(times, cpp, M, showplots=False, kind='combined'):
-	pcpp,Lcpp,LLcpp=TransformAntitransform(times, cpp, M, ncoef=20, showplots=showplots, kind=kind)
+	pcpp,Lcpp,LLcpp=TransformAntitransform(times, cpp, M, ncoef=10, showplots=showplots, kind=kind)
 	LK = np.array([( args.temperature - pcpp[ip]*Lcpp[ip] ) / Lcpp[ip] for ip in range(len(Lcpp))])
 
 	LLK=np.ndarray(len(times))
@@ -371,6 +372,10 @@ np.savetxt('noisecorrJK_{}_M{}.txt'.format(args.thermostat,args.M),
 			)
 
 np.save('noisecorrJK_{}_M{}.npy'.format(args.thermostat,args.M), K)
+
+
+
+
 
 
 

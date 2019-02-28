@@ -98,7 +98,7 @@ def ReadAllBlocks():
 				print('Skipping sample {} traj {}'.format(isam, itraj))
 				continue
 
-			#Reat Times
+			#Read Times
 			if count==0:
 				times=ReadTimesSample(namegsd)
 				nt=len(times)
