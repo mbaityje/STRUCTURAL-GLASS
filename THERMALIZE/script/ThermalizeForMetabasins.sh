@@ -22,7 +22,7 @@ readonly USERNAME=$(whoami)
 #
 let nsamm1=$nsam-1
 readonly hottestT=10.0
-TLIST=${1:-"10.0 5.0 2.0 1.0 0.8 0.6"}
+TLIST=${1:-"10.0 5.0 2.0 1.0 0.8 0.7 0.6 0.49 0.46"}
 NLIST=${2:-"65"}
 if [ -z $nsam       ]; then nsam=10; fi #default value of nsamples
 if [ -z $pot_mode  ]; then pot_mode='shift'; fi #In these runs shift is the default mode
@@ -95,6 +95,12 @@ do
 			echo Proposed initConf: $initConf
 			if [ -e $thermConfName ] ;then
 				initConf=$thermConfName
+				donesteps=$(python $utilDIR/FindNsteps.py $initConf)
+				if [ $donesteps -ge $totMDsteps ];
+				then
+					echo "This sample already has been thermalized, with $donesteps steps"
+					cd ..; continue
+				fi
 				echo "Continuing run from $initConf"
 				startfromzero=''
 			else
