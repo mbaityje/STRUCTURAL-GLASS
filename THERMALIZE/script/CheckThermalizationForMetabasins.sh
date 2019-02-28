@@ -1,4 +1,4 @@
-#!/bin/bash
+65;5401;1c#!/bin/bash
 #
 # Check thermalization of all the samples by calculating
 # the self-intermediate scattering function, and tau.
@@ -41,7 +41,7 @@ pot_mode=${pot_mode:=shift}
 thermostat=${thermostat:=NVT}
 
 
-for Tdir in T0.6 #T0.49 T0.48 T0.47 # T10.0 T0.52 T0.5 T5.0 T2.0 T1.0 T0.8 T0.7 T0.6 T0.55 #`ls -d T*|sort -r`
+for Tdir in T0.8 T0.46 T0.49 #T0.49 T0.48 T0.47 # T10.0 T0.52 T0.5 T5.0 T2.0 T1.0 T0.8 T0.7 T0.6 T0.55 #`ls -d T*|sort -r`
 do
 	T=`echo $Tdir | sed 's/^T//'`
 	
@@ -61,7 +61,8 @@ do
 		nsteps=$(echo $tautherm/$dt|bc)
 
 		cd $Ndir/$pot_mode
-		for SAMdir in `ls -d S?`
+		ls 
+		for SAMdir in `ls -d S[0-9]*`
 		do
 			ISAM=`echo $SAMdir | sed 's/^S//'`
 			echo "ISAM=$ISAM"

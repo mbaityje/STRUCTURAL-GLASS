@@ -12,7 +12,7 @@ elif [ -n $(hostname|grep talapas) ] || [ -n $(hostname|grep n[0-9][0-9][0-9]) ]
 then 
 	readonly SCHEDULER='SLURM'
 	queue=gpu
-	simTime="0-02:00:00" #Days-HH:MM:SS
+	simTime="0-20:00:00" #Days-HH:MM:SS
 fi
 readonly PROC_TAG="rt"
 readonly USERNAME=$(whoami)
