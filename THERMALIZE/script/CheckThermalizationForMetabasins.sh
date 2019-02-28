@@ -38,36 +38,33 @@ echo "Adesso mi trovo in $PWD"
 readonly dt=0.0025
 pot_type='KA'
 pot_mode=${pot_mode:=shift}
-thermostat=${thermostat:=NVT}
+thermostat=${thermostat:=NVE}
 
+LISTAT=${1:-"5.0 2.0 1.0 0.8 0.7 0.6 0.49 0.46"}
+LISTAN=${2:-"65"}
+LISTASAM=${3:-"0"}
 
-for Tdir in T0.8 T0.46 T0.49 #T0.49 T0.48 T0.47 # T10.0 T0.52 T0.5 T5.0 T2.0 T1.0 T0.8 T0.7 T0.6 T0.55 #`ls -d T*|sort -r`
+for T in $(echo $LISTAT)
 do
-	T=`echo $Tdir | sed 's/^T//'`
-	
-	echo "-------------------------------------------"
-	echo "|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|"
-	echo "-------------------------------------------"
 	echo "T=$T"
-	pwd
-	cd $Tdir
+	cd T$T
 	
-	for Ndir in N65 #`ls -d N*`
+	for N in $(echo $LISTAN)
 	do
-		N=`echo $Ndir | sed 's/^N//'`
 		echo "N=$N"
 
 		tautherm=$(awk -vT=$T -vN=$N '($1==T && $2==N){print $3}' $thermtimesFILE)
 		nsteps=$(echo $tautherm/$dt|bc)
 
-		cd $Ndir/$pot_mode
-		ls 
-		for SAMdir in `ls -d S[0-9]*`
-		do
-			ISAM=`echo $SAMdir | sed 's/^S//'`
-			echo "ISAM=$ISAM"
-			cd $SAMdir
+		cd N$N/$pot_mode
 
+		if [ $LISTASAM == "all" ]; then
+			LISTASAM=$(ls -d S[0-9]* | sed 's/S//')
+		fi
+		for ISAM in $(echo $LISTASAM)
+		do
+			cd S$ISAM
+			echo "ISAM=$ISAM"
 
 			thermalizeFile=thermalized.gsd
 			if ! [ -f $thermalizeFile ]; then
