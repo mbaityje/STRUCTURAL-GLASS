@@ -287,7 +287,15 @@ If the JackKnife blocks of the trivial correlations were `CalculateCorrelationsJ
 ```
 bash CalculateNoiseCorrelationsJK.sh "5.0 2.0" "1080" "NVT"
 ```
+(new versions of the code do the jackknife blocks directly in `CalculateCorrelations.sh` --  the user must specify where they want to do with or without JK, through the flag `noJK`)
 
+
+The jackknife blocks can be plotted individually with the following script
+```
+cd ./PLOTS
+python PlotJKblocks.py -oK -T2.0 -N1080 -tNVT -M3 --nomean
+cd -
+```
 
 ### Consistency checks on Correlations
 
@@ -389,9 +397,7 @@ cd -
 
 ### Yet to do
 
-- Jackknife on friction
-
-- Make a separate module for calculation of friction correlations and make sure that both JK and noJK program have the same input parameters.
+- The last version of the program changed the definition of K(t) by a factor T, and I did not check thoroughly for incompatibilities between different modules.
 
 --- 
 
@@ -421,35 +427,51 @@ cd -
 Then, we make sure that the configurations are well-thermalized.
 ```
 cd ./THERMALIZE/script
-emacs CheckThermalizationForMetabasins.sh
-nsam=10 pot_mode='shift' thermostat='NVT' bash CheckThermalizationForMetabasins.sh "5.0 2.0" "65"
+#Launch for T=5.0, N=65, samples 0,4,6,7,8, shift potential, NVT thermostat
+pot_mode='shift' thermostat='NVT' bash CheckThermalizationForMetabasins.sh "5.0" "65" "0 4 6 7 8"
+pot_mode=shift bash MediasFkt.sh "2.0" "65"
 cd -
 ```
 
+The first script produces, in the output directory of each sample, two files with the self-intermediate scattering function Fk(t). The sample average is obtained through the second script, that outputs the average curve. 
+The curves can the be plotted with the gnuplot script `../PLOTS/Fkt.gp`.
+
+
+### A rough estimate of tau alpha
+
+We need a rough estimate of tau_alpha. This is easily done by doing
+
 ```
-# Access script directory
-cd ./THERMALIZE/script/
-
-# Edit script to change simulation parameters, such as temperature (TLIST), number of samples (nsam), system size (N), and more
-emacs CheckThermalizationForMetabasins.sh
-
-# Calculate trajectories and self-intermediate scattering functions for each sample
-bash CheckThermalizationForMetabasins.sh
-
-# Calculate average self-intermediate scattering functions
-# Syntax: bash MediasFkt.sh "T1 T2 ... Tm" "N1 N2 ... Nn"
-# Can also set the potential type by setting the environment variable pot_mode=xplor,shift(default), no_shift
-pot_mode=shift bash MediasFkt.sh "5.0 2.0 1.0" "1080"
-cd -
-
-# Plot self-intermediate scattering functions
-cd ./PLOTS/
-emacs Fkt.gp # Make sure that the parameters are the correct ones
-gnuplot Fkt.gp
+cd ./THERMALIZE/script
+bash CalculateTauAlpha.sh
 cd -
 ```
 
+The output goes to `./THERMALIZE/data/tau_alpha.txt`.
 
+### Generating a long trajectory
+We now want to simulate a very long trajectory (1000 tau_alpha) on sample 0, in order to make the metabasin analysis on it. The way we do it is in chunks, so that from each chunk we can extract the IS trajectory independently.
+
+The following script sequentially creates a trajectory chunk, and then minimizes it, before passing to the following chunk. Of course, it is easily modified in order to run all chunks first, and then minimize them all. It is mainly a matter of resource availability (memory or C(G)PU).
+
+```
+cd ./THERMALIZE/script
+bash ChunkSectAll.sh "0.6" "65"
+cd -
+```
+
+This program saves in the output directory (`......./chunkIS/`) the list of inherent structures, the list of ridges (this can be disactivated for more speed), the thermal trajectory, and a **dictionary containing the inherent structures and the time at which they occur (to do)**.
+
+
+
+### Metabasin trajectory
+At this point we have the inherent structure trajectory. Now we want to identify the metabasins.
+
+```
+python IdentifyMetabasins.py ~/STRUCTURAL-GLASS/OUTPUT/T0.7/N65/shift/S0/chunksIS/elistIS.txt
+```
+
+---
 
 ### Running new NVE trajectories with inherent-structure sampling, and calculating barriers with the Ridge Method
 
