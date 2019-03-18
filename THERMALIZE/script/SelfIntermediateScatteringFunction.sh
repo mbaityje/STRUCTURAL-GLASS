@@ -53,6 +53,7 @@ nsteps=${nsteps:-$3}
 T=${T:-$4}
 dt=${dt:-$5}
 tau_of_t=${tau_of_t:-$6}
+thermostat=${thermostat:=NVE}
 
 #Set default values for the last two arguments [i.e. if they were unassigned give them default value]
 dt=${dt:-0.0025}
@@ -65,9 +66,9 @@ echo "nsteps: $nsteps"
 echo "T = $T"
 echo "dt = $dt"
 echo "tau_of_t: $tau_of_t"
+echo "thermostat = $thermostat"
 
 #Some hardcoded parameters that I might decide to put as command-line input
-if [ -z $thermostat ]; then thermostat='NVE'; fi
 readonly tauT=0.1
 readonly Natoms=$(python ~/STRUCTURAL-GLASS/UTILITIES/FindNatoms.py ./thermalized.gsd)
 echo Natoms = $Natoms
