@@ -1,4 +1,4 @@
-65;5401;1c#!/bin/bash
+#!/bin/bash
 #
 # Check thermalization of all the samples by calculating
 # the self-intermediate scattering function, and tau.
