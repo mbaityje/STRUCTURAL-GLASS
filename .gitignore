@@ -20,6 +20,9 @@ DRAFT
 *.in
 *.temp
 *.save
+*.tar.gz
+*.tar
+*.zip
 fit.log
 
 #Temporary files
