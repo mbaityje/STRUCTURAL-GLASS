@@ -83,7 +83,7 @@ do
 			else
 				tautherm=$(awk -vT=$T -vN=$Natoms '($1==T && $2==N){print $3}' $thermtimesFILE)
 				tauthermsteps=$(echo $tautherm/$dt|bc)
-				totMDsteps=$(echo 14*$tauthermsteps|bc)
+				totMDsteps=$(echo 24*$tauthermsteps|bc)
 				thermostat=NVT
 				heavyTrajFreq=$tauthermsteps
 				tauT=0.1

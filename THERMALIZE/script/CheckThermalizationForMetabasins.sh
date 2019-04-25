@@ -1,4 +1,4 @@
-65;5401;1c#!/bin/bash
+#!/bin/bash
 #
 # Check thermalization of all the samples by calculating
 # the self-intermediate scattering function, and tau.
@@ -15,7 +15,7 @@ elif [ -n $(hostname|grep talapas) ] || [ -n $(hostname|grep n[0-9][0-9][0-9]) ]
 then 
 	readonly SCHEDULER='SLURM'
 	queue=gpu
-	simTime="0-02:00:00" #Days-HH:MM:SS
+	simTime="1-00:00:00" #Days-HH:MM:SS
 fi
 readonly PROC_TAG="ctm"
 readonly USERNAME=$(whoami)
@@ -81,7 +81,8 @@ do
 				nombre=N$N${PROC_TAG}T${T}i${ISAM}
 				if [ 0 == `squeue -u$USERNAME -n $nombre|grep $USERNAME|wc -l` ]
 				then
-					thermostat=$thermostat pot_mode=$pot_mode pot_type=$pot_type sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh
+					echo "thermostat=$thermostat pot_mode=$pot_mode pot_type=$pot_type sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t $scriptDIR/SelfIntermediateScatteringFunction.sh"
+					sbatch --job-name=$nombre -p$queue --export=filename=$thermalizeFile,iframe=0,nsteps=$nsteps,T=$T,dt=$dt,tau_of_t=$tau_of_t,thermostat=$thermostat,pot_mode=$pot_mode,pot_type=$pot_type $scriptDIR/SelfIntermediateScatteringFunction.sh
 				fi
 			fi
 			cd ..
