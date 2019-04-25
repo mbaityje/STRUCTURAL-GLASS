@@ -38,7 +38,8 @@ set xtics format "10^{%T}"
 load '~/.gnuplotting/gnuplot-palettes-master/rdbu.pal'
 plot[:100][-50:500]"../OUTPUT/T0.52/N1080/noisecorrJK_NVT_M3.txt"  using 1:6:7 lc rgb "red" w errorl title "Volterra",\
 "../OUTPUT/T0.52/N1080/noisecorrJK_NVT_M3.txt"  using 1:10:11 lc rgb "blue" w errorl title "Laplace"
-
+#rep "../OUTPUT/T0.52/N1080/noisecorrJK_NVT_M3.txt"  using 1:2:3 lc rgb "orange" w errorl title "Combine"
+#rep "../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M3.txt" using 1:2 t"noJK"
 set out
 unset label
 
