@@ -146,7 +146,7 @@ then
 	filenamegap=$label.gsd #We read from the output of the previous simulation, which is $label.gsd
 	nstepsgap=`echo 20*${nsteps} | bc`
 	labelgap="_gap_${pot_mode}_${thermostat}"
-	python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=0 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps -l$labelgap --startfromzero --pot_mode=$pot_mode"
+	python $exeDIR/ReadAndThermalize.py --user="$filenamegap -N$Natoms -s0 -T$T -t$nstepsgap --tau=$tauT --dt=$dt --pot_mode=$pot_mode --pot_type=$pot_type --thermostat=$thermostat --backupFreq=50000 --heavyTrajFreq=0 --trajFreq=0 --iframe=$iframe --addsteps -l$labelgap --startfromzero --pot_mode=$pot_mode"
 
 	#
 	# Run 3tau saving the trajectory
