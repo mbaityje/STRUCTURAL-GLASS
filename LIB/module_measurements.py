@@ -306,7 +306,7 @@ def InvPRdist(dist):
 ######################################################################
 # Calculate pair correlation function
 
-def CalculatePairCorrelationFunction(distances, Natoms, dr=0.1,rMax=2, number_density=1.0):
+def CalculatePairCorrelationFunction(distances, Natoms, dr=0.1,rMax=2, number_density=1.2):
 	'''
 	Calculate pair correlation function from a clean list of the distances
 	between particles (distances between (a,b), (b,a) should appear only once)
@@ -325,11 +325,12 @@ def CalculatePairCorrelationFunction(distances, Natoms, dr=0.1,rMax=2, number_de
 	gofrRaw /= (Natoms-1)*0.5 #Normalize by the number of bonds per particle (usually others divide by Natoms, but because they are counting each bond twice)
 			
 	rvalues = np.arange(0,rMax,dr)
-	rvalues[0] = 1   ## correct the fisrt bin, to avoid /0
+	rvalues[0] = 1   ## correct the first bin, to avoid /0
 	gofr = gofrRaw / ( (4*np.pi*rvalues**2*dr) ) #Normalize by the volume of the shell
 	gofr /= number_density #So that without structure g(r) goes to 1
 
-	return gofr
+	rvalues[0]=0 # Put back the right value for the first bin
+	return rvalues,gofr
 
 
 
@@ -392,7 +393,8 @@ def ComputeFkt(NX, NY, NZ, L, displacements):
 			for nz in [NZ,-NZ]:
 				for k_set_index in range(6):
 					k_vector = getKSets_function(nx,ny,nz,k_set_index)
-					Fk_Deltat += np.exp( (2.0j*np.pi/L) * np.sum(k_vector*displacements,1) ) 
+					# Fk_Deltat += np.exp( (2.0j*np.pi/L) * np.sum(k_vector*displacements,1) ) 
+					Fk_Deltat += np.cos( (2.0*np.pi/L) * np.sum(k_vector*displacements,1) ) 
 	## remember that Fk_Deltat is an array (size Natoms)
 	#We should check that the imaginary part of Fk is zero
 	return np.real(Fk_Deltat).sum()/(numk*Natoms) 
