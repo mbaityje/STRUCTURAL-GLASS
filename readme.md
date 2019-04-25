@@ -75,7 +75,7 @@ Functions for dealing with times.
 Functions for debugging.
 
 - Other:  
-Currently, there is some code taken from [Ian Dun](https://github.com/iansdunn) for fitting functions as a sum of exponentials. I haven't decided whether it is useful for me or not.
+Currently, there is also some code taken from [Ian Dun](https://github.com/iansdunn) for fitting functions as a sum of exponentials.
 
 
 #### ./PLAYGROUND/  
@@ -110,7 +110,7 @@ Here, I will describe how to manage the main projects, referring to some paramet
 ## Noise Correlations
 System size is *N* = 1080.
 
-Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, 0.8, 0.7 0.6, 0.55, <s>0.52, 0.49, 0.466, 0.45, 0.44, 0.43</s>.
+Temperatures are *T* = 10.0, 5.0, 2.0, 1.0, 0.8, 0.7 0.6, 0.55, 0.52, 0.5, 0.49, 0.48 0.47, 0.46, 0.45.
 
 When doing a new temperature, remember to make the file params.in inside the appropriate output directory.
 
@@ -195,6 +195,8 @@ cd -
 ```
 
 The trajectories of each sample can be found in a subdirectory called `trajectories/`.
+Even though the thermostat can be chosen, the trajectories used for the paper are all run with NVT.
+
 
 ### Calculating Average Trivial Correlation Functions
 From the previous trajectories, which output .npy files with positions, velocities and accelerations, we can calculate the following correlators:
@@ -393,11 +395,31 @@ gnuplot long-times.gp
 cd -
 ```
 
+### Standard mode-coupling theory memory function
+
+Calculate the memory function by passing to Fourier space, and factorizing the correlator, and assuming that the normal dynamics is similar to the orthogonal dynamics.
+
+```
+cd ./THERMALIZE/script
+#Calculate the contribution for each k (the list of n vectors is contained in ../data/n.txt)
+ntCd=25 ntw=20 bash CalculateVertexCorrelations.sh "5.0" "1080" "NVT"
+#Integrate in dk
+showplots=1 bash CalculateKvertex.sh "5.0" "1080" "NVT"
+cd -
+```
+
+To plot the function,
+```
+cd ./PLOTS
+gnuplot NoiseCorrCompare3.gp
+cd -
+```
+
 
 
 ### Yet to do
 
-- The last version of the program changed the definition of K(t) by a factor T, and I did not check thoroughly for incompatibilities between different modules.
+- Some stuff needs to be pushed, and the readme updated.
 
 --- 
 
@@ -406,9 +428,9 @@ cd -
 ## Metabasin Dynamics
 System size is *N* = 65.
 
-Temperatures are *T* = **10.0**, **5.0**, **2.0**, **1.0**, **0.8**, **0.6**, (0.52), (0.49), (0.466), (0.45), (0.44), (0.43).
+Temperatures are *T* = **10.0**, **5.0**, **2.0**, **1.0**, **0.8**, **0.6**, **0.49**, **0.46**.
 
-10 samples per temperature. When doing a new temperature, remember to make the file params.in inside the appropriate output directory.
+10 samples per temperature. When doing a new temperature, remember to make the file `params.in` inside the appropriate output directory.
 
 The potential now is a `shift` Lennard-Jones. For this kind of runs, I chose shift because at some point I might have to calculate a bunch of Hessians.
 
@@ -429,7 +451,7 @@ Then, we make sure that the configurations are well-thermalized.
 cd ./THERMALIZE/script
 #Launch for T=5.0, N=65, samples 0,4,6,7,8, shift potential, NVT thermostat
 pot_mode='shift' thermostat='NVT' bash CheckThermalizationForMetabasins.sh "5.0" "65" "0 4 6 7 8"
-pot_mode=shift bash MediasFkt.sh "2.0" "65"
+pot_mode=shift bash MediasFkt.sh "2.0" "65" "NVT"
 cd -
 ```
 
@@ -443,7 +465,7 @@ We need a rough estimate of tau_alpha. This is easily done by doing
 
 ```
 cd ./THERMALIZE/script
-bash CalculateTauAlpha.sh
+thermostat='NVT' bash CalculateTauAlpha.sh
 cd -
 ```
 
