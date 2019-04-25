@@ -30,6 +30,7 @@ thermtimesFILE=$dataDIR/thermalizationtimes.txt
 LISTAT=${1:-"5.0"}
 LISTAN=${2:-"1080"}
 LISTATHERMOSTAT=${3:-"NVT"}
+tstar=${tstar:-1}
 
 echo "lista T         : $LISTAT"
 echo "lista N         : $LISTAN"

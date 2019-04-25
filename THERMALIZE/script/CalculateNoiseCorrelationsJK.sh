@@ -42,7 +42,7 @@ do
 		for thermostat in $(echo $LISTATHERMOSTAT)
 		do
 			cd $workDIR/T$T/N$N/
-			for M in 3
+			for M in 3 4 5
 			do
 				python $exeDIR/CalculateNoiseCorrelationsJK.py -T$T --thermostat=$thermostat -M=$M $maxtime
 			done

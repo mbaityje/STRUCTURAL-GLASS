@@ -37,53 +37,30 @@ showplots=""
 showplots="--showplots"
 kind='combined'
 if [ -z $pot_mode ]; then pot_mode='xplor'; fi
-if [ -z $dt       ]; then       dt=0.0025 ; fi
 if [ $maxtime   ]; then   maxtime="--maxtime=$maxtime"; fi
-if [ $softening ]; then softening='--softening'       ; fi
-if [ $tstar     ]; then     tstar="--tstar=$tstar"    ; fi
-if [ $normalsc  ]; then  normalsc='--normalsc'        ; fi
-if [ $lin       ]; then       lin='--lin'             ; fi
-if [ $linsc     ]; then     linsc='--linlsc'          ; fi
-if [ $fits      ]; then      fits='--fits'            ; fi
 
+declare -A TMIN=(  ["5.0"]=0.027 ["2.0"]=0.042 ["1.0"]=0.043 ["0.8"]=0.062 ["0.7"]=0.059 ["0.6"]=0.071 ["0.55"]=0.065 ["0.52"]=0.066 ["0.49"]=0.065 ["0.47"]=0.074 ["0.46"]=0.069 ["0.45"]=0.078 )
+declare -A NCOEF=( ["5.0"]=9     ["2.0"]=7     ["1.0"]=7     ["0.8"]=5     ["0.7"]=5     ["0.6"]=7     ["0.55"]=7     ["0.52"]=6     ["0.49"]=5     ["0.47"]=7     ["0.46"]=6     ["0.45"]=6     )
 
 for T in $(echo $LISTAT)
 do
 	for N in $(echo $LISTAN)
 	do
 		M=3
-		if [ $T == 0.7 ];
-		then
-		    ncoef=8
-		elif [ $T == 0.6 ];
-		then
-		     ncoef=9
-		elif [ $T == 0.55 ];
-		then
-		     ncoef=10
-		elif [ $T == 0.52 ];
-		then
-		     ncoef=7
-		elif [ $T == 0.49 ];
-		then
-		     ncoef=9
-		elif [ $T == 0.47 ];
-		then
-		     ncoef=7
-		elif [ $T == 0.46 ];
-		then
-		     ncoef=8
-		else
-		    ncoef=10
-		fi
+		ncoef=${NCOEF[$T]}
+		tmin=${TMIN[$T]}
+
 		for thermostat in $(echo $LISTATHERMOSTAT)
 		do
 			cd $workDIR/T$T/N$N/
 			echo "We are in $PWD"
 			L=$(python $utilDIR/FindL.py ./S0/thermalized.gsd)
-			# python $exeDIR/CalculateNoiseCorrelations.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits
-			echo "python $exeDIR/CalculateNoiseCorrelationsLaplace.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --kind=$kind --M=$M --showplots=$showplots $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits"
-			python $exeDIR/CalculateNoiseCorrelationsLaplace.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --kind=$kind --ncoef=$ncoef --M=$M $showplots $shiftCFP $maxtime $softening $tstar $normalsc $lin $linsc $fits
+			if [ $noJK ]; 
+			then
+				python $exeDIR/CalculateNoiseCorrelationsLaplace.py -T$T --thermostat=$thermostat --kind=$kind --ncoef=$ncoef --M=$M --tmin=$tmin $showplots $shiftCFP $maxtime 
+			else
+				python $exeDIR/CalculateNoiseCorrelationsJK.py -T$T --thermostat=$thermostat -M=$M $maxtime --tmin=$tmin  --kind=$kind --ncoef=$ncoef
+			fi
 			echo ""
 		done
 	done

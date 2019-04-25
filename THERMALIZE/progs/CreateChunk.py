@@ -103,7 +103,7 @@ print("Current step:",hoomd.get_step())
 print("Target step:", args.tchunk)
 md.integrate.mode_standard(dt=args.dt)
 if args.thermostat == 'NVT':
-	integrator = md.integrate.nvt(group=hoomd.group.all(), kT=temperature, tau=args.tauT)
+	integrator = md.integrate.nvt(group=hoomd.group.all(), kT=args.temperature, tau=args.tauT)
 elif args.thermostat == 'NVE':
 	integrator = md.integrate.nve(group=hoomd.group.all())
 else:

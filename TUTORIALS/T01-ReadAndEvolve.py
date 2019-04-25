@@ -6,13 +6,13 @@
 # let's it evolve with  NVT (first) and NVE (after) dynamics.
 #
 # To display help:
-# python T1-ReadAndEvolve.py --user="-h"
+# python T01-ReadAndEvolve.py --user="-h"
 #
 # To launch a simulation:
-# python T1-ReadAndEvolve.py --user="filename -e nNVEsteps -t nNVTsteps --thermostat thermostat"
+# python T01-ReadAndEvolve.py --user="filename -e nNVEsteps -t nNVTsteps --thermostat thermostat"
 #
 # For example:
-# python T1-ReadAndEvolve.py --user="sample-states/KA_rho=12e-1_N=1e3_T=45e-2_tag=1_type=restart.gsd -e 10 -t 1000 --thermostat NVT"
+# python T01-ReadAndEvolve.py --user="sample-states/KA_rho=12e-1_N=1e3_T=45e-2_tag=1_type=restart.gsd -e 10 -t 1000 --thermostat NVT"
 ################################################################
 
 from __future__ import print_function #for compatibility with python3.5

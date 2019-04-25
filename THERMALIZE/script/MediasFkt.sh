@@ -10,6 +10,7 @@ outDIR=$rootDIR/OUTPUT
 
 TLIST=${1:-"10.0 5.0 2.0 1.0 0.8 0.7 0.6 0.55 0.52 0.49 0.466 0.45 0.44 0.43"}
 NLIST=${2:-"1080 65"}
+THERMOLIST=${3:-"NVT"}
 
 function average {
 	awk -vnskip=$nskip '\
@@ -23,27 +24,27 @@ function average {
 							print t[i],mean,err;}}' $input
 }
 
-label='_NVT'
-#label='_NVE'
-#label=''
 for T in $(echo $TLIST)
 do
     for N in $(echo $NLIST)
     do
-	for tipo in ifr0 aftergap
+	for thermostat in $(echo $THERMOLIST)
 	do
-	    if [ $N == 1080 ];
-	    then
-		if [ -z $pot_mode ]; then pot_mode=xplor; fi
-		input=$outDIR/T$T/N$N/S[0-9]/Fkt_${tipo}_${pot_mode}.txt
-		output=$outDIR/T$T/N$N/Fkt_${tipo}_${pot_mode}.txt
-	    elif [ $N == 65 ]
-	    then
-		 if [ -z $pot_mode ]; then pot_mode=shift; fi
-		 input=$outDIR/T$T/N$N/$pot_mode/S[0-9]/Fkt_${tipo}_${pot_mode}$label.txt
-		 output=$outDIR/T$T/N$N/$pot_mode/Fkt_${tipo}_${pot_mode}$label.txt
-	    fi
-	    average $input > $output
+	    for tipo in ifr0 aftergap
+	    do
+		if [ $N == 1080 ];
+		then
+		    if [ -z $pot_mode ]; then pot_mode=xplor; fi
+		    input=$outDIR/T$T/N$N/S[0-9]*/Fkt_${tipo}_${pot_mode}.txt
+		    output=$outDIR/T$T/N$N/Fkt_${tipo}_${pot_mode}.txt
+		elif [ $N == 65 ]
+		then
+		    if [ -z $pot_mode ]; then pot_mode=shift; fi
+		    input=$outDIR/T$T/N$N/$pot_mode/S[0-9]*/Fkt_${tipo}_${pot_mode}_$thermostat.txt
+		    output=$outDIR/T$T/N$N/$pot_mode/Fkt_${tipo}_${pot_mode}_$thermostat.txt
+		fi
+		average $input > $output
+	    done
 	done
     done
 done

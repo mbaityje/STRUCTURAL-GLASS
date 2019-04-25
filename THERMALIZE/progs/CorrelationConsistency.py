@@ -27,6 +27,7 @@ class CorrelationConsistency:
 		parser.add_argument('-N','--Natoms', type=int, required=True, help='Number of particles')
 		parser.add_argument('-L','--L', type=np.float64, required=True, help='Box Size (assumed cubic)')
 		parser.add_argument('-T','--temperature', type=float, required=True, help='Temperature')
+		parser.add_argument('--tstar', type=float, required=False, default=1.0, help='Maximum time for integral of CPP(t)')
 		parser.add_argument('--thermostat', required=False, default='NVE', choices=['NVE','NVT'], help='thermostat, necessary for filenames')
 		parser.add_argument('--smoothK', required=False, default=None, choices=['None','ReLU','linear','exp','custom'], help='Apply smoothing to the K(t)')
 		self.args = parser.parse_args()
@@ -51,11 +52,11 @@ class CorrelationConsistency:
 	def ReadCorrelations(self):
 		self.CFF=np.load('CFF_'+str(self.args.thermostat)+'.npy') # access as CFP.item()['mean']
 		self.CFP=np.load('CFP_'+str(self.args.thermostat)+'.npy')
-		self.CPP=np.load('CPP_'+str(self.args.thermostat)+'.npy')
+		self.CPP=np.load('CPPJK_'+str(self.args.thermostat)+'.npy')
 		self.times=np.load('times_'+str(self.args.thermostat)+'.npy')
 		self.nt=len(self.times)
 		readK=np.loadtxt('noisecorr_'+self.args.thermostat+'.txt')[:,0:2]
-		self.Kread=readK[:,1]
+		self.Kread=readK[:,1]#*self.args.temperature #at some point I changed the def of K by a factor 1/T, so sometimes we need to remultiply it back
 		self.SmoothK(action=self.args.smoothK)
 
 
@@ -247,6 +248,30 @@ class CorrelationConsistency:
 		plt.savefig('CPPcheckT'+str(self.args.temperature)+'_'+self.args.thermostat+'.png')
 		plt.show()
 
+		#Calculate corresponding diffusion coefficient
+		istar=np.where(self.times>args.tstar)[0][0]
+		D=np.trapz(self.CPP.item()['mean'][:istar], x=self.times[:istar])
+		Dcheck=np.trapz(self.CPPcheck[:istar], x=self.times[:istar])
+		
+		nblo=len(self.CPP.item()['blocksJK'])
+		Dblocks=np.ndarray(nblo,dtype=np.float64)
+		for iblo in range(nblo):
+			Dblocks[iblo]=np.trapz(self.CPP.item()['blocksJK'][iblo][:istar], x=self.times[:istar])
+		errD=np.sqrt((nblo-1)*(np.square(Dblocks).mean() - D*D  ))
+
+		print('errD = ',errD)
+
+		np.savetxt('CPPcheckT'+str(self.args.temperature)+'_'+self.args.thermostat+'.txt',
+			np.column_stack((
+				self.times,
+				self.CPP.item()['mean'],
+				self.CPPcheck, 
+				np.full(self.nt, D), 
+				np.full(self.nt, errD), 
+				np.full(self.nt, Dcheck), 
+				np.full(self.nt, self.args.temperature))), 
+			header='time CPP CPPcheck D err Dcheck T', fmt="%g %.10g %.10g %.10g %10g %.10g %g")
+
 
 	def CalculateCFPregularized(self):
 		'''
@@ -279,14 +304,15 @@ if __name__ == "__main__":
 	checks.ReadArgs()
 	checks.PrintArgs()
 	checks.ReadCorrelations()
-	checks.PlotCorrelations()
+	# checks.PlotCorrelations()
 	checks.CalculateCPPdot()
-	checks.PlotCPP()
+	# checks.PlotCPP()
 	checks.CalculateCFP()
 	checks.IntegrateCFP()
 	checks.PlotCPPcheck()
-	checks.CalculateCFPregularized()
-	checks.PlotCFPcheck()
+	# checks.CalculateCFPregularized()
+	# checks.PlotCFPcheck()
+
 
 
 
