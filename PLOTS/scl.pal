@@ -1,0 +1,43 @@
+# line styles for 12 decreasing temperatures
+set style line 1  dt 1  lc rgb '#00ed0000' # T=5.0 (red)
+set style line 2  dt 2  lc rgb '#00d70216' # T=2.0
+set style line 3  dt 3  lc rgb '#00c1042c' # T=1.0
+set style line 4  dt 4  lc rgb '#00ac0642' # T=0.8
+set style line 5  dt 5  lc rgb '#00960859' # T=0.7
+set style line 6  dt 6  lc rgb '#00810a6f' # T=0.6
+set style line 7  dt 7  lc rgb '#006b0d85' # T=0.55
+set style line 8  dt 8  lc rgb '#00560f9b' # T=0.52
+set style line 9  dt 9  lc rgb '#004011b2' # T=0.49
+set style line 10 dt 10 lc rgb '#002b13c8' # T=0.47
+set style line 11 dt 11 lc rgb '#001515de' # T=0.46
+set style line 12 dt 12 lc rgb '#000018f5' # T=0.45 (blue)
+
+
+set style line 21  dt 1  lc rgb '#F8ed0000' # T=5.0 (red)
+set style line 22  dt 2  lc rgb '#F8d70216' # T=2.0
+set style line 23  dt 3  lc rgb '#F8c1042c' # T=1.0
+set style line 24  dt 4  lc rgb '#F8ac0642' # T=0.8
+set style line 25  dt 5  lc rgb '#F8960859' # T=0.7
+set style line 26  dt 6  lc rgb '#F8810a6f' # T=0.6
+set style line 27  dt 7  lc rgb '#F86b0d85' # T=0.55
+set style line 28  dt 8  lc rgb '#F8560f9b' # T=0.52
+set style line 29  dt 9  lc rgb '#F84011b2' # T=0.49
+set style line 30 dt 10 lc rgb '#F82b13c8' # T=0.47
+set style line 31 dt 11 lc rgb '#F81515de' # T=0.46
+set style line 32 dt 12 lc rgb '#F80018f5' # T=0.45 (blue)
+
+
+
+set style line 41  dt 1  lc rgb '#A8ed0000' # T=5.0 (red)
+set style line 42  dt 2  lc rgb '#A8d70216' # T=2.0
+set style line 43  dt 3  lc rgb '#A8c1042c' # T=1.0
+set style line 44  dt 4  lc rgb '#A8ac0642' # T=0.8
+set style line 45  dt 5  lc rgb '#A8960859' # T=0.7
+set style line 46  dt 6  lc rgb '#A8810a6f' # T=0.6
+set style line 47  dt 7  lc rgb '#A86b0d85' # T=0.55
+set style line 48  dt 8  lc rgb '#A8560f9b' # T=0.52
+set style line 49  dt 9  lc rgb '#A84011b2' # T=0.49
+set style line 50 dt 10 lc rgb '#A82b13c8' # T=0.47
+set style line 51 dt 11 lc rgb '#A81515de' # T=0.46
+set style line 52 dt 12 lc rgb '#A80018f5' # T=0.45 (blue)
+
