@@ -200,7 +200,8 @@ def CalculateCorrelations(times, pos, vel, acc):
 		msd = np.zeros((ntw, nt), dtype=np.float64)
 	if args.Fkt: 
 		Fkt = np.zeros((ntw, nt), dtype=np.float64)
-		n1=1; n2=3; n3=4 # Wave vector for the self-intermediate scattering function, k =[2 pi/L](n1,n2,n3) and permutations
+		# n1=1; n2=3; n3=4 # Wave vector for the self-intermediate scattering function, k =[2 pi/L](n1,n2,n3) and permutations
+		n1=6; n2=6; n3=7 # Wave vector for the self-intermediate scattering function, k =[2 pi/L](n1,n2,n3) and permutations
 	if args.CFF: 
 		CFF = np.zeros((ntw, nt), dtype=np.float64)
 	if args.CFP: 

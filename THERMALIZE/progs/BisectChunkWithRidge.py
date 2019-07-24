@@ -46,7 +46,6 @@ minstepsFIRE=100
 
 
 #Start hoomd
-print("Initialize hoomd context\n")
 generalContext=hoomd.context.initialize()
 hoomd.option.set_notice_level(0)
 more_arguments=hoomd.option.get_user() #These are the arguments that are not read by hoomd
@@ -99,8 +98,10 @@ with open(args.filename, 'rb') as flow:
 		raise SystemExit
 	
 	Nframes = len(hoomdTraj)
-	print('There are Nframes=', Nframes, 'in the file.')
-	if Nframes != args.tchunk: raise ValueError('Nframes != args.tchunk')
+	print('There are Nframes =', Nframes, 'in the file.')
+	if Nframes != args.tchunk: 
+		print('Nframes (',Nframes,') != args.tchunk (',args.tchunk,')')
+		raise ValueError
 
 	posizioni=[hoomdTraj[i].particles.position[:] for i in range(Nframes)]
 	HoomdFlow.close()
@@ -122,7 +123,10 @@ snap_final.particles.position[:]=posizioni[Nframes-1]
 #Otherwise, we open it and make sure that the time step is consistent.
 if(args.ichunk>0):
 	elist_old=np.loadtxt('elistIS.txt',skiprows=args.skiprows)
-	if int(elist_old[len(elist_old)-1][0])!=t0-1: raise ValueError('Discrepacy with the previous chunk:\n elist_old[len(elist_old)-1][0])='+str(int(elist_old[len(elist_old)-1][0]))+', t0-1='+str(t0-1))
+	if int(elist_old[len(elist_old)-1][0])!=t0-1: 
+		print('ichunk = ',args.ichunk)
+		print('Discrepacy with the previous chunk:\n elist_old[len(elist_old)-1][0])='+str(int(elist_old[len(elist_old)-1][0]))+', t0-1='+str(t0-1))
+		raise ValueError
 	del elist_old
 
 if args.trajIS:
@@ -195,7 +199,7 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 	#If they are next to each other, I record them no matter their energy
 	if (t2-t1)==1:
 		if doRidge and (ediff>args.deltaE): 
-			eRidge,snapRidge=CalculateRidge(snap1, snap2, e1, e2, L, verbose=False, time=t0+t2)
+			eRidge,snapRidge=CalculateRidge(snap1, snap2, e1, e2, L, verbose=args.verbose, time=t0+t2)
 			if eRidge != None:
 				ridgetime=t0+t2-0.5
 				eRidgelist[ridgetime] = eRidge
@@ -211,6 +215,7 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 					qlist['r2'][ridgetime] = med.OverlapPos(snapRidge.particles.position,     snap2.particles.position, L)
 		elist[t0+t2]=e2
 		if args.trajIS: 
+			print('SAVING TRAJ_IS: t=',t0+t2)
 			np.save(out_trajIS, np.array([t0+t2, snapis2.particles.position], dtype=object))
 
 		return
@@ -219,6 +224,7 @@ def Bisect(t1, snap1, t2, snap2, e1=None, doRidge=False):
 	if(ediff<args.deltaE):
 		elist[t0+t2]=e2
 		if args.trajIS: 
+			print('SAVING TRAJ_IS: t=',t0+t2)
 			np.save(out_trajIS, np.array([t0+t2, snapis2.particles.position], dtype=object))
 		return
 	# If they are different, I find the intermediate time (that is necessarily
@@ -375,10 +381,10 @@ def CalculateRidge(snapT1, snapT2, Eis1, Eis2, L, verbose=False, dtFIRE=0.0025, 
 			'''
 			if eis1>eis2: 
 				Eridge=ConsistentRidge(eis1_old,Eis1,Eis2,args.deltaE,EtolFIRE)
-				snapRidge=snapis1_old
+				snapRidge=None if Eridge==None else snapis1_old
 			else : 
 				Eridge=ConsistentRidge(eis2_old,Eis1,Eis2,args.deltaE,EtolFIRE)
-				snapRidge=snapis2_old
+				snapRidge=None if Eridge==None else snapis2_old
 			print("Eridge = ",Eridge)
 			break
 
@@ -443,11 +449,15 @@ def ConsistentRidge(Eridge, Eis1, Eis2, thres, EtolFIRE=0):
 		elif Eridge+thres+EtolFIRE>Eis2:
 			return Eridge+thres+EtolFIRE
 		else:
-			sys.exit('Inconsistent Eridge<Eis.\nEridge='+str(Eridge)+'\tEis2='+str(Eis2))
+			print('Inconsistent Eridge<Eis.\nEridge='+str(Eridge)+'\tEis2='+str(Eis2)) #<0.01% of the times numerical noise sends one of the two minimizations out of the originary IS
+			ridgeLog.Exception()
+			Eridge=None
 	elif Eridge+thres+EtolFIRE>Eis1:
 		return Eridge+thres+EtolFIRE
 	else:
-		sys.exit('Inconsistent Eridge<Eis.\nEridge='+str(Eridge)+'\tEis1='+str(Eis1))
+		print('Inconsistent Eridge<Eis.\nEridge='+str(Eridge)+'\tEis2='+str(Eis2))
+		ridgeLog.Exception()
+		Eridge=None
 
 ################################################################
 # 

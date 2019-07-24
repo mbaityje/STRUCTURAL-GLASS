@@ -39,7 +39,7 @@ def fshort(x, a1, a2):
 
 ishort=np.where(times>0.05)[0][0]
 params=[C[0],1]
-params,dummy=curve_fit(fshort, times[:ishort], C[:ishort], p0=params, sigma=errC[:ishort])
+params,cov=curve_fit(fshort, times[:ishort], C[:ishort], p0=params, sigma=errC[:ishort])
 if args.showplots:
 	plt.subplot(111, xscale="log", yscale="linear", ylim=(0,1+C[0]))
 	plt.plot(times, fshort(times,params[0],params[1]), times, C)
@@ -86,8 +86,8 @@ out_friction.close()
 #
 out_short = open(outdir+'shortDiag_'+args.thermostat+'.txt',"w")
 out_short.write("# Fit parameters for short-time behavior. fshort(x)=a1/cosh(a2)\n")
-out_short.write("#T thermostat a1 a2\n")
-out_short.write("{} {} {} {}\n".format(args.temperature,args.thermostat,params[0],params[1]))
+out_short.write("#T thermostat a1 err1 a2 err2\n")
+out_short.write("{} {} {} {} {} {}\n".format(args.temperature,args.thermostat,params[0], np.sqrt(cov[0,0]), params[1], np.sqrt(cov[1,1])))
 out_short.close()
 
 #

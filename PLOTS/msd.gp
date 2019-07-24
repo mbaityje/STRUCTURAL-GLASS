@@ -5,7 +5,7 @@ set out "./FIGURES/msd.eps"
 set logs
 set key bottom right
 set xlabel "{/Times-Italic t}"
-set ylabel "Mean Square Displacement"
+set ylabel "Mean Square Displacement {/Symbol-Oblique D}^2"
 set tics format "10^{%T}"
 p "../OUTPUT/T5.0/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 5.0",\
 "../OUTPUT/T2.0/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 2.0",\
@@ -145,3 +145,56 @@ Tc=0.435; expo=1.75; a=.05
 fit [:.7] f(x) Dfile u 1:2:3 via a,Tc,expo
 p Dfile u ($1-Tc):($2):3 with errorl notitle, f(x+Tc) t "Power law fit"
 
+
+
+
+############################
+# Multiplot with MSD and D #
+############################
+set term post enhanced color eps font "Times-Roman,24" size 4,3
+set output "FIGURES/msd_inset.eps"
+unset key
+set tics nomirror font ",16" format "10^{%T}"
+
+set multiplot
+set tmargin at screen 0.99
+set bmargin at screen 0.13
+set rmargin at screen 0.99
+set lmargin at screen 0.16
+
+set ylabel "{/Symbol-Oblique D}^2({/Times-Italic t})" offset 1.5,0
+set xlabel "{/Times-Italic t}" offset 0,1
+load 'scl.pal'
+set logs
+set ytics offset 0.7,0
+set xtics offset 0,0.5
+set label "(a)" at 1e-2,10
+p [:1.8e5][:40]"../OUTPUT/T5.0/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 5.0" ls 1 ps .5,\
+"../OUTPUT/T2.0/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 2.0" ls 2 ps .5,\
+"../OUTPUT/T1.0/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 1.0" ls 3 ps .5,\
+"../OUTPUT/T0.8/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.8" ls 4 ps .5,\
+"../OUTPUT/T0.7/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.7" ls 5 ps .5,\
+"../OUTPUT/T0.6/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.6" ls 6 ps .5,\
+"../OUTPUT/T0.55/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.55" ls 7 ps .5,\
+"../OUTPUT/T0.52/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.52" ls 8 ps .5,\
+"../OUTPUT/T0.49/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.49" ls 9 ps .5,\
+"../OUTPUT/T0.47/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.47" ls 10 ps .5,\
+"../OUTPUT/T0.46/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.46" ls 11 ps .5,\
+"../OUTPUT/T0.45/N1080/msd_NVT.txt" u 1:2:3 w errorl t "T = 0.45" ls 12 ps .5
+
+set tmargin at screen 0.59
+set bmargin at screen 0.26
+set rmargin at screen 0.99
+set lmargin at screen 0.53
+
+
+set ylabel "{/Times-Italic D}" font ",20" offset 2,0
+set xlabel "{/Times-Italic T-T_D}" font ",20" offset 0,1.5
+unset label
+set key bottom right font ",16" samplen 1
+set label "(b)" at 5e-2,.1
+p [:5][:1]Dfile u ($1-Tc):($2):3 with errorl pt 4 lc rgb "dark-green" title "{/Times-Italic D}",\
+f(x+Tc) dt 13 lc rgb "black" title "Power law fit"
+
+
+unset multiplot

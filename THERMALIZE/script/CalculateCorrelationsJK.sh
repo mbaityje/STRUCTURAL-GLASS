@@ -36,6 +36,7 @@ if [ $limit_input ]
 then limit_input="--limit_input=$limit_input"
 else limit_input=""
 fi
+exclude=${exclude:-0}
 
 
 echo "lista T         : $LISTAT"
@@ -48,10 +49,12 @@ trajFreq=-1000 #A negative trajFreq means we sample |trajFreq| logarithmically d
 
 
 
-nblo=10 #Only 10 JK blocks because it takes long to calculate K(t) on each single block
 
 for T in $(echo $LISTAT)
 do
+	nblo=6
+	echo "T = $T   -   nblo = $nblo"
+
 	for N in $(echo $LISTAN)
 	do
 		for thermostat in $(echo $LISTATHERMOSTAT)
@@ -61,8 +64,8 @@ do
 			ntrajtot=$(ls S*/trajectories/trajectory${thermostat}*.gsd|wc -l) 
 			lblo=$(echo "$ntrajtot/$nblo"|bc) 
 			echo "lblo = $lblo"
-			echo "python $exeDIR/CalculateCorrelationsJK.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --lblo=$lblo $observables $limit_input"
-			python $exeDIR/CalculateCorrelationsJK.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --lblo=$lblo $observables $limit_input
+			echo "python $exeDIR/CalculateCorrelationsJK.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --lblo=$lblo --exclude=$exclude $observables $limit_input"
+			python $exeDIR/CalculateCorrelationsJK.py -L$L -T$T -N$N --dt=$dt --thermostat=$thermostat --lblo=$lblo --exclude=$exclude $observables $limit_input
 		done
 	done
 done

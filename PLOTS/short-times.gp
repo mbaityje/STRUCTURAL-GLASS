@@ -19,39 +19,12 @@ set lmargin left
 set key bottom right
 set xlabel "{/Times-Italic T}"
 set ylabel "{/Times-Italic a}_2"
-plot [0:][0:]"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortNoise_NVT.txt"  using 1:4:(0.06) w circles t "Noise",\
-"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortDiag_NVT.txt"  using 1:4:(0.06) w circles t "Diagonal"
-set out
-
-set output "./FIGURES/short-times_cosh-inset.eps"
-set multiplot
-set xlabel "{/Times-Italic T}"
-set ylabel "{/Times-Italic a}_2"
-set tmargin top
-set bmargin bottom
-set rmargin right
-set lmargin left
-set key top left
-set ytics 0,20
-plot [0:][0:]"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortNoise_NVT.txt"  using 1:4:(0.06) w circles t "Noise",\
-"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortDiag_NVT.txt"  using 1:4:(0.06) w circles t "Diagonal"
-
-set tmargin 10
-set bmargin 10
-set rmargin 2
-set lmargin 22
-set xtics 0.5,0.2 font ",22" offset 0,0.5
-set ytics 20,5 font ",22" offset 0.3,0
-set xlabel font ",24" offset 0,1
-set ylabel font ",24" offset 2,0
-unset key
-plot [0.44:1.1][20:37]"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortNoise_NVT.txt"  using 1:($4):(0.02) w circles t "Noise",\
-"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortDiag_NVT.txt"  using 1:($4*1.15):(0.02) w circles t "Diagonal x 1.15"
-unset multiplot
+plot [0:5.1][0:]"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortNoise_NVT.txt"  using 1:5:6 w yerrorbars lc rgb "dark-violet" t "Noise",\
+"< awk '(NR%3==0 && $1>=0.47)' ../OUTPUT/T*/N1080/shortDiag_NVT.txt"  using 1:5:6 w yerrorbars lc rgb "dark-green" t "Diagonal"
 set out
 
 
-#Plot correlation noise correlation function and its fit
+#Plot correlation noise correlation function and its fit (I made a change in the columns but didnt check it's ok because I won't use these plots)
 reset
 set term post enh c eps font "Times-Roman,32"
 set output "./FIGURES/short-times-fits_noise.eps"
@@ -63,28 +36,28 @@ set xtics 0,0.01
 unset key
 set xlabel "{/Times-Italic t}"
 set ylabel "{/Times-Italic K}({/Times-Italic t})" offset 1.5,0
-p[:0.04][0:] "../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 1,\
-"../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 2,\
-"../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 3,\
-"../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 4,\
-"../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 5,\
-"../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 6,\
-"../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 7,\
-"../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 8,\
-"../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 9,\
-"../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 10,\
-"../OUTPUT/T0.46/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 w lp ls 11,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T5.0/N1080/shortNoise_NVT.txt`"*x) ls 1,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T2.0/N1080/shortNoise_NVT.txt`"*x) ls 2,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T1.0/N1080/shortNoise_NVT.txt`"*x) ls 3,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.8/N1080/shortNoise_NVT.txt`"*x) ls 4,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.7/N1080/shortNoise_NVT.txt`"*x) ls 5,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.6/N1080/shortNoise_NVT.txt`"*x) ls 6,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.55/N1080/shortNoise_NVT.txt`"*x) ls 7,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.52/N1080/shortNoise_NVT.txt`"*x) ls 8,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.49/N1080/shortNoise_NVT.txt`"*x) ls 9,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.47/N1080/shortNoise_NVT.txt`"*x) ls 10,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.46/N1080/shortNoise_NVT.txt`"*x) ls 11
+p[:0.04][0:] "../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 1,\
+"../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 2,\
+"../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 3,\
+"../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 4,\
+"../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 5,\
+"../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 6,\
+"../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 7,\
+"../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 8,\
+"../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 9,\
+"../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 10,\
+"../OUTPUT/T0.46/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 w lp ls 11,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T5.0/N1080/shortNoise_NVT.txt`"*x) ls 1,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T2.0/N1080/shortNoise_NVT.txt`"*x) ls 2,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T1.0/N1080/shortNoise_NVT.txt`"*x) ls 3,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.8/N1080/shortNoise_NVT.txt`"*x) ls 4,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.7/N1080/shortNoise_NVT.txt`"*x) ls 5,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.6/N1080/shortNoise_NVT.txt`"*x) ls 6,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.55/N1080/shortNoise_NVT.txt`"*x) ls 7,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.52/N1080/shortNoise_NVT.txt`"*x) ls 8,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.49/N1080/shortNoise_NVT.txt`"*x) ls 9,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.47/N1080/shortNoise_NVT.txt`"*x) ls 10,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.46/N1080/shortNoise_NVT.txt`"*x) ls 11
 set out
 
 #Plot correlation diagonal correlation function and its fit
@@ -121,17 +94,17 @@ p[:0.04][0:1.] "../OUTPUT/T5.0/N1080/Cd_NVT.txt" using ($1*0.0025):($2/normCd50)
 "../OUTPUT/T0.49/N1080/Cd_NVT.txt" using ($1*0.0025):($2/normCd049):($3/normCd049) w errorl notitle ls 9 pt 2,\
 "../OUTPUT/T0.47/N1080/Cd_NVT.txt" using ($1*0.0025):($2/normCd047):($3/normCd047) w errorl notitle ls 10 pt 2,\
 "../OUTPUT/T0.46/N1080/Cd_NVT.txt" using ($1*0.0025):($2/normCd046):($3/normCd046) w errorl notitle ls 11 pt 2,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T5.0/N1080/shortDiag_NVT.txt`"*x) ls 1,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T2.0/N1080/shortDiag_NVT.txt`"*x) ls 2,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T1.0/N1080/shortDiag_NVT.txt`"*x) ls 3,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.8/N1080/shortDiag_NVT.txt`"*x) ls 4,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.7/N1080/shortDiag_NVT.txt`"*x) ls 5,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.6/N1080/shortDiag_NVT.txt`"*x) ls 6,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.55/N1080/shortDiag_NVT.txt`"*x) ls 7,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.52/N1080/shortDiag_NVT.txt`"*x) ls 8,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.49/N1080/shortDiag_NVT.txt`"*x) ls 9,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.47/N1080/shortDiag_NVT.txt`"*x) ls 10,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.46/N1080/shortDiag_NVT.txt`"*x) ls 11
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T5.0/N1080/shortDiag_NVT.txt`"*x) ls 1,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T2.0/N1080/shortDiag_NVT.txt`"*x) ls 2,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T1.0/N1080/shortDiag_NVT.txt`"*x) ls 3,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.8/N1080/shortDiag_NVT.txt`"*x) ls 4,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.7/N1080/shortDiag_NVT.txt`"*x) ls 5,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.6/N1080/shortDiag_NVT.txt`"*x) ls 6,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.55/N1080/shortDiag_NVT.txt`"*x) ls 7,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.52/N1080/shortDiag_NVT.txt`"*x) ls 8,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.49/N1080/shortDiag_NVT.txt`"*x) ls 9,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.47/N1080/shortDiag_NVT.txt`"*x) ls 10,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.46/N1080/shortDiag_NVT.txt`"*x) ls 11
 set out
 
 
@@ -148,27 +121,27 @@ set xlabel "{/Times-Italic t}"
 set ylabel "Autocorrelation"
 set logs x
 p[0.001:1][0:] 1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T5.0/N1080/shortNoise_NVT.txt`"*x) ls 1,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T2.0/N1080/shortNoise_NVT.txt`"*x) ls 2,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T1.0/N1080/shortNoise_NVT.txt`"*x) ls 3,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.8/N1080/shortNoise_NVT.txt`"*x) ls 4,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.7/N1080/shortNoise_NVT.txt`"*x) ls 5,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.6/N1080/shortNoise_NVT.txt`"*x) ls 6,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.55/N1080/shortNoise_NVT.txt`"*x) ls 7,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.52/N1080/shortNoise_NVT.txt`"*x) ls 8,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.49/N1080/shortNoise_NVT.txt`"*x) ls 9,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.47/N1080/shortNoise_NVT.txt`"*x) ls 10,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.46/N1080/shortNoise_NVT.txt`"*x) ls 11,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T5.0/N1080/shortDiag_NVT.txt`"*x) ls 1,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T2.0/N1080/shortDiag_NVT.txt`"*x) ls 2,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T1.0/N1080/shortDiag_NVT.txt`"*x) ls 3,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.8/N1080/shortDiag_NVT.txt`"*x) ls 4,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.7/N1080/shortDiag_NVT.txt`"*x) ls 5,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.6/N1080/shortDiag_NVT.txt`"*x) ls 6,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.55/N1080/shortDiag_NVT.txt`"*x) ls 7,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.52/N1080/shortDiag_NVT.txt`"*x) ls 8,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.49/N1080/shortDiag_NVT.txt`"*x) ls 9,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.47/N1080/shortDiag_NVT.txt`"*x) ls 10,\
-1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.46/N1080/shortDiag_NVT.txt`"*x) ls 11
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T2.0/N1080/shortNoise_NVT.txt`"*x) ls 2,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T1.0/N1080/shortNoise_NVT.txt`"*x) ls 3,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.8/N1080/shortNoise_NVT.txt`"*x) ls 4,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.7/N1080/shortNoise_NVT.txt`"*x) ls 5,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.6/N1080/shortNoise_NVT.txt`"*x) ls 6,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.55/N1080/shortNoise_NVT.txt`"*x) ls 7,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.52/N1080/shortNoise_NVT.txt`"*x) ls 8,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.49/N1080/shortNoise_NVT.txt`"*x) ls 9,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.47/N1080/shortNoise_NVT.txt`"*x) ls 10,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.46/N1080/shortNoise_NVT.txt`"*x) ls 11,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T5.0/N1080/shortDiag_NVT.txt`"*x) ls 1,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T2.0/N1080/shortDiag_NVT.txt`"*x) ls 2,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T1.0/N1080/shortDiag_NVT.txt`"*x) ls 3,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.8/N1080/shortDiag_NVT.txt`"*x) ls 4,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.7/N1080/shortDiag_NVT.txt`"*x) ls 5,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.6/N1080/shortDiag_NVT.txt`"*x) ls 6,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.55/N1080/shortDiag_NVT.txt`"*x) ls 7,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.52/N1080/shortDiag_NVT.txt`"*x) ls 8,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.49/N1080/shortDiag_NVT.txt`"*x) ls 9,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.47/N1080/shortDiag_NVT.txt`"*x) ls 10,\
+1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.46/N1080/shortDiag_NVT.txt`"*x) ls 11
 set tmargin 2
 set bmargin 10
 set rmargin 2
@@ -178,28 +151,28 @@ set xtics format "10^{%T}" font ",24"
 unset ylabel
 unset xlabel
 rescale=1.15
-#p[0.001:1][0:] 1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T5.0/N1080/shortNoise_NVT.txt`"*x) ls 1,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T2.0/N1080/shortNoise_NVT.txt`"*x) ls 2,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T1.0/N1080/shortNoise_NVT.txt`"*x) ls 3,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.8/N1080/shortNoise_NVT.txt`"*x) ls 4,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.7/N1080/shortNoise_NVT.txt`"*x) ls 5,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.6/N1080/shortNoise_NVT.txt`"*x) ls 6,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.55/N1080/shortNoise_NVT.txt`"*x) ls 7,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.52/N1080/shortNoise_NVT.txt`"*x) ls 8,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.49/N1080/shortNoise_NVT.txt`"*x) ls 9,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.47/N1080/shortNoise_NVT.txt`"*x) ls 10,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.46/N1080/shortNoise_NVT.txt`"*x) ls 11,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T5.0/N1080/shortDiag_NVT.txt`"*x*rescale) ls 1,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T2.0/N1080/shortDiag_NVT.txt`"*x*rescale) ls 2,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T1.0/N1080/shortDiag_NVT.txt`"*x*rescale) ls 3,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.8/N1080/shortDiag_NVT.txt`"*x*rescale) ls 4,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.7/N1080/shortDiag_NVT.txt`"*x*rescale) ls 5,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.6/N1080/shortDiag_NVT.txt`"*x*rescale) ls 6,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.55/N1080/shortDiag_NVT.txt`"*x*rescale) ls 7,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.52/N1080/shortDiag_NVT.txt`"*x*rescale) ls 8,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.49/N1080/shortDiag_NVT.txt`"*x*rescale) ls 9,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.47/N1080/shortDiag_NVT.txt`"*x*rescale) ls 10,\
-#1./cosh("`awk '(NR==3){print $4}' ../OUTPUT/T0.46/N1080/shortDiag_NVT.txt`"*x*rescale) ls 11
+#p[0.001:1][0:] 1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T5.0/N1080/shortNoise_NVT.txt`"*x) ls 1,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T2.0/N1080/shortNoise_NVT.txt`"*x) ls 2,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T1.0/N1080/shortNoise_NVT.txt`"*x) ls 3,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.8/N1080/shortNoise_NVT.txt`"*x) ls 4,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.7/N1080/shortNoise_NVT.txt`"*x) ls 5,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.6/N1080/shortNoise_NVT.txt`"*x) ls 6,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.55/N1080/shortNoise_NVT.txt`"*x) ls 7,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.52/N1080/shortNoise_NVT.txt`"*x) ls 8,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.49/N1080/shortNoise_NVT.txt`"*x) ls 9,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.47/N1080/shortNoise_NVT.txt`"*x) ls 10,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.46/N1080/shortNoise_NVT.txt`"*x) ls 11,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T5.0/N1080/shortDiag_NVT.txt`"*x*rescale) ls 1,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T2.0/N1080/shortDiag_NVT.txt`"*x*rescale) ls 2,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T1.0/N1080/shortDiag_NVT.txt`"*x*rescale) ls 3,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.8/N1080/shortDiag_NVT.txt`"*x*rescale) ls 4,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.7/N1080/shortDiag_NVT.txt`"*x*rescale) ls 5,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.6/N1080/shortDiag_NVT.txt`"*x*rescale) ls 6,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.55/N1080/shortDiag_NVT.txt`"*x*rescale) ls 7,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.52/N1080/shortDiag_NVT.txt`"*x*rescale) ls 8,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.49/N1080/shortDiag_NVT.txt`"*x*rescale) ls 9,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.47/N1080/shortDiag_NVT.txt`"*x*rescale) ls 10,\
+#1./cosh("`awk '(NR==3){print $5}' ../OUTPUT/T0.46/N1080/shortDiag_NVT.txt`"*x*rescale) ls 11
 unset multiplot
 set out
 
@@ -213,16 +186,16 @@ set out
 set term unknown
 set xlabel "t"
 set ylabel "K(t)"
-plot[:0.05][-.1:1.1]"../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M3.txt"  using 1:3 w lp title "T = 5.0" ls 1
-replot "../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M3.txt"  using 1:3 w lp title "T = 2.0" ls 2
-replot "../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M3.txt"  using 1:3 w lp title "T = 1.0" ls 3
-replot "../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M3.txt"  using 1:3 w lp title "T = 0.8" ls 4
-replot "../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M3.txt"  using 1:3 w lp title "T = 0.7" ls 5
-replot "../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M3.txt"  using 1:3 w lp title "T = 0.6" ls 6
-replot "../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w lp title "T = 0.55" ls 7
-replot "../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w lp title "T = 0.52" ls 8
-replot "../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w lp title "T = 0.49" ls 9
-replot "../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w lp title "T = 0.47" ls 10
+plot[:0.05][-.1:1.1]"../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M5.txt"  using 1:3 w lp title "T = 5.0" ls 1
+replot "../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M5.txt"  using 1:3 w lp title "T = 2.0" ls 2
+replot "../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M5.txt"  using 1:3 w lp title "T = 1.0" ls 3
+replot "../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M5.txt"  using 1:3 w lp title "T = 0.8" ls 4
+replot "../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M5.txt"  using 1:3 w lp title "T = 0.7" ls 5
+replot "../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M5.txt"  using 1:3 w lp title "T = 0.6" ls 6
+replot "../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w lp title "T = 0.55" ls 7
+replot "../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w lp title "T = 0.52" ls 8
+replot "../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w lp title "T = 0.49" ls 9
+replot "../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w lp title "T = 0.47" ls 10
 replot 0 ls 0 notitle
 
 f50(x)=1-a50*x**2
@@ -238,35 +211,35 @@ f047(x)=1-a047*x**2
 
 set xr[0:0.04]
 set arrow nohead from 0.03,0 to 0.03,1
-fit [:0.03] f047(x) "../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a047
-plot "../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 0.47" ls 10, f047(x)
+fit [:0.03] f047(x) "../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a047
+plot "../OUTPUT/T0.47/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 0.47" ls 10, f047(x)
 
-fit [:0.03] f049(x) "../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a049
-plot "../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 0.49" ls 10, f049(x)
+fit [:0.03] f049(x) "../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a049
+plot "../OUTPUT/T0.49/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 0.49" ls 10, f049(x)
 
-fit [:0.03] f052(x) "../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a052
-plot "../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 0.52" ls 10, f052(x)
+fit [:0.03] f052(x) "../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a052
+plot "../OUTPUT/T0.52/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 0.52" ls 10, f052(x)
 
-fit [:0.03] f055(x) "../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a055
-plot "../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 0.55" ls 10, f055(x)
+fit [:0.03] f055(x) "../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a055
+plot "../OUTPUT/T0.55/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 0.55" ls 10, f055(x)
 
-fit [:0.03] f06(x) "../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a06
-plot "../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 0.6" ls 10, f06(x)
+fit [:0.03] f06(x) "../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a06
+plot "../OUTPUT/T0.6/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 0.6" ls 10, f06(x)
 
-fit [:0.03] f07(x) "../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a07
-plot "../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 0.7" ls 10, f07(x)
+fit [:0.03] f07(x) "../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a07
+plot "../OUTPUT/T0.7/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 0.7" ls 10, f07(x)
 
-fit [:0.03] f08(x) "../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a08
-plot "../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 0.8" ls 10, f08(x)
+fit [:0.03] f08(x) "../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a08
+plot "../OUTPUT/T0.8/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 0.8" ls 10, f08(x)
 
-fit [:0.03] f10(x) "../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a10
-plot "../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 1.0" ls 10, f10(x)
+fit [:0.03] f10(x) "../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a10
+plot "../OUTPUT/T1.0/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 1.0" ls 10, f10(x)
 
-fit [:0.015] f20(x) "../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a20
-plot "../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 2.0" ls 20, f20(x)
+fit [:0.015] f20(x) "../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a20
+plot "../OUTPUT/T2.0/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 2.0" ls 20, f20(x)
 
-fit [:0.01] f50(x) "../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M3.txt" u 1:3 via a50
-plot "../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M3.txt" using 1:3 w errorl title "T = 5.0" ls 50, f50(x)
+fit [:0.01] f50(x) "../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M5.txt" u 1:3 via a50
+plot "../OUTPUT/T5.0/N1080/noisecorr_NVT_combine_M5.txt" using 1:3 w errorl title "T = 5.0" ls 50, f50(x)
 
 !rm -f "./SMALL-DATA/short-times_gauss.txt"
 set print "./SMALL-DATA/short-times_gauss.txt"

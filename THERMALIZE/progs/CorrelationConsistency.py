@@ -25,6 +25,7 @@ class CorrelationConsistency:
 		''' Read command-line arguments '''
 		parser = argparse.ArgumentParser(prog='python '+sys.argv[0]+' [--hoomd-flags] --user=" HERE YOU PUT THE FOLLOWING ARGUMENTS"', add_help=True)
 		parser.add_argument('-N','--Natoms', type=int, required=True, help='Number of particles')
+		parser.add_argument('-M','--M', type=int, required=False, default=5, help='(Half) Number of Gaver-Stehfest coefficients')
 		parser.add_argument('-L','--L', type=np.float64, required=True, help='Box Size (assumed cubic)')
 		parser.add_argument('-T','--temperature', type=float, required=True, help='Temperature')
 		parser.add_argument('--tstar', type=float, required=False, default=1.0, help='Maximum time for integral of CPP(t)')
@@ -55,8 +56,8 @@ class CorrelationConsistency:
 		self.CPP=np.load('CPPJK_'+str(self.args.thermostat)+'.npy')
 		self.times=np.load('times_'+str(self.args.thermostat)+'.npy')
 		self.nt=len(self.times)
-		readK=np.loadtxt('noisecorr_'+self.args.thermostat+'.txt')[:,0:2]
-		self.Kread=readK[:,1]#*self.args.temperature #at some point I changed the def of K by a factor 1/T, so sometimes we need to remultiply it back
+		readK=np.loadtxt('noisecorr_'+self.args.thermostat+'_combine_M'+str(self.args.M)+'.txt')[:,0:2]
+		self.Kread=readK[:,1]*self.args.temperature #at some point I changed the def of K by a factor 1/T, so sometimes we need to remultiply it back
 		self.SmoothK(action=self.args.smoothK)
 
 
@@ -249,7 +250,7 @@ class CorrelationConsistency:
 		plt.show()
 
 		#Calculate corresponding diffusion coefficient
-		istar=np.where(self.times>args.tstar)[0][0]
+		istar=np.where(self.times>self.args.tstar)[0][0]
 		D=np.trapz(self.CPP.item()['mean'][:istar], x=self.times[:istar])
 		Dcheck=np.trapz(self.CPPcheck[:istar], x=self.times[:istar])
 		

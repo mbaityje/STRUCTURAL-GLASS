@@ -37,6 +37,7 @@ parser.add_argument('--Cd' , action='store_true', help='calculate diagonal corre
 parser.add_argument('--ntCd', type=int, required=False, default=30, help='Number of times for the calculation of Cd')
 parser.add_argument('--limit_input' , type=int, required=False, default=None, help='for test runs, limits the amount of input to a small number')
 parser.add_argument('--lblo', type=int, required=False, default='10', help='Length of jackknife blocks')
+parser.add_argument('--exclude', type=int, required=False, default=0, help='Exclude the first args.exclude trajectories from each sample [default: 0]')
 args = parser.parse_args()
 
 
@@ -45,6 +46,8 @@ print('N:',args.Natoms)
 print('L:',args.box_size)
 print('T:',args.temperature)
 print('dt:',args.dt)
+print('thermostat:',args.thermostat)
+print('exclude:',args.exclude)
 L=args.box_size
 trajDIR='trajectories/'
 maxnsam=100
@@ -75,7 +78,7 @@ def ReadAllBlocks():
 		if not os.path.isdir(samdir): 
 			# print("Skipping sample {}".format(isam))
 			continue
-		for itraj in range(maxntraj):
+		for itraj in range(args.exclude, maxntraj):
 			namegsd="{}/trajectory{}{}.gsd".format(samdir, args.thermostat, itraj)
 			namePos="{}/pos{}{}.npy".format(samdir, args.thermostat, itraj)
 			nameVel="{}/vel{}{}.npy".format(samdir, args.thermostat, itraj)
@@ -129,7 +132,8 @@ def ReadAllBlocks():
 				this_msd = np.array([med.PeriodicSquareDistance(pos[it], pos[0], L) for it in range(nt)])/args.Natoms
 				msd_blo+=this_msd
 			if args.Fkt: 
-				n1=1; n2=3; n3=4 # Wave vector for the self-intermediate scattering function, k =[2 pi/L](n1,n2,n3) and permutations
+				# n1=1; n2=3; n3=4 # Wave vector for the self-intermediate scattering function, k =[2 pi/L](n1,n2,n3) and permutations
+				n1=6; n2=6; n3=7 # Wave vector for the self-intermediate scattering function, k =[2 pi/L](n1,n2,n3) and permutations
 				this_Fkt = np.array([med.ComputeFkt(n1, n2, n3, L, med.PeriodicDisplacement(pos[it], pos[0], L)) for it in range(nt)])
 				Fkt_blo+=this_Fkt
 			if args.CFF: 

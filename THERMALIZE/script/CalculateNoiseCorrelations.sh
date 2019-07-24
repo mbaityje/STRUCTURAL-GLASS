@@ -38,15 +38,16 @@ showplots="--showplots"
 kind='combined'
 if [ -z $pot_mode ]; then pot_mode='xplor'; fi
 if [ $maxtime   ]; then   maxtime="--maxtime=$maxtime"; fi
+if [ $showplots ]; then showplots="--showplots"; fi
+M=${M:-3}
 
 declare -A TMIN=(  ["5.0"]=0.027 ["2.0"]=0.042 ["1.0"]=0.043 ["0.8"]=0.062 ["0.7"]=0.059 ["0.6"]=0.071 ["0.55"]=0.065 ["0.52"]=0.066 ["0.49"]=0.065 ["0.47"]=0.074 ["0.46"]=0.069 ["0.45"]=0.078 )
-declare -A NCOEF=( ["5.0"]=9     ["2.0"]=7     ["1.0"]=7     ["0.8"]=5     ["0.7"]=5     ["0.6"]=7     ["0.55"]=7     ["0.52"]=6     ["0.49"]=5     ["0.47"]=7     ["0.46"]=6     ["0.45"]=6     )
+declare -A NCOEF=( ["5.0"]=9     ["2.0"]=7     ["1.0"]=7     ["0.8"]=5     ["0.7"]=5     ["0.6"]=7     ["0.55"]=7     ["0.52"]=6     ["0.49"]=6     ["0.47"]=5     ["0.46"]=6     ["0.45"]=7     )
 
 for T in $(echo $LISTAT)
 do
 	for N in $(echo $LISTAN)
 	do
-		M=3
 		ncoef=${NCOEF[$T]}
 		tmin=${TMIN[$T]}
 
@@ -59,7 +60,7 @@ do
 			then
 				python $exeDIR/CalculateNoiseCorrelationsLaplace.py -T$T --thermostat=$thermostat --kind=$kind --ncoef=$ncoef --M=$M --tmin=$tmin $showplots $shiftCFP $maxtime 
 			else
-				python $exeDIR/CalculateNoiseCorrelationsJK.py -T$T --thermostat=$thermostat -M=$M $maxtime --tmin=$tmin  --kind=$kind --ncoef=$ncoef
+				python $exeDIR/CalculateNoiseCorrelationsJK.py -T$T --thermostat=$thermostat -M=$M $maxtime --tmin=$tmin  --kind=$kind --ncoef=$ncoef --central_value='meanJK'
 			fi
 			echo ""
 		done

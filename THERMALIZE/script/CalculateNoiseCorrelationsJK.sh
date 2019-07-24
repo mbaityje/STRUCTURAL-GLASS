@@ -44,7 +44,7 @@ do
 			cd $workDIR/T$T/N$N/
 			for M in 3 4 5
 			do
-				python $exeDIR/CalculateNoiseCorrelationsJK.py -T$T --thermostat=$thermostat -M=$M $maxtime
+				python $exeDIR/CalculateNoiseCorrelationsJK.py -T$T --thermostat=$thermostat -M=$M $maxtime --central_value='meanJK'
 			done
 		done
 	done

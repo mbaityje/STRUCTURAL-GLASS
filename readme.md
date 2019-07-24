@@ -1,4 +1,4 @@
-    # STRUCTURAL-GLASS  
+# STRUCTURAL-GLASS  
 # Molecular Dynamics of Supercooled Liquids
 
 A repository for MD simulations of supercooled liquids based on [HOOMD](http://glotzerlab.engin.umich.edu/hoomd-blue/).
@@ -8,7 +8,7 @@ This repository contains code aimed at the development of the following projects
 - **Generic Tutorials** I spent some time making some tutorials for hoomd, since I couldn't find any useful examples on the web.
 
 - **Noise Correlation Functions**
-In the Nishimori-Swanzig formalism of the projection operator technique, calculate the correlation functions of the dynamics in the space orthogonal to the relevant variables.
+In the Mori-Zwanzig formalism of the projection operator technique, calculate the correlation functions of the dynamics in the space orthogonal to the relevant variables.
 
 - **Metabasin Dynamics**
 Follow the succession of the inherent structures corresponding to every single configuration along the dynamics, identifying metabasins and their mutual relation.
@@ -242,9 +242,10 @@ The script to launch it is `CalculateCorrelationsJK.sh`, which has the same exac
 
 ```
 cd ./THERMALIZE/script
-bash CalculateCorrelationsJK.sh "--CFF --CFP --CPP" "5.0" "1080" "NVT"
+exclude=10 bash CalculateCorrelationsJK.sh "--CFF --CFP --CPP" "5.0" "1080" "NVT"
 cd -
 ```
+The exclude flag, which excludes from the analysis the first `args.exclude` measurements of each sample, can be used for sanity checks.
 
 ### Calculating Noise Correlation Functions
 At this point, the final step is reading the previously calculated correlation functions, and use them as kernels for calculating the noise correlation function. 
@@ -252,30 +253,14 @@ At this point, the final step is reading the previously calculated correlation f
 ```
 cd ./THERMALIZE/script
 # arguments: <T-list> <N-list> <thermostat-list>
-bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
+noJK=1 M=3 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVT"
 cd -
 ```
-Some options can be given to the script:
 
-- `maxtime`: reduces the total integration time to maxtime
+The flag `noJK` tells the program to use JK blocks, or to do only the average.
+No need for using `CalculateNoiseCorrelationsJK.sh` because of this flag (also, the used, good, parameter choices are hard-coded in `CalculateNoiseCorrelations.sh`).
 
-- `shiftCFP`: if not set, nothing happens. If set to anything, sets to zero the first point of CFP, since C<sup>FP</sup>(t=0)=0
-
-- `softening`: if not set, nothing happens. If set to anything, introduces a damping term in CFP and CFF so that they are smaller at high times where the signal-to-noise ratio is low. The implementation I did is sloppy because I don't need this option in the long term.
-
-- `tstar`: the non-selfconsistent integration is truncated at tstar (choose tstar so that it is the time after which the kernels are only noise). The implementation I did is sloppy because I don't need this option in the long term.
-
-- `normalsc`: If set to anything, also calculates the noise correlation function *selfconsistently*.
-
-- `lin`: If set to anything, also calculates the noise correlation function using a *linear* grid.
-
-- `linsc`: If set to anything, also calculates the noise correlation function *selfconsistently* using a *linear* grid.
-
-- `fits`: If set to anything, instead of making interpolations does fits.
-
-For example one can launch in the following way:
-
-`maxtime=0.9 fits=1 normalsc=1 lin=1 linsc=1 shiftCFP=1 softening=1 bash CalculateNoiseCorrelations.sh "5.0 1.0" "1080" "NVE"`
+`M` is a parameter for the inverse Laplace with the Gaver-Stehfest method. Larger `M` implies that more structure can be conveyed, but the algorithm becomes more susceptible to noise in the data.
 
 To plot the noise correlations, you can use the following gnuplot script:
 ```
@@ -283,14 +268,6 @@ cd ./PLOTS
 gnuplot NoiseCorr.gp
 cd -
 ```
-
-
-If the JackKnife blocks of the trivial correlations were `CalculateCorrelationsJK.sh` produced, then the noise correlations can also be calculated with JK. Use the following script, with analogous syntax of its non-JK counterpart:
-```
-bash CalculateNoiseCorrelationsJK.sh "5.0 2.0" "1080" "NVT"
-```
-(new versions of the code do the jackknife blocks directly in `CalculateCorrelations.sh` --  the user must specify where they want to do with or without JK, through the flag `noJK`)
-
 
 The jackknife blocks can be plotted individually with the following script
 ```
@@ -327,9 +304,19 @@ The program spits a figure (in the directory of the data) of the velocity autoco
 
 Consistenct checks can also be done with JackKnife:
 ```
+cd ./THERMALIZE/script
 bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
 #If you want to visualize the plots while checking:
 showplots=1 bash CorrelationConsistencyJK.sh "5.0 2.0" "1080" "NVT"
+cd -
+```
+
+The script takes all the simulated choices of `M` (parameter for Laplace Anti-transform), and makes a check for each. In order to compare the different outputs, one can plot them all with `compareM.gp`:
+
+```
+cd ./PLOTS
+gnuplot -e "T='1.0'" compareM.gp
+cd -
 ```
 
 
@@ -366,7 +353,7 @@ All the quantities are output in the same directory of the correlation function.
 
 ```
 cd ./THERMALIZE/script
-bash CalculateFriction.sh "5.0 2.0 1.0 0.8 0.7 0.6 0.55 0.52 0.49 0.47 0.46" "1080" "NVT"
+bash CalculateFriction.sh "5.0 2.0 1.0 0.8 0.7 0.6 0.55 0.52 0.49 0.47 0.46 0.45" "1080" "NVT"
 cd -
 ```
 
@@ -412,14 +399,22 @@ To plot the function,
 ```
 cd ./PLOTS
 gnuplot NoiseCorrCompare3.gp
+gnuplot NoiseCorrMCT.gp
 cd -
 ```
 
+To separate the short and long-time behavior of Kmct(t) I made the script `CalculateFrictionMCT.py`, which I eventually didn't use in the article, so it is not cleanly written. It removes the short-time behavior from Kmct(t) and replaces it with the one of the exact function K(t). This procedure was unsuccessful because the plateau height of Kmct(t) is larger than K(0).
 
 
-### Yet to do
 
-- Some stuff needs to be pushed, and the readme updated.
+# Mean-Square displacement Check
+
+```
+cd /storage4Tb/STRUCTURAL-GLASS/OUTPUT/T0.6/N1080
+python ~/STRUCTURAL-GLASS/THERMALIZE/progs/MSDconsistency.py -N1080 -L9.6548938751221 -T0.6 --thermostat=NVT -M5 --smoothK=None
+```
+
+--- 
 
 --- 
 
@@ -461,7 +456,7 @@ The curves can the be plotted with the gnuplot script `../PLOTS/Fkt.gp`.
 
 ### A rough estimate of tau alpha
 
-We need a rough estimate of tau_alpha. This is easily done by doing
+We need a rough estimate of tau_alpha, as the time at which the self-intermediate scattering function touches 1/e. This is easily done by doing
 
 ```
 cd ./THERMALIZE/script
@@ -478,19 +473,90 @@ The following script sequentially creates a trajectory chunk, and then minimizes
 
 ```
 cd ./THERMALIZE/script
-bash ChunkSectAll.sh "0.6" "65"
+#bash ChunkSectAll.sh "temperatures" "sizes"
+potential="shift" ntau=2000 SAMLIST="0 1 2 3 4 5 6 7 8 9" bash ChunkSectAll.sh "0.6" "65"
 cd -
 ```
+
+Lanciato `potential="shift" ntau=2000 SAMLIST="0 1 2 3 4 5 6 7 8 9" bash ChunkSectAll.sh "1.0 0.8 0.7 0.6" "65"` ma mi sa che ha fatto solo `T=1.0`. E `potential="shift" ntau=1000 SAMLIST="6" bash ChunkSectAll.sh "0.49" "65"` ma ora mancano tutte le altre sample.
+
+
+Defaults: `ntau=10, SAMLIST="0", potential="shift"`. Another keyword is `ttot` (default: 0). If `ttot` is different from zero then does `ttot` steps, regardless of the alpha relaxation time.
 
 This program saves in the output directory (`......./chunkIS/`) the list of inherent structures, the list of ridges (this can be disactivated for more speed), the thermal trajectory, and a **dictionary containing the inherent structures and the time at which they occur (to do)**.
 
 
 
 ### Metabasin trajectory
-At this point we have the inherent structure trajectory. Now we want to identify the metabasins.
+At this point we have the inherent structure trajectory. Now we want to identify the metabasins and the ridges between them.
 
 ```
-python IdentifyMetabasins.py ~/STRUCTURAL-GLASS/OUTPUT/T0.7/N65/shift/S0/chunksIS/elistIS.txt
+cd ./THERMALIZE/script
+showplots=1 thres=1e-5 SAMLIST="0 1 2 3 4 5 6 7 8 9" bash IdentifyMetabasins.sh "0.6"
+bash MinimizeSegment.sh "0.6" "0 1 2 3 4 5 6 7 8 9" # For stuff relative to the single IS
+cd -
+
+# A basic version without script
+# cd ./THERMALIZE/progs/
+# python IdentifyMetabasins.py ~/STRUCTURAL-GLASS/OUTPUT/T0.7/N65/shift/S0/chunksIS/
+# cd -
+
+cd ./PLOTS        #Scripts should be launched in this order
+python tauIS.py   #To change temperature need to go into the code
+python tau-qMB.py
+python eMB.py
+cd -
+```
+
+### Calculating q(t) and qIS(t)
+
+```
+cd ./THERMALIZE/script/
+bash OverlapTrajectoryIS.sh
+cd -
+cd ./PLOTS
+python q.py
+cd -
+```
+
+
+
+### Calculating IS times
+The time of the inherent structures must be calculated without bisection.
+
+```
+cd ./THERMALIZE/script/
+bash MinimizeSegment.sh 0.6 0 # T=0.6, ISAM=0
+cd -
+```
+
+
+
+### Calculating Barriers and Exit Times with Nudged Elastic Band (NEB)
+
+I made a module that has not yet been passed to the production directories, but that is complete and working.
+
+The program takes a configuration belonging to a deep metabasin (the configuration is chosen manually at the moment), and runs `ntraj` trajectories at a temperature <i>T</i>, for a number of steps that has to be necessary to get out of the metabasin. The program calculates all sorts of stuff (exit time, barriers, maximum and minimum energy particles, ...), and more can be easily added because it is very modular and easy to understand.
+
+Here, I show how to calculate the NEB for trajectories that 
+
+
+Changing `ntraj` allows to repeat the experiment all the times you want.
+
+```
+cd ./PLAYGROUND/abandon-mb
+
+T=0.6
+nsteps=100000
+
+# Linear interpolation as initial condition of the NEB (I used the script launch2.sh)
+run trajNEB.py --user="./input/basin-bottom.gsd --temperature=$T --ntraj=1 --nsteps=$nsteps --maxiterNEB=200000 --npivotsNEB=25 --thermostat='NVT' --iniNEB='lin'"
+
+run trajNEB.py --user="./input/basin-bottom.gsd --temperature=$T --ntraj=1 --nsteps=$nsteps --maxiterNEB=200000 --npivotsNEB=25 --thermostat='NVT' --iniNEB='traj'"
+
+gnuplot neb.gp
+
+cd -
 ```
 
 ---

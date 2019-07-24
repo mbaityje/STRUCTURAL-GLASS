@@ -59,10 +59,13 @@ do
 
 				cd $workDIR/T$T/N$N/
 				L="$(python $utilDIR/FindL.py ./S0/thermalized.gsd)"
+				echo "k = `echo $n | awk -vL=$L 'BEGIN{pi = atan2(0, -1)}{print (2*pi/L)*sqrt($1*$1+$2*$2+$3*$3)}'`"
+
 				mkdir -p vertex
 				cd vertex
 				echo python $exeDIR/CalculateVertexCorrelations.py -L$L -T$T -N$N --thermostat=$thermostat -n $n --limit_input=$ntw --ntCd=$ntCd
 				python $exeDIR/CalculateVertexCorrelations.py -L$L -T$T -N$N --thermostat=$thermostat -n $n --limit_input=$ntw --ntCd=$ntCd
+				echo ""
 			done
 		done
 	done

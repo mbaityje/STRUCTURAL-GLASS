@@ -62,8 +62,8 @@ if args.maxtime>0:
 	CPP.item()['err' ]=CPP.item()['err' ][:nt]
 print('Integration interval: [{},{}]'.format(times[0],times[nt-1]))
 
-if args.shiftCFP:
-	CFP.item()['mean'][0]-=CFP.item()['mean'][0] #Do not shift the whole curve, or there will be a bias in the integral!!!
+#Put to zero CFP[0], to reduce a source of fluctuations
+CFP.item()['mean'][0]-=CFP.item()['mean'][0] #Do not shift the whole curve, or there will be a bias in the integral!
 
 
 

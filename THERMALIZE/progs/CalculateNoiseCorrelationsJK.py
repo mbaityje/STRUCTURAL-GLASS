@@ -22,8 +22,8 @@ parser.add_argument('--showplots', action='store_true', help='If activated, show
 parser.add_argument('--selfcon', action='store_true', help='If activated, calculates K also with the self-consistent method.')
 parser.add_argument('--ncoef', type=int, required=False, default=10, help='number of coefficients for fits')
 parser.add_argument('--tmin', type=float, required=False, default='0.05', help='time for the piecewise concatenation of Kvolterra with Klaplace')
-parser.add_argument('--kind', required=False, choices=['interp','interp_lin','fit','combined'], default='combined', help='thermostat')
-
+parser.add_argument('--kind', required=False, choices=['interp','interp_lin','fit','combined'], default='combined', help='kind of interpolation')
+parser.add_argument('--central_value', required=False, choices=['meanJK','medianJK','mean'], default='meanJK', help='what central value. meanJK (mean of JK blocks), medianJK (median of JK blocks), mean (K(t) calculated on the mean of CFF and CFP)')
 args = parser.parse_args()
 
 print(sys.argv)
@@ -97,9 +97,20 @@ for iblo in range(nblo):
 	K['Volterra']['blocksJK'][iblo]=nc.NoiseCorr(times, CFF.item()['blocksJK'][iblo], CFP.item()['blocksJK'][iblo], invT=invT, ncoef=args.ncoef)
 	itmin, K['combine']['blocksJK'][iblo] = nc.NoiseCorrCombine(times, K['Volterra']['blocksJK'][iblo], K['Laplace']['blocksJK'][iblo], tmin=args.tmin)
 
-K['Laplace']['mean']=K['Laplace']['blocksJK'].mean(axis=0)
-K['Volterra']['mean']=K['Volterra']['blocksJK'].mean(axis=0)
+if args.central_value=='medianJK':
+	K['Laplace']['mean']=np.median(K['Laplace']['blocksJK'], axis=0)
+	K['Volterra']['mean']=np.median(K['Volterra']['blocksJK'], axis=0)
+elif args.central_value=='meanJK':
+	K['Laplace']['mean']=np.mean(K['Laplace']['blocksJK'], axis=0)
+	K['Volterra']['mean']=np.mean(K['Volterra']['blocksJK'], axis=0)
+elif args.central_value=='mean':
+	K['Laplace']['mean']=nc.NoiseCorrLaplace(times, CPP.item()['mean'], args.M, args.temperature, ncoef=args.ncoef, kind=args.kind, showplots=args.showplots)
+	K['Volterra']['mean']=nc.NoiseCorr(times, CFF.item()['mean'], CFP.item()['mean'], invT=invT, ncoef=args.ncoef)
+
+
 itmin, K['combine']['mean']=nc.NoiseCorrCombine(times, K['Volterra']['mean'], K['Laplace']['mean'])
+
+
 
 K['Laplace' ]['errJK'] = np.sqrt(nblom1*(np.square(K['Laplace']['blocksJK']).mean(axis=0) - np.square(K['Laplace']['mean']) ) )
 K['Volterra']['errJK'] = np.sqrt(nblom1*(np.square(K['Volterra']['blocksJK']).mean(axis=0) - np.square(K['Volterra']['mean'])))

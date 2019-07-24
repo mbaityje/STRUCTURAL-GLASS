@@ -32,7 +32,7 @@ for T in $(echo $LISTAT)
 do
 	echo "T = $T"
 	#	M=${allM[$T]} #for JK
-	M=3
+	M=5
 	for N in $(echo $LISTAN)
 	do
 		for thermostat in $(echo $LISTATHERMOSTAT)

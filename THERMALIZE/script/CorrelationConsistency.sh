@@ -41,11 +41,12 @@ for T in $(echo $LISTAT)
 do
 	for N in $(echo $LISTAN)
 	do
+		M=5
 		for thermostat in $(echo $LISTATHERMOSTAT)
 		do
 			cd $workDIR/T$T/N$N/
 			L="$(python $utilDIR/FindL.py ./S0/thermalized.gsd)"
-			python $exeDIR/CorrelationConsistency.py -L$L -T$T -N$N --thermostat=$thermostat $observables
+			python $exeDIR/CorrelationConsistency.py -L$L -T$T -N$N -M$M --thermostat=$thermostat $observables
 		done
 	done
 done

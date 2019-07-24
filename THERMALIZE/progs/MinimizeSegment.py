@@ -35,19 +35,20 @@ more_arguments=hoomd.option.get_user()
 
 #Read parameters
 parser = argparse.ArgumentParser(add_help=True)
-parser.add_argument('filename', nargs=1, help='name of the initial state .gsd')
-parser.add_argument('--nframes', nargs=1, type=int, required=True, help='Total number of frames')
+parser.add_argument('filename', help='name of the initial state .gsd')
+parser.add_argument('--nframes', type=int, required=True, help='Total number of frames')
 parser.add_argument('--iframe', nargs=1, type=int, required=False, default=[0], help='Frame to read from the gsd file (default is 0)')
-parser.add_argument('--saveISgsd', nargs=1, type=bool, required=False, default=[False], help='If True, saves the IS trajectory')
-parser.add_argument('--saveThermalgsd', nargs=1, type=bool, required=False, default=[False], help='If True, saves the thermal trajectory')
+
+parser.add_argument('--saveISgsd', action='store_true', help='If activated, saves the IS trajectory')
+parser.add_argument('--saveThermalgsd', action='store_true', help='If activated, saves the thermal trajectory')
 parser.add_argument('-l','--label', nargs=1, required=False, default=[''], help='label for distinguishing runs and continuations')
 args = parser.parse_args(more_arguments)
 
-filename=args.filename[0]
-nframes=args.nframes[0]
+filename=args.filename
+nframes=args.nframes
 iframe=args.iframe[0]
-saveISgsd=args.saveISgsd[0]
-saveThermalgsd=args.saveThermalgsd[0]
+saveISgsd=args.saveISgsd
+saveThermalgsd=args.saveThermalgsd
 label=str(args.label[0])
 dt=0.0025
 

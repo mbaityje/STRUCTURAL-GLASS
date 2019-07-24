@@ -6,11 +6,11 @@ tabella=../data/tau_alpha.txt
 echo "T N tau thermostat" > $tabella
 
 
-for T in 5.0 2.0 1.0 0.8 0.7 0.6 0.49 0.46
+for T in 5.0 2.0 1.0 0.8 0.7 0.6 0.55 0.52 0.49 0.46
 do
 	for N in 65
 	do
-		for thermostat in NVE NVT
+		for thermostat in NVT #NVE
 		do
 			Fkt_file="../../OUTPUT/T$T/N$N/shift/Fkt_ifr0_shift_${thermostat}.txt"
 			#Fkt_file="../../OUTPUT/T$T/N$N/shift/Fkt_aftergap_shift_${thermostat}.txt"

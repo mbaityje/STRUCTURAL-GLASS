@@ -1,23 +1,30 @@
 #!/usr/bin/env gnuplot
 reset
-set term post enh c eps font "Times-Roman,16" size 3,4
+set term post enh c eps font "Times-Roman,16" size 4,5
 
 set logs x
 set xlabel "{/Times-Italic t}"
-set ylabel "{/Times-Italic C}^{P}(t)"
+set ylabel "{/Times-Italic C^{P}}(t)"
 set tmargin 0
 set rmargin 0.5
 set lmargin 2
 set bmargin 2
 
 unset key
-set xtics format "10^{%T}" nomirror font ",12" offset -.4,.4
-set ytics nomirror font ",12" offset 0.7,0
-unset xlabel; unset ylabel
 
 set out "./FIGURES/CPPcheck.eps"
-set multiplot layout 4,3
+set multiplot layout 5,4
+
+set border 0; unset tics
+set ylabel "{/Times-Italic C^{P}}(t)" offset 13,0
+unset xlabel
+p [][-1:0] 1
+set border -1; set tics
+
 set label "{/Times-Italic T} = 5.0" at .05,4.5
+unset xlabel; unset ylabel
+set xtics format "10^{%T}" nomirror font ",12" offset -.4,.4
+set ytics nomirror font ",12" offset 0.7,0
 p [:1][-1.5:5.5]"../OUTPUT/T5.0/N1080/CPPcheckT5.0_NVT.txt" u 1:2 w lp lc rgb 'red' ps 0.2 t"Measured",\
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
@@ -30,7 +37,16 @@ p [:1][-0.3:1.1]"../OUTPUT/T1.0/N1080/CPPcheckT1.0_NVT.txt" u 1:2 w lp lc rgb 'r
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
 
+set border 0; unset tics
+set ylabel "{/Times-Italic C^{P}}(t)" offset 13,0
+unset xlabel
+p [][-1:0] 1
+set border -1; set tics
+
 set label "{/Times-Italic T} = 0.8" at .05,0.9*0.8
+unset xlabel; unset ylabel
+set xtics format "10^{%T}" nomirror font ",12" offset -.4,.4
+set ytics nomirror font ",12" offset 0.7,0
 p [:1][-0.3*0.8:1.1*0.8]"../OUTPUT/T0.8/N1080/CPPcheckT0.8_NVT.txt" u 1:2 w lp lc rgb 'red' ps 0.2 t"Measured",\
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
@@ -43,7 +59,16 @@ p [:1][-0.3*0.6:1.1*0.6]"../OUTPUT/T0.6/N1080/CPPcheckT0.6_NVT.txt" u 1:2 w lp l
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
 
+set border 0; unset tics
+set ylabel "{/Times-Italic C^{P}}(t)" offset 13,0
+unset xlabel
+p [][-1:0] 1
+set border -1; set tics
+
 set label "{/Times-Italic T} = 0.55" at .05,0.9*0.55
+unset xlabel; unset ylabel
+set xtics format "10^{%T}" nomirror font ",12" offset -.4,.4
+set ytics nomirror font ",12" offset 0.7,0
 p [:1][-0.3*0.55:1.1*0.55]"../OUTPUT/T0.55/N1080/CPPcheckT0.55_NVT.txt" u 1:2 w lp lc rgb 'red' ps 0.2 t"Measured",\
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
@@ -56,7 +81,16 @@ p [:1][-0.3*0.49:1.1*0.49]"../OUTPUT/T0.49/N1080/CPPcheckT0.49_NVT.txt" u 1:2 w 
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
 
+set border 0; unset tics
+set ylabel "{/Times-Italic C^{P}}(t)" offset 13,0
+unset xlabel
+p [][-1:0] 1
+set border -1; set tics
+
 set label "{/Times-Italic T} = 0.47" at .05,0.9*0.47
+unset xlabel; unset ylabel
+set xtics format "10^{%T}" nomirror font ",12" offset -.4,.4
+set ytics nomirror font ",12" offset 0.7,0
 p [:1][-0.3*0.47:1.1*0.47]"../OUTPUT/T0.47/N1080/CPPcheckT0.47_NVT.txt" u 1:2 w lp lc rgb 'red' ps 0.2 t"Measured",\
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
@@ -69,6 +103,16 @@ p [:1][-0.3*0.45:1.1*0.45]"../OUTPUT/T0.45/N1080/CPPcheckT0.45_NVT.txt" u 1:2 w 
 "" u 1:3 w lp lc rgb 'blue' ps 0.2 t"From memory function", 0 lc 0 lt 0
 unset label
 
+set border 0; unset tics
+unset ylabel;
+p [][-1:0] 1
+
+set border 0; unset tics
+set xlabel "{/Times-Italic t}" offset 0,8
+unset ylabel
+p [][-1:0] 1
+p [][-1:0] 1
+p [][-1:0] 1
 
 
 

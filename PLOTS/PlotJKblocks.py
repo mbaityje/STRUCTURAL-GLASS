@@ -15,6 +15,7 @@ parser.add_argument('-t','--thermostat', default='NVT', help='thermostat')
 parser.add_argument('-o','--obs', choices=['CPP','CFP','CFF','K'], default='CPP', help='What to plot')
 parser.add_argument('-M','--M', default=3, help='M of Gaver-Stehfest (only for K)')
 parser.add_argument('--nomean', action='store_true', help='if activated, mean is not plotted')
+parser.add_argument('--median', action='store_true', help='if activated, also plot the median')
 args = parser.parse_args()
 
 
@@ -28,7 +29,7 @@ if args.obs=='CPP' or args.obs=='CFP' or args.obs=='CFF':
 elif args.obs=='K':
 	filename=path+'/noisecorrJK_{}_M{}.npy'.format(args.thermostat,args.M)
 	corr=np.load(filename).item()['combine']
-	av=np.loadtxt(path+'noisecorr_{}_combine_M{}.txt'.format(args.thermostat,args.M))
+	av=np.loadtxt(path+'noisecorrJK_{}_M{}.txt'.format(args.thermostat,args.M))
 
 # LOAD DATA AVERAGE (average is different than mean because of the order of the operations)
 
@@ -42,10 +43,13 @@ nblo=len(corr['blocksJK'])
 for iblo in range(nblo):
 	plt.plot(times,corr['blocksJK'][iblo])
 if not args.nomean:
-	plt.errorbar(times, corr['mean'], yerr=corr['errJK'], linewidth=3, color='black')
-try:
-	plt.plot(av[:,0],av[:,1], label="Average", color='grey', linewidth=3)
-except NameError:
-	pass
-
+	#plt.errorbar(times, corr['mean'], yerr=corr['errJK'], linewidth=3, color='black')
+	try:
+		plt.plot(av[:,0],av[:,1], label="Average", color='grey', linewidth=3)
+	except NameError:
+		pass
+if args.median:
+	plt.plot(times, np.median(corr['blocksJK'][:], axis=0), label='median', linewidth=3, color='darkblue')
+	
+plt.legend()
 plt.show()

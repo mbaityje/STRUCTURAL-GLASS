@@ -43,6 +43,7 @@ print('N:',args.Natoms)
 print('L:',args.box_size)
 print('T:',args.temperature)
 print('n:',args.n)
+print('k:',np.float64(2*np.pi/L)*np.linalg.norm(args.n))
 print('nk:',len(all_n))
 
 
@@ -380,6 +381,10 @@ def CalculateVertex(pos, normk):
 		uAB=U(rvalues,'AB')
 		uBB=U(rvalues,'BB')
 
+		# plt.plot(rvalues[1:],gAB[1:])
+		# plt.show()
+		# raise KeyboardInterrupt('Fine Prova')
+
 		gU= (nAA*gAA[1:]*uAA[1:] + nBB*gBB[1:]*uBB[1:] + nAB*gAB[1:]*uAB[1:])/ (nAA+nBB+nAB) #The first point is nan because U(0)=infty and g(0)=0, this is why [1:]
 
 		vertex[itw] = 4*np.pi*normk*integrate.simps( rvalues[1:]*gU*np.sin(rvalues[1:]*normk) , x=rvalues[1:])
@@ -465,6 +470,7 @@ def WriteCorrelations(k):
 	print('WriteCorrelations')
 	if args.thermostat=='*': 
 		args.thermostat=''
+
 	np.savetxt('vertexObs_{}_k{}.txt'.format(args.thermostat,k), 
 		np.column_stack((
 			obs['few_times'], 
@@ -477,7 +483,9 @@ def WriteCorrelations(k):
 			)), 
 		fmt=['%.14g','%.14g','%.14g','%.14g','%.14g','%.14g','%.14g','%.14g','%.14g','%.14g','%.14g','%.14g','%.14g'], 
 		header='time n1 n2 n3 k Fkt(self) errFktSelf Fkt(collective) errFktColl vertex errVertex integrand errIntegrand')
-	np.save('vertexObs_{}_k{}.npy'.format(args.thermostat,k), obs)
+
+	fbin=open('vertexObs_{}_k{}.npy'.format(args.thermostat,k),'wb')
+	np.save(fbin, obs)
 	return
 
 
